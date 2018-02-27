@@ -1,7 +1,13 @@
 .Epdf{
-    margin-top: -30px;
-    margin-right: 20px;
+    margin-right: 150px;
     cursor:pointer
+}
+.btn-pdf {
+    margin-top: -45px;
+}
+.chk-scatter {
+    margin-top: 15px;
+    margin-right: 5px;
 }
 
 @media(max-width: 991px){
@@ -9,7 +15,7 @@
         font-size: 16px;
     }
     .Epdf {
-        margin-right: 10px;
+        margin-right: 30px;
     }
 }
 
@@ -17,19 +23,39 @@
     margin-left: -20px;
 }
 .turbine-list{
-    width: 150px;
+    width: 84px;
 }
 .project-list{
-    width: 150px;
+    width: 170px;
 }
 .mgb10{
     margin-bottom: 7px;
+}
+.dynamic-filter{
+    margin-bottom: 7px;
+}
+
+.add-filter-btn {
+    margin-right: 10px;
+}
+.remove-btn{
+    margin-top: -15px;
+    padding: 0px 4px;
+    font-size: 10px;
+    color: red;
+}
+.horizontal-line{
+    margin-top: 5px;
+    margin-bottom: 2px;
 }
 .mgb15{
     margin-bottom: 15px;
 }
 .period-list{
     width: 75px;
+}
+.lbl-period{
+    padding-top: 10px !important;
 }
 .bread-info {
     margin-top: 11px;
@@ -43,11 +69,15 @@
     padding-left: 60px;
 }
 .label-to{
-    width:40px;
+    width:10px;
     text-align: center;
-    margin-left: -5px;
+    margin: 2px;
 }
 .filter-part{
+    padding-left: 10px;
+    margin-top: -35px;
+}
+.button-group-part{
     padding-left: 10px;
 }
 .template-pdf{
@@ -67,8 +97,6 @@
     border: 1px solid #fff;
     border-radius: 0px;
     font-size: 12px!important;
-    background: #fff;
-    width: 160px;
 }
 .multiselect.dropdown-toggle.btn.btn-default:hover{
     padding: 5px!important;

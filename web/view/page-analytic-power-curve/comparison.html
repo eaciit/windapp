@@ -19,10 +19,22 @@
                     <div class="clearfix">&nbsp;</div>
 
 					<div class="col-md-8">
-						<div class="tools btn-group pull-right btn-pdf">
+						<div class="tools pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Excel" data-bind="click:function(){pc.getPDF('.div-comparison')}">
+						    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+						  	</button>
 							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){pc.getPDF('.div-comparison')}">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
+							<div class="checkbox btn-group chk-scatter">
+								<label>
+		                            <input type="checkbox" id="sScater" name="filter" value="Scatter" >
+		                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+		                            <span class="colRed"><b class="colBlack">Show Scatter</b></span>
+		                        </label>
+							</div>
+							<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+							<button class="btn btn-sm btn-success add-filter-btn" onclick="pc.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add filter</button>
 						</div>
 						<div class="div-comparison">
 							<div class="panel-heading template-pdf" style="margin-top: -10px">
@@ -33,127 +45,9 @@
 							</div>
 							<div id="chartPCcomparison"></div>
 						</div>
-					</div>
-
-				<!--</div>
-			</div>
-		</div>
-		<div class="col-md-4 col-sm-4 hardcore landing">
-			<div class="panel ez no-padding hardcore">
-				<div class="panel-heading">
-				</div>
-				<div class="panel-body">-->
-
-					
+					</div>					
 					<div class="col-md-4 filter-part">
-						<div class="row mgb10 hide">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Filter</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<h5><b>  </b> </h5>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Project</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
-			                	</select>
-							</div>
-						</div>
-						<!-- <div class="clearfix">&nbsp;</div> -->
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding" >Turbine 1</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoDropDownList: { data: pc.turbineList, dataValueField: 'value', dataTextField: 'label', suggest: true }">
-				                </select>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Period</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod()} }">
-			               		</select>
-
-			               		<span class="show_hide custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label no-padding label-to">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-
-							</div>
-						</div>
-
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding"> </label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<h5><b> VS </b></h5>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Project</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="project-list" id="projectList2" name="table" data-bind="kendoDropDownList: { data: pc.projectList, dataValueField: 'value', dataTextField: 'text', suggest: true }">
-				                </select>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Turbine 2</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: pc.turbineList2, dataValueField: 'value', dataTextField: 'label',  suggest: true }">
-				                </select>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Period</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="period-list" id="periodList2" name="table" data-bind="kendoDropDownList: { data: pc.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {pc.showHidePeriod2()} }">
-			               		</select>
-
-			               		<span class="show_hide2 custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label no-padding label-to">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-
-							</div>
-						</div>
-						<br>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding"></label>
-							</div>
-							<div class="col-md-2 no-padding">
-								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
-							</div>
-							<div class="col-md-8 no-padding">
-								<div class="checkbox">
-									<label>
-			                            <input type="checkbox" id="sScater" name="filter" value="Scatter" >
-			                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-			                            <span class="colRed"><b class="colBlack">Show Scatter</b></span>
-			                        </label>
-								</div>
-							</div>
-						</div>
+					</div>
 				</div>
 			</div>
 		</div>
