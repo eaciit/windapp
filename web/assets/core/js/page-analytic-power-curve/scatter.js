@@ -176,7 +176,7 @@ page.refreshChart = function() {
 
 page.getPowerCurveScatter = function() {
     app.loading(true);
-    page.plotWith = $.grep(page.scatterList(), function(e){ return e.Id == $("#scatterType").data("kendoDropDownList").value(); })[0];
+    page.plotWith = $.grep(page.scatterList(), function(e){ return e.Name == $("#scatterType").data("kendoDropDownList").value(); })[0];
 
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
@@ -210,32 +210,6 @@ page.getPowerCurveScatter = function() {
         yAxes.push(yAxis);
         var axis = page.setAxis("PlotWith", page.plotWith.Text);
         yAxes.push(axis);
-        // switch(page.scatterType) {
-        //     case "temp":
-        //         var axis = page.setAxis("tempAxis", "Temperature (Celsius)");
-        //         yAxes.push(axis);
-        //         break;
-        //     case "deviation":
-        //         var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
-        //         yAxes.push(axis);
-        //         break;
-        //     case "pitch":
-        //         var axis = page.setAxis("pitchAxis", "Angle (Degree)");
-        //         yAxes.push(axis);
-        //         break;
-        //     case "ambient":
-        //         var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
-        //         yAxes.push(axis);
-        //         break;
-        //     case "windspeed_dev":
-        //         var axis = page.setAxis("windspeed_dev", "Wind Speed Std. Dev.");
-        //         yAxes.push(axis);
-        //         break;
-        //     case "windspeed_ti":
-        //         var axis = page.setAxis("windspeed_ti", "TI Wind Speed");
-        //         yAxes.push(axis);
-        //         break;
-        // }
 
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
