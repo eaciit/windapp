@@ -2968,11 +2968,11 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContex
 	resWSvsTipe := []tk.M{}
 
 	if p.PlotWith.Source == "ScadaData" {
-		resWSvsPower, resWSvsTipe = getScatterValue(list, p.PlotWith.Name, fieldid)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid)
 	} else {
-		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, p.PlotWith.Name, fieldid)
+		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid)
 	}
-	seriesData = setScatterData(p.PlotWith.Text, "WindSpeed", p.PlotWith.Name, colorField[2], "PlotWith", tk.M{"size": 2}, resWSvsTipe)
+	seriesData = setScatterData(p.PlotWith.Text, "WindSpeed", strings.Replace(p.PlotWith.Name, " ", "_", -1), colorField[2], "PlotWith", tk.M{"size": 2}, resWSvsTipe)
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 
 	dataSeries = append(dataSeries, turbineData)
