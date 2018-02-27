@@ -56,18 +56,16 @@ page.hexToRgb = function(hex) {
 }
 
 page.SetValueFields = function(){
-    setTimeout(function(){
-        $("#xAxis").data("kendoDropDownList").select(1);
-        $("#yAxis").data("kendoDropDownList").select(2);
-        $("#y2Axis").data("kendoDropDownList").select(0);
-        var date = new Date();
-        date.setDate(date.getDate() - 1);
-        $('#dateEnd').data("kendoDatePicker").value(date);
+    $("#xAxis").data("kendoDropDownList").select(1);
+    $("#yAxis").data("kendoDropDownList").select(2);
+    $("#y2Axis").data("kendoDropDownList").select(0);
+    var date = new Date();
+    date.setDate(date.getDate() - 1);
+    $('#dateEnd').data("kendoDatePicker").value(date);
 
-        var date2 = new Date();
-        date2.setDate(date2.getDate() - 2);
-        $('#dateStart').data("kendoDatePicker").value(date2);
-    },500);
+    var date2 = new Date();
+    date2.setDate(date2.getDate() - 2);
+    $('#dateStart').data("kendoDatePicker").value(date2);
 }
 
 page.checkProject = function (elmId) {
@@ -91,16 +89,15 @@ page.GetFieldList = function(){
 
         var data = res.data;
         if(data !== null){
-            setTimeout(function(){
-                page.FieldList(data);
-                page.xAxis(data);
-                page.yAxis(data);
-                page.y2Axis(data);
-
+            page.FieldList(data);
+            page.xAxis(data);
+            page.yAxis(data);
+            page.y2Axis(data);
+            window.setTimeout(function(){
                 $("#xAxis").data("kendoDropDownList").select(1);
                 $("#yAxis").data("kendoDropDownList").select(2);
                 $("#y2Axis").data("kendoDropDownList").select(0);
-            },300)
+            },500)
         }   
     });
 }
@@ -109,48 +106,43 @@ page.InitDefaultValue = function () {
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
     $("#StateList").data("kendoDropDownList").trigger("change");
-    setTimeout(function(){
-        $.when(page.SetValueFields()).done(function(){
-            page.checkKey();
-        });
-    },500)
+    $.when(page.SetValueFields()).done(function(){
+        page.checkKey();
+    });
 
 }
 
 page.SetProjectList = function(){
-    setTimeout(function(){
-        var state = $("#StateList").data("kendoDropDownList").value();
-        page.ProjectListState([]);
+    var state = $("#StateList").data("kendoDropDownList").value();
+    page.ProjectListState([]);
 
-        $.each(page.ProjectList(), function(i , val){
-            if(val.State == state){
-                page.ProjectListState().push(val);
-            }
-        });
-        page.selectedProjectList([page.ProjectListState()[0].ProjectId]);
-        $("#ProjectList").data("kendoMultiSelect").setDataSource(page.ProjectListState());
-        $('#ProjectList').data('kendoMultiSelect').value([page.selectedProjectList()]);
-        $("#ProjectList").data("kendoMultiSelect").trigger("change");
-    },500)
+    $.each(page.ProjectList(), function(i , val){
+        if(val.State == state){
+            page.ProjectListState().push(val);
+        }
+    });
+    page.selectedProjectList([page.ProjectListState()[0].ProjectId]);
+    $("#ProjectList").data("kendoMultiSelect").setDataSource(page.ProjectListState());
+    $('#ProjectList').data('kendoMultiSelect').value([page.selectedProjectList()]);
+    $("#ProjectList").data("kendoMultiSelect").trigger("change");
 
 }
 
 page.SetTurbineList = function(){
     page.TurbineListByProject([]);
-    setTimeout(function(){
-        var projectList = $("#ProjectList").data("kendoMultiSelect").value();
 
-        $.each(projectList, function(i, val){
-            $.each(page.TurbineList(), function(key, value){
-                if(val == value.Project){
-                    page.TurbineListByProject().push({label: value.Turbine, value: value.Value});
-                }
-            });
+    var projectList = $("#ProjectList").data("kendoMultiSelect").value();
+
+    $.each(projectList, function(i, val){
+        $.each(page.TurbineList(), function(key, value){
+            if(val == value.Project){
+                page.TurbineListByProject().push({label: value.Turbine, value: value.Value});
+            }
         });
-        $("#turbineList").multiselect("dataprovider",page.TurbineListByProject());
-        $('#turbineList').multiselect('select', page.TurbineListByProject()[0].value);
-        $("#turbineList").multiselect("refresh");
-    },500);
+    });
+    $("#turbineList").multiselect("dataprovider",page.TurbineListByProject());
+    $('#turbineList').multiselect('select', page.TurbineListByProject()[0].value);
+    $("#turbineList").multiselect("refresh");
 }
 
 page.checkKey = function () {
@@ -275,7 +267,6 @@ page.GetValueField = function(id){
 }
 page.LoadData = function(){
     app.loading(true);
-
     var url = viewModel.appName + 'xyanalysis/getdata';
     var param = {
         period : $('#periodList').data('kendoDropDownList').value(),
@@ -532,8 +523,8 @@ page.showHideLegend = function(idx) {
 }
 
 $(function() {
-    
 
+    app.loading(true);
     $("#ProjectList").kendoMultiSelect({
         dataSource: page.ProjectListState(), 
         dataValueField: 'ProjectId', 
@@ -550,25 +541,16 @@ $(function() {
         enableCaseInsensitiveFiltering: true,
         enableFiltering: true,
         maxHeight: 200,
-        dropRight: false,
-        onDropdownHide: function(event) {
-            // fa.checkTurbine();
-            // fa.currentFilter().turbine = this.$select.val();
-            // fa.checkFilter();
-        },
+        dropRight: false
     });
 
     $('#btnRefresh').on('click', function() {
-        setTimeout(function() {
-            page.LoadData();
-        }, 300);
+        page.LoadData();
     });
 
-
-    app.loading(true);
-    page.InitDefaultValue();
-    setTimeout(function() {
-        page.LoadData();
-    }, 1500);
-
+    $.when(page.InitDefaultValue()).done(function(){
+        window.setTimeout(function() {
+            page.LoadData();
+        }, 1500);
+    })
 });
