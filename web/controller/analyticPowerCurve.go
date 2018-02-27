@@ -1494,7 +1494,7 @@ func setScatterData(name, xField, yField, color, yAxis string, marker tk.M, data
 	}
 }
 
-func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+func getScatterValue(list []tk.M, tipe, field, project string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
 	resWSvsPower = []tk.M{}
 	resWSvsTipe = []tk.M{}
 	dataWSvsPower := tk.M{}
@@ -1513,6 +1513,15 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 			dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
 			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
 			dataWSvsTipe.Set("valueColor", colorField[2])
+
+			if tipe == "Nacelle_Deviation" && project == "Lahori" {
+				_val := val.GetFloat64(field) - val.GetFloat64("naceldirection")
+				dataWSvsTipe.Set(tipe, _val)
+			}
+
+			if tipe == "Nacelle_Deviation" && project == "Lahori" && val.GetFloat64("naceldirection") == 0 {
+				continue
+			}
 
 			resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
 		}
@@ -1548,7 +1557,7 @@ func getScatterValue10Min(list []tk.M, tipe, field string, isTI bool) (resWSvsPo
 	return
 }
 
-func getScatterValue10MinRev(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+func getScatterValue10MinRev(list []tk.M, tipe, field, project string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
 	resWSvsPower = []tk.M{}
 	resWSvsTipe = []tk.M{}
 	dataWSvsPower := tk.M{}
@@ -1564,11 +1573,11 @@ func getScatterValue10MinRev(list []tk.M, tipe, field string) (resWSvsPower []tk
 		resWSvsPower = append(resWSvsPower, dataWSvsPower)
 
 		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
-		if tipe == "TI Wind Speed" {
+		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		if tipe == "TI_Wind_Speed" {
 			dataWSvsTipe.Set(tipe, tk.Div(val.GetFloat64(field), val.GetFloat64("windspeed_ms")))
-		} else {
-			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
 		}
+
 		dataWSvsTipe.Set("valueColor", colorField[2])
 
 		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
@@ -1680,16 +1689,16 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 	switch scatterType {
 	case "temp":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature", p.Project)
 		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "winddirection")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "winddirection", p.Project)
 		seriesData = setScatterData("Nacelle Deviation", "WindSpeed", "NacelleDeviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle", p.Project)
 		seriesData = setScatterData("Pitch Angle", "WindSpeed", "PitchAngle", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "ambient":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature", p.Project)
 		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "windspeed_dev":
 		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedStdDev", "windspeed_ms_stddev", false)
@@ -2927,7 +2936,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContex
 		filter = append(filter, dbox.Eq("available", 1))
 
 		csr, e = DB().Connection.NewQuery().
-			Select("power", "avgwindspeed", fieldid).
+			Select("power", "avgwindspeed", fieldid, "naceldirection"). // for lahori, NacelDirection
 			From(new(ScadaData).TableName()).
 			Where(dbox.And(filter...)).
 			Take(10000).
@@ -2968,9 +2977,9 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContex
 	resWSvsTipe := []tk.M{}
 
 	if p.PlotWith.Source == "ScadaData" {
-		resWSvsPower, resWSvsTipe = getScatterValue(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid, p.Project)
 	} else {
-		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid)
+		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid, p.Project)
 	}
 	seriesData = setScatterData(p.PlotWith.Text, "WindSpeed", strings.Replace(p.PlotWith.Name, " ", "_", -1), colorField[2], "PlotWith", tk.M{"size": 2}, resWSvsTipe)
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
