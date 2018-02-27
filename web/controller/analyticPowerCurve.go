@@ -2823,7 +2823,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 	// }
 
 	pipe := []tk.M{}
-	matches := tk.M{}.Set("InScatter", tk.M{}.Set("$ne", ""))
+	matches := tk.M{}.Set("inscatter", tk.M{}.Set("$ne", ""))
 	// if len(p.Project) >= 1 {
 	// 	matches.Set("projectname", p.Project[0])
 	// 	if len(p.Project) > 1 {
@@ -2854,7 +2854,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 		if e != nil {
 			break
 		}
-
+		// tk.Println(tkm)
 		_id := tkm.Get("_id", tk.M{}).(tk.M)
 		field := _id.GetString("scada10min")
 		if _id.GetString("inscatter") == "ScadaData" {
