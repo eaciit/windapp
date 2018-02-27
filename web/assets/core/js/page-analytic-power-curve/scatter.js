@@ -44,17 +44,8 @@ page.getPDF = function(selector){
     });
 }
 
-page.scatterType = ko.observable('');
-page.scatterList = ko.observableArray([
-    { "value": "temp", "text": "Nacelle Temperature" },
-    { "value": "deviation", "text": "Nacelle Deviation" },
-    { "value": "pitch", "text": "Pitch Angle" },
-    { "value": "ambient", "text": "Ambient Temperature" },
-    { "value": "windspeed_dev", "text": "Wind Speed Std. Dev." },
-    { "value": "windspeed_ti", "text": "TI Wind Speed" },
-    // { "value": "mainbearing", "text": "Temp Main Bearing" },
-    // { "value": "gearbox", "text": "Temp  Gearbox HSS De" },
-]);
+page.plotWith = ko.observable();
+page.scatterList = ko.observableArray([]);
 
 vm.currentMenu('Scatter');
 vm.currentTitle('Scatter');
@@ -185,7 +176,7 @@ page.refreshChart = function() {
 
 page.getPowerCurveScatter = function() {
     app.loading(true);
-    page.scatterType = $("#scatterType").data('kendoDropDownList').value();
+    page.plotWith = $.grep(page.scatterList(), function(e){ return e.Id == $("#scatterType").data("kendoDropDownList").value(); })[0];
 
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
@@ -197,10 +188,12 @@ page.getPowerCurveScatter = function() {
         dateEnd: dateEnd,
         turbine: $("#turbineList").val(),
         project: $('#projectList').data("kendoDropDownList").value(),
-        scatterType: page.scatterType,
+        plotWith: page.plotWith,
     };
 
-    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurvescatter", param, function(res) {
+    // console.log(plotWith.Text)
+
+    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurvescatterrev", param, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -212,36 +205,37 @@ page.getPowerCurveScatter = function() {
         $("#turbineName").html($("#turbineList option:selected").text());
         
         var dtSeries = res.data.Data;
-        
         var yAxes = [];
         var yAxis = page.setAxis("powerAxis", "Generation (KW)");
         yAxes.push(yAxis);
-        switch(page.scatterType) {
-            case "temp":
-                var axis = page.setAxis("tempAxis", "Temperature (Celsius)");
-                yAxes.push(axis);
-                break;
-            case "deviation":
-                var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
-                yAxes.push(axis);
-                break;
-            case "pitch":
-                var axis = page.setAxis("pitchAxis", "Angle (Degree)");
-                yAxes.push(axis);
-                break;
-            case "ambient":
-                var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
-                yAxes.push(axis);
-                break;
-            case "windspeed_dev":
-                var axis = page.setAxis("windspeed_dev", "Wind Speed Std. Dev.");
-                yAxes.push(axis);
-                break;
-            case "windspeed_ti":
-                var axis = page.setAxis("windspeed_ti", "TI Wind Speed");
-                yAxes.push(axis);
-                break;
-        }
+        var axis = page.setAxis("PlotWith", page.plotWith.Text);
+        yAxes.push(axis);
+        // switch(page.scatterType) {
+        //     case "temp":
+        //         var axis = page.setAxis("tempAxis", "Temperature (Celsius)");
+        //         yAxes.push(axis);
+        //         break;
+        //     case "deviation":
+        //         var axis = page.setAxis("deviationAxis", "Wind Direction (Degree)");
+        //         yAxes.push(axis);
+        //         break;
+        //     case "pitch":
+        //         var axis = page.setAxis("pitchAxis", "Angle (Degree)");
+        //         yAxes.push(axis);
+        //         break;
+        //     case "ambient":
+        //         var axis = page.setAxis("ambientAxis", "Temperature (Celcius)");
+        //         yAxes.push(axis);
+        //         break;
+        //     case "windspeed_dev":
+        //         var axis = page.setAxis("windspeed_dev", "Wind Speed Std. Dev.");
+        //         yAxes.push(axis);
+        //         break;
+        //     case "windspeed_ti":
+        //         var axis = page.setAxis("windspeed_ti", "TI Wind Speed");
+        //         yAxes.push(axis);
+        //         break;
+        // }
 
         $('#scatterChart').html("");
         $("#scatterChart").kendoChart({
@@ -328,6 +322,25 @@ page.getPowerCurveScatter = function() {
     });
 }
 
+page.getPowerCurveScatterFieldList = function(){
+    // var param  = {project : $('#ProjectList').data('kendoMultiSelect').value()}
+    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {}, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+
+        var data = res.data;
+        if(data !== null){
+            setTimeout(function(){
+                page.scatterList(data);
+                $("#scatterType").data("kendoDropDownList").select(0);
+            },300)
+        }   
+    });
+
+    return page.scatterList[0]
+}
+
 $(document).ready(function() {
 
     $('#btnRefresh').on('click', function() {
@@ -357,8 +370,12 @@ $(document).ready(function() {
             page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
 
-            page.LoadData();
-        },600);
+            $.when(page.getPowerCurveScatterFieldList()).done(function() {
+                setTimeout(function(){
+                    page.LoadData();
+                },600);}
+            )
+        },1000);
         
     });
 });
