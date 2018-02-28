@@ -741,7 +741,12 @@ $(document).ready(function () {
         dataValueField: 'value', 
         dataTextField: 'text', 
         change: function() {
-            pc.populateTurbine();
+            if ($("#projectList").data("kendoMultiSelect").value().length > 0) {
+                pc.populateTurbine();
+            } else {
+                $('#projectList').data('kendoMultiSelect').value([pc.projectList()[0].value]);
+                $("#projectList").data("kendoMultiSelect").trigger("change");
+            }
         }, 
         suggest: true
     });
