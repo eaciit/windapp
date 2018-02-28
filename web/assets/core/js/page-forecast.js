@@ -4,6 +4,8 @@ viewModel.Forecasting = new Object();
 var pg = viewModel.Forecasting;
 var heightSub = 200;
 
+var startClock = true;
+
 vm.currentMenu('Forecasting & Scheduling');
 vm.currentTitle('Forecasting & Scheduling');
 vm.breadcrumb([{ title: 'Forecasting & Scheduling', href: viewModel.appName + 'page/forecasting' }]);
@@ -21,8 +23,14 @@ pg.Series = ko.observableArray([]);
 pg.MaxValue = ko.observable(0);
 pg.SelectedSeries = ko.observable('');
 
-var timefilter = moment.utc().add(6.5, 'hour');
+var timeNow = moment.utc().add(5.5, 'hour');
+var sDateNow = timeNow.format('YYYY-MM-DD');
+var timefilter = moment.utc().add(7, 'hour');
 pg.TimeFilter = ko.observable(timefilter);
+
+pg.allowedMinTimeBlock = ko.observable(1);
+pg.allowedTimeBlock = ko.observable(timeNow);
+pg.currentRevNo = ko.observable('1');
 
 pg.getData = function() {
     app.loading(true);
@@ -58,7 +66,7 @@ pg.getData = function() {
                 delim = ' | ';
             });
             var revNo = subject0.toLowerCase().split('rev')[1].trim();
-            var text = 'Send email for current day Rev '+ revNo;
+            var text = 'Send email for current day Rev '+ (pg.currentRevNo()==''?revNo:pg.currentRevNo());
             $('.date-info').html(subjects);
         } else {
             var text = 'Send email for current day Rev 0';
@@ -177,8 +185,8 @@ pg.genereateGrid = function(){
                 input: true,
                 numeric: false,
                 change: function(e) {
-                    var timefilter = moment.utc().add(6.5, 'hour');
-                    pg.TimeFilter = ko.observable(timefilter);
+                    var timeFilter = moment.utc().add(7, 'hour');
+                    pg.TimeFilter = ko.observable(timeFilter);
                 },
             },
             cellClose:  function(e) {
@@ -306,6 +314,7 @@ pg.genereateGrid = function(){
                 var avgCap = data.AvaCap;
                 var timeStamp = data.TimeStamp;
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
+                // var isAllowed = (schFcast != null && pg.allowedTimeBlock().isAfter(timefilter));
                 var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
@@ -623,13 +632,13 @@ pg.initLoad = function() {
             max: lastEndDate,
         });
         elmDateEnd.value(lastEndDate);
-        // elmDateEnd.trigger("change");
+        elmDateEnd.trigger("change");
 
         // elmDateStart.bind('change', pg.dateStartChanged);
 
         di.getAvailDate();
         pg.refresh();
-    }, 500);
+    }, 700);
 }
 pg.dateStartChanged = function(e) {
     var newMaxDate = new Date(moment().utc().add(1, 'days').year(), moment().utc().add(1, 'days').month(), moment().utc().add(1, 'days').date());
@@ -653,6 +662,8 @@ pg.refresh = function() {
     pg.Axis1({min:0,max:0});
     pg.Axis2({min:0,max:0});
     pg.getData();
+    startClock = true;
+    pg.clock();
 }
 
 pg.showTurbineDown = function() {
@@ -696,6 +707,42 @@ pg.saveData = function() {
     pg.EditMode('saved');
 }
 
+pg.clock = function() {
+    setInterval(function(){
+        var timeNow = moment().utc().add(5.5,'hours');
+        var timeClock = timeNow.format("HH:mm:ss");
+        var currMin = timeNow.minute();
+        var currSTime = timeNow.format("HH:mm");
+        if(currMin==0 || currMin==30 || startClock) {
+            pg.checkLatestRevNo(currSTime);
+        }
+        startClock = false;
+        $('#clock').html(timeClock);
+    },1000);
+}
+pg.checkLatestRevNo = function(currSTime) {
+    var currTime = moment(timeNow.format("YYYY-MM-DD") + ' ' + currSTime);
+    var projects = fa.rawproject();
+    if(projects.length > 0) {
+        var currProject = _.find(projects, function(o){ return o.ProjectId == fa.project });
+        var revInfos = currProject.ForecastRevInfos;
+        if(revInfos!=null) {
+            for(var i=0;i<revInfos.length;i++) {
+                var v = revInfos[i];
+                if(i>1) {
+                    var timeMax = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.rev_time_max);
+                    if(timeMax.isAfter(currTime)) {
+                        pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
+                        pg.allowedTimeBlock(timeMax);
+                        pg.currentRevNo(parseInt(v.rev_no).toString());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 $(function(){
     $('#projectList').kendoDropDownList({
         change: function () {  
@@ -726,4 +773,5 @@ $(function(){
     });
 
     pg.initLoad();
+    pg.clock();
 })

@@ -119,3 +119,14 @@ tr:hover .cell-editable {
     min-width: 100%;
     margin-bottom: 5px;
 }
+#clock-wrapper {
+    font-size: 13px;
+    text-align: center;
+}
+#clock-wrapper label {
+    font-weight: 500;
+}
+#clock-wrapper span {
+    font-size: 14px;
+    font-weight: 600;
+}

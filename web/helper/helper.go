@@ -813,6 +813,9 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			STD_AirDensity:    val.STD_AirDensity,
 			Engine:            val.Engine,
 			State:             val.State,
+			ForecastMinCap:    val.Forecast_Min_Cap,
+			ForecastMaxCap:    val.Forecast_Max_Cap,
+			ForecastRevInfos:  val.Forecast_Revision_Info,
 		})
 	}
 

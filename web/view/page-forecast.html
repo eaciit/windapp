@@ -39,6 +39,10 @@
 											<div class="col-md-2 grid-send-mail">
 												<button type="button" class="btn btn-primary btn-sm" data-bind="text: pg.TextSendMailToday()" onclick="pg.SendEmail('today')">Send email for current day Rev 0</button>
 												<button type="button" class="btn btn-warning btn-sm" onclick="pg.SendEmail('nextday')">Send email for Rev 0 for next day</button>
+												<div id="clock-wrapper">
+													<label>Current Time (IST) : </label>
+													<span id="clock"></span>
+												</div>
 											</div>
 											<div class="clearfix"></div>
 										</div>

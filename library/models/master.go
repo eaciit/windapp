@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/eaciit/orm"
+	"github.com/eaciit/toolkit"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -62,20 +63,23 @@ func (m *StrangethresholdMaster) TableName() string {
 }
 
 type ProjectMaster struct {
-	orm.ModelBase     `bson:"-" json:"-"`
-	ID                bson.ObjectId ` bson:"_id" json:"_id" `
-	ProjectId         string
-	ProjectName       string
-	TotalPower        float64
-	Latitude          float64
-	Longitude         float64
-	TotalTurbine      int
-	RevenueMultiplier float64
-	State             string
-	City              string
-	SS_AirDensity     float64
-	STD_AirDensity    float64
-	Engine            []string
+	orm.ModelBase          `bson:"-" json:"-"`
+	ID                     bson.ObjectId ` bson:"_id" json:"_id" `
+	ProjectId              string
+	ProjectName            string
+	TotalPower             float64
+	Latitude               float64
+	Longitude              float64
+	TotalTurbine           int
+	RevenueMultiplier      float64
+	State                  string
+	City                   string
+	SS_AirDensity          float64
+	STD_AirDensity         float64
+	Engine                 []string
+	Forecast_Min_Cap       float64
+	Forecast_Max_Cap       float64
+	Forecast_Revision_Info []toolkit.M
 }
 
 func (m *ProjectMaster) New() *ProjectMaster {
@@ -117,6 +121,9 @@ type ProjectOut struct {
 	SS_AirDensity     float64
 	STD_AirDensity    float64
 	Engine            []string
+	ForecastMinCap    float64
+	ForecastMaxCap    float64
+	ForecastRevInfos  []toolkit.M
 }
 
 type StrangethresholdOld struct {
