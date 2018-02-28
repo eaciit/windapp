@@ -296,24 +296,17 @@ page.getPowerCurveScatter = function() {
     });
 }
 
-page.getPowerCurveScatterFieldList = function(){
-    // var param  = {project : $('#ProjectList').data('kendoMultiSelect').value()}
-    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {}, function(res) {
+page.getPowerCurveScatterFieldList = toolkit.ajaxPostDeffered(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {}, function(res) {
         if (!app.isFine(res)) {
             return;
         }
 
         var data = res.data;
         if(data !== null){
-            setTimeout(function(){
-                page.scatterList(data);
-                $("#scatterType").data("kendoDropDownList").select(0);
-            },300)
+            page.scatterList(data);
+            $("#scatterType").data("kendoDropDownList").select(0);
         }   
     });
-
-    return page.scatterList[0]
-}
 
 $(document).ready(function() {
 
@@ -344,11 +337,9 @@ $(document).ready(function() {
             page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
 
-            $.when(page.getPowerCurveScatterFieldList()).done(function() {
-                setTimeout(function(){
-                    page.LoadData();
-                },600);}
-            )
+            $.when(page.getPowerCurveScatterFieldList).done(function(d) {
+                page.LoadData();
+            })
         },1000);
         
     });
