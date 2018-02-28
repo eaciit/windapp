@@ -4,9 +4,32 @@
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/comparison.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/comparison.css">
-
+<style type="text/css">
+	.filter-content > .control-label , .input-group > .control-label {
+	    width: 55px;
+	}
+</style>
 
 <div class="row mt15">
+	<div class="row button-area">
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="nav nav-pills nav-replace-title">
+				<div class="col-md-12 col-sm-12 filter-content">
+					<label class="col-md-1 col-sm-1 control-label">Project</label>
+					<select class="col-md-4 col-sm-4 project-list no-padding" id="projectList" name="table"></select>
+					<button type="button" id="btnRefresh" class="col-md-1 col-sm-1 btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+					<button class="col-md-1 col-sm-1 btn btn-sm btn-success" onclick="pc.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add filter</button>
+					<div class="col-md-2 col-sm-2 checkbox btn-group">
+						<label>
+                            <input type="checkbox" id="sScater" name="filter" value="Scatter" >
+                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                            <span class="colRed"><b class="colBlack">Show Scatter</b></span>
+                        </label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
@@ -26,21 +49,12 @@
 							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){pc.getPDF('.div-comparison')}">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
-							<div class="checkbox btn-group chk-scatter">
-								<label>
-		                            <input type="checkbox" id="sScater" name="filter" value="Scatter" >
-		                            <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
-		                            <span class="colRed"><b class="colBlack">Show Scatter</b></span>
-		                        </label>
-							</div>
-							<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
-							<button class="btn btn-sm btn-success add-filter-btn" onclick="pc.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add filter</button>
 						</div>
 						<div class="div-comparison">
 							<div class="panel-heading template-pdf" style="margin-top: -10px">
 								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
 								<div class="col-md-12 text-center title-pdf">
-									<span data-bind="text:pc.project()"></span> | Power Curve Comparison
+									<span data-bind="text:pc.project()"></span>Power Curve Comparison
 								</div>
 							</div>
 							<div id="chartPCcomparison"></div>
@@ -56,5 +70,5 @@
 
 <div class="clearfix"></div>
 <script>
-	pc.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+	pc.setProjectTurbine({{.ProjectList}}, {{.TurbineList}});
 </script>

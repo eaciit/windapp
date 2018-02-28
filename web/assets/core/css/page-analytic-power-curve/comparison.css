@@ -1,13 +1,9 @@
 .Epdf{
-    margin-right: 150px;
+    margin-right: 10px;
     cursor:pointer
 }
 .btn-pdf {
-    margin-top: -45px;
-}
-.chk-scatter {
-    margin-top: 15px;
-    margin-right: 5px;
+    margin-top: -35px;
 }
 
 @media(max-width: 991px){
@@ -15,18 +11,12 @@
         font-size: 16px;
     }
     .Epdf {
-        margin-right: 30px;
+        margin-right: 10px;
     }
 }
 
 .k-tooltip{
     margin-left: -20px;
-}
-.turbine-list{
-    width: 84px;
-}
-.project-list{
-    width: 170px;
 }
 .mgb10{
     margin-bottom: 7px;
@@ -34,25 +24,28 @@
 .dynamic-filter{
     margin-bottom: 7px;
 }
-
-.add-filter-btn {
-    margin-right: 10px;
+.btn-filter-refresh {
+    margin-left: 7px;
+    margin-right: 7px;
 }
 .remove-btn{
-    margin-top: -15px;
     padding: 0px 4px;
     font-size: 10px;
-    color: red;
 }
 .horizontal-line{
     margin-top: 5px;
     margin-bottom: 2px;
+    border-top:1px solid rgb(207, 207, 207);
 }
 .mgb15{
     margin-bottom: 15px;
 }
+.button-area{
+    margin-top: -30px;
+    margin-left: -5px;
+}
 .period-list{
-    width: 75px;
+    width: 78px;
 }
 .lbl-period{
     padding-top: 10px !important;

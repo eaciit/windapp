@@ -40,7 +40,6 @@ pc.IDList = [];
 
 pc.getPDF = function(selector){
     app.loading(true);
-    // var project = $("#projectList1").data("kendoDropDownList").value();
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -76,29 +75,31 @@ pc.getAvailDate = function(){
         pc.generateElementFilter(null, "default2");
     });
 }
-pc.populateTurbine = function (selected, id) {
+pc.populateTurbine = function () {
     if (pc.rawturbine().length == 0) {
         pc.turbineList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
 
-        if (selected==""){
-            selected = pc.rawproject()[0].Value;
-        }
-        
-        $.each(pc.rawturbine(), function (key, val) {
-            if (selected == val.Project){
-                var data = {};
-                data.value = val.Value;
-                data.label = val.Turbine;
-                datavalue.push(data);
-            }
+        $.each($("#projectList").data("kendoMultiSelect").value(), function(i, project){
+            $.each(pc.rawturbine(), function(key, val){
+                if(project == val.Project){
+                    var data = {};
+                    data.value = val.Value + "<>" + val.Project;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }
+            });
         });
         pc.turbineList(datavalue);
     }
+    pc.IDList.forEach(function(id) {
+        $('#turbineList-'+id).data('kendoDropDownList').setDataSource(new kendo.data.DataSource({ data: pc.turbineList() }));
+        $('#turbineList-'+id).data('kendoDropDownList').select(0);
+    });
 };
 
-pc.populateProject = function (selected, id) {
+pc.populateProject = function () {
     if (pc.rawproject().length == 0) {
         pc.projectList([{ value: "", text: "" }]);
     } else {
@@ -106,25 +107,14 @@ pc.populateProject = function (selected, id) {
         $.each(pc.rawproject(), function (key, val) {
             var data = {};
             data.value = val.Value;
-            data.text = val.Name;
+            data.text = val.Value;
             datavalue.push(data);
         });
         pc.projectList(datavalue);
-
-        // override to set the value
-        
-        if ($("#projectList-"+id).data("kendoDropDownList") != null){
-            if (selected != "") {
-                $("#projectList-"+id).data("kendoDropDownList").value(selected);
-            } else {
-                $("#projectList-"+id).data("kendoDropDownList").select(1);
-            }               
-            var project = $("#projectList-"+id).data("kendoDropDownList").value();
-            pc.populateTurbine(project); 
-        }else{
-            pc.populateTurbine(pc.rawproject()[0].Value);
-        }
     }
+    $("#projectList").data("kendoMultiSelect").setDataSource(pc.projectList());
+    $('#projectList').data('kendoMultiSelect').value([pc.projectList()[0].value]);
+    $("#projectList").data("kendoMultiSelect").trigger("change");
 };
 
 pc.getRandomId = function () {
@@ -155,17 +145,13 @@ pc.generateElementFilter = function (id_element, source) {
     var formFilter = '<div class="col-md-12 dynamic-filter" id="filter-form-'+ id + '">' +
                             '<div class="row mgb10">' +
                                 '<div class="col-md-2 no-padding">' +
-                                    '<label class="control-label">Project</label>' +
-                                '</div>' +
-                                '<div class="col-md-5 no-padding">' +
-                                    '<select class="project-list" id="projectList-' + id + '" name="table"></select>' +
-                                '</div>' +
-                                '<div class="col-md-2 no-padding">' +
                                     '<label class="control-label">Turbine</label>' +
                                 '</div>' +
-                                '<div class="col-md-3 no-padding">' +
-                                    '<select class="turbine-list" id="turbineList-' + id + '" name="table"></select>' +
-                                    '<button class="btn btn-sm btn-link tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
+                                '<div class="col-md-9 no-padding">' +
+                                    '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
+                                '</div>' +
+                                '<div class="col-md-1 no-padding">' +
+                                    '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="row mgb10">' +
@@ -175,10 +161,10 @@ pc.generateElementFilter = function (id_element, source) {
                                 '<div class="col-md-10 no-padding">' +
                                     '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
                                     '<span class="show_hide custom-period">' +
-                                        '<input type="text" id="dateStart-' + id + '" style="width: 106px;"/>' +
+                                        '<input type="text" id="dateStart-' + id + '"/>' +
                                         '<label class="control-label label-to">&nbsp;&nbsp;to</label>' +
                                         '<div class="period-nwline">&nbsp;</div>' +
-                                        '<input type="text" id="dateEnd-' + id + '" style="width: 106px;"/>' +
+                                        '<input type="text" id="dateEnd-' + id + '"/>' +
                                     '</span>' +
                                 '</div>' +
                             '</div>' +
@@ -190,20 +176,6 @@ pc.generateElementFilter = function (id_element, source) {
 
     setTimeout(function () {
         $(".filter-part").append(formFilter);
-
-        pc.populateProject(pc.rawproject()[0].Value, id);
-
-        $("#projectList-" + id).kendoDropDownList({
-            dataValueField: 'value',
-            dataTextField: 'text',
-            suggest: true,
-            dataSource: pc.projectList(),
-            change: function () {  
-                var project = $("#projectList-"+id).data("kendoDropDownList").value();
-                pc.populateTurbine(project, id);
-                $('#turbineList-'+id).data('kendoDropDownList').setDataSource(new kendo.data.DataSource({ data: pc.turbineList() }));
-            }
-        });
 
         $("#turbineList-" + id).kendoDropDownList({
             dataValueField: 'value',
@@ -237,9 +209,9 @@ pc.generateElementFilter = function (id_element, source) {
         });
         setTimeout(function () {
             if (source !== "default2") {
-                $('#turbineList-'+id).data('kendoDropDownList').select(1);
+                $('#turbineList-'+id).data('kendoDropDownList').select(0);
             } else {
-                $('#turbineList-'+id).data('kendoDropDownList').select(2);
+                $('#turbineList-'+id).data('kendoDropDownList').select(1);
             }
         }, 100);
         pc.InitDefaultValue(id);
@@ -353,7 +325,7 @@ pc.initChart = function() {
     var link = "analyticpowercurve/getlistpowercurvecomparison";
     var mostDateStart;
     var mostDateEnd;
-    var projectList = [];
+    var projectList = $("#projectList").data("kendoMultiSelect").value();
     var turbineList = [];
     var details = [];
 
@@ -374,17 +346,13 @@ pc.initChart = function() {
             mostDateStart = dateStart;
             mostDateEnd = dateEnd
         }
-        var project = $("#projectList-"+id).data("kendoDropDownList").value();
-        if (projectList.indexOf(project) < 0) {
-            projectList.push(project);
-        }
-        var turbine = $("#turbineList-"+id).data("kendoDropDownList").value();
-        turbineList.push(turbine);
+        var splitTurbineVal = $("#turbineList-"+id).data("kendoDropDownList").value().split("<>");
+        turbineList.push(splitTurbineVal[0]);
 
         var detail = {
             Period       : $('#periodList-'+id).data('kendoDropDownList').value(),
-            Project      : project,
-            Turbine      : turbine,
+            Project      : splitTurbineVal[1],
+            Turbine      : splitTurbineVal[0],
             DateStart    : dateStart,
             DateEnd      : dateEnd,
         };
@@ -739,7 +707,7 @@ pc.getScatter = function(paramLine, dtLine, startColorIdx) {
     });
 }
 
-pc.setProjectTurbine = function(projects, turbines, selected){
+pc.setProjectTurbine = function(projects, turbines){
 	pc.rawproject(projects);
     pc.rawturbine(turbines);
     var sortedTurbine = pc.rawturbine().sort(function(a, b){
@@ -754,7 +722,6 @@ pc.setProjectTurbine = function(projects, turbines, selected){
     });
     pc.rawturbine(sortedTurbine);
     pc.rawproject(sortedProject)
-	pc.populateProject(selected);
 };
 
 $(document).ready(function () {
@@ -769,6 +736,16 @@ $(document).ready(function () {
         pc.sScater(sScater);
         pc.initChart();
     });
+    $("#projectList").kendoMultiSelect({
+        dataSource: pc.projectList(), 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {
+            pc.populateTurbine();
+        }, 
+        suggest: true
+    });
+    pc.populateProject();
 
     app.loading(true);
     setTimeout(function() {

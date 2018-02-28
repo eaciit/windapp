@@ -1328,9 +1328,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	}
 
 	type PayloadComparison struct {
-		ProjectList []string
-		TurbineList []string
-		Details     []ComparisonDetail
+		ProjectList   []string
+		TurbineList   []string
+		Details       []ComparisonDetail
+		MostDateStart time.Time
+		MostDateEnd   time.Time
 	}
 
 	payload := PayloadComparison{}
@@ -1387,8 +1389,8 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
-		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine])
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine]+" ("+tStart.Format("02-Jan-2006")+"  to "+tEnd.Format("02-Jan-2006")+")")
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
@@ -1460,10 +1462,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	/* sort the dataseriesLine after processing on go routine */
 	tempResult := []tk.M{}
 	for _, val := range turbineNameOrder {
+	loopSeries:
 		for _, dtSeries := range dataSeriesLine {
-			split := strings.Split(dtSeries.GetString("name"), " (")
-			if split[0] == val {
+			if dtSeries.GetString("name") == val {
 				tempResult = append(tempResult, dtSeries)
+				break loopSeries
 			}
 		}
 	}
