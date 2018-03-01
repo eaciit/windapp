@@ -843,7 +843,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
-		isschvalavg := true
+		// isschvalavg := true
 		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
 
 		if len(dtScada) > 0 {
