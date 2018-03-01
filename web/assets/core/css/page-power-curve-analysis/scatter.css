@@ -20,6 +20,18 @@
     margin-left: 2px !important;
 }
 
+.inputScatter{
+    height: 30px;
+    max-width: 50px;
+    margin-left: 5px;
+    padding: 5px;
+    text-align: center;
+}
+.scatter-div{
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+
 @media(max-width: 991px){
     .fa-file-pdf-o{
         font-size: 16px;
