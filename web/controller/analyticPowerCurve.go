@@ -37,25 +37,104 @@ var (
 	colorLineComparison   = []string{"#FF6565", "#54B0AB", "#4BB7DB", "#94D154", "#5A298F"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
 	headerExcelPC = map[string]string{
-		"avgwindspeed":        "Wind Speed",
-		"power":               "Power",
-		"turbine":             "Turbine",
-		"timestamp":           "Timestamp",
-		"deviationpct":        "Deviation",
-		"dendeviationpct":     "Deviation",
-		"avgbladeangle":       "Pitch Angle",
-		"winddirection":       "Wind Direction",
-		"nacelletemperature":  "Nacelle Temp",
-		"ambienttemperature":  "Ambient Temp",
-		"windspeed_ms_stddev": "WS Std. Deviation",
-		"windspeed_ms":        "Wind Speed",
-		"activepower_kw":      "Power",
-		"rotorrpm":            "Rotor RPM",
-		"generatorrpm":        "Generator RPM",
-		"wsavgforpc":          "Wind Speed Bin",
-		"denadjwindspeed":     "Density Wind Speed Bin",
-		"wsadjforpc":          "Wind Speed Bin",
-		"pcvalue":             "Exp. Prod / PC",
+		"avgwindspeed":                "Wind Speed",
+		"power":                       "Power",
+		"turbine":                     "Turbine",
+		"timestamp":                   "Timestamp",
+		"deviationpct":                "Deviation",
+		"dendeviationpct":             "Deviation",
+		"avgbladeangle":               "Pitch Angle",
+		"winddirection":               "Wind Direction",
+		"nacelletemperature":          "Nacelle Temp",
+		"ambienttemperature":          "Ambient Temp",
+		"windspeed_ms_stddev":         "WS Std. Deviation",
+		"windspeed_ms":                "Wind Speed",
+		"activepower_kw":              "Power",
+		"rotorrpm":                    "Rotor RPM",
+		"generatorrpm":                "Generator RPM",
+		"wsavgforpc":                  "Wind Speed Bin",
+		"denadjwindspeed":             "Density Wind Speed Bin",
+		"wsadjforpc":                  "Wind Speed Bin",
+		"pcvalue":                     "Exp. Prod / PC",
+		"pitchaccuv2":                 "Pitch Vol Bl2",
+		"pitchaccuv3":                 "Pitch Vol Bl3",
+		"tempnacelle":                 "Nacelle Temp",
+		"pitchangle2":                 "Pitch Angle 2",
+		"tempshaftbearing2":           "Gbox Temp Inter NonDrv",
+		"temprefcoolingunit":          "Cooling unit temp",
+		"gridppvphaseca":              "Phs Volt 3",
+		"hydraulictemp":               "Hyd. Temp",
+		"tempslipring":                "Slip ring temp",
+		"gridppvphasebc":              "Phs Volt 2",
+		"tempoutdoor":                 "Ambient Temp",
+		"rotorspeed_rpm":              "Rotor Speed",
+		"tempg1l2":                    "Gen. winding temp2",
+		"gridpowerfactor":             "Grid Power Factor",
+		"tempshaftbearing1":           "Gbox Temp Drv",
+		"tempgearboxoilsump":          "Temp Gear box oil",
+		"tempconv3":                   "Temp P.Mot Bl3",
+		"nacellepos":                  "Nacell Position",
+		"temphubbearing":              "Temp Rotor Brng",
+		"pitchangle3":                 "Pitch Angle 3",
+		"rawwindspeed":                "Raw Wind speed",
+		"refradiatortemp1":            "Rad temp1 ref",
+		"hydraulicpressure":           "Hyd Pres.",
+		"temprectifiergrid":           "Rect grid temp",
+		"pitchaccuv1":                 "Pitch Vol Bl1",
+		"pitchangle":                  "Pitch Angle",
+		"genspeed_rpm":                "Generator Speed",
+		"reactivepower_kvar":          "Reactive Power",
+		"pitchangle1":                 "Pitch Angle 1",
+		"tempconvcabinetmax":          "Temp Conv cab max",
+		"transformerwindingtemp2":     "Trnsf Wndg temp2",
+		"powerfactor":                 "Cos Phi",
+		"tempg1l3":                    "Gen. winding temp3",
+		"refradiatortemp2":            "Rad temp2 ref",
+		"transformerwindingtemp3":     "Trnsf Wndg temp3",
+		"statorcurrent":               "Stator current",
+		"gridfrequencyhz":             "Freq Grid",
+		"tempg1l1":                    "Gen. winding temp1",
+		"tempgeneratorbearingnde":     "Temp Gen Brng NDE",
+		"tempconv1":                   "Temp P.Mot Bl1",
+		"tempconv2":                   "Temp P.Mot Bl2",
+		"tempgeneratorbearingde":      "Temp Gen Brng DE",
+		"tempshaftbearing3":           "Gbox NonDrv",
+		"gridppvphaseab":              "Phs Volt 1",
+		"transformerwindingtemp1":     "Trnsf Wndg temp1",
+		"temprectifierrotor":          "Rect rotor temp",
+		"drivetrainvib":               "Drive train Vibration",
+		"gridcurrent":                 "Grid current",
+		"pitchcabinettempblade2":      "Pitch Cab Temp Bl2",
+		"statorpower":                 "Stator pwr",
+		"nacelledeviation":            "Nacelle Dev.",
+		"yawnacelposrotation":         "Nacelle Pos Rotn",
+		"pitchcabinettempblade3":      "Pitch Cab Temp Bl3",
+		"powerlimittemp":              "Power limit temp power",
+		"tempgridside":                "Conv Temp Grid side",
+		"tempgeneratorchoke":          "Temp Gen side choke",
+		"pitchconvinternaltempblade1": "Pitch Int Conv Temp Bl1",
+		"pitchconvinternaltempblade2": "Pitch Int Conv Temp Bl2",
+		"tempgridchoke":               "Temp Grid side choke ",
+		"pitchcabinettempblade1":      "Pitch Cab Temp Bl1",
+		"pitchconvinternaltempblade3": "Pitch Int Conv Temp Bl3",
+		"tempgeneratorcoolingunit":    "Temp Gen Inlet",
+		"gearboxmaxpowerhightemp":     "Gearbox Max Power High Temp",
+		"yawwindirtower":              "Yaw win Dir Twr",
+		"rectifieractivepower":        "Active pwr rectifier",
+		"tempgeneratorside":           "Conv Temp Gen side",
+		"dcvoltage":                   "DC Volt",
+		"accydir":                     "Vibr Y Axis",
+		"rotorcurrent":                "Rotor current",
+		"tempconvcabinet2":            "Temp Conv Cab2",
+		"tempconvwaterout":            "Conv Water temp output",
+		"gridvoltage":                 "Grid voltage",
+		"busbarvoltage":               "Busbar volt",
+		"gridexport":                  "Grid Exp Pwr",
+		"accxdir":                     "Vibr. X axis",
+		"rectifiercurrent":            "Rectifier current",
+		"tempgearboxoiltank":          "Temp G.Box oil Tank",
+		"gearboxoilpressure":          "Gbox Oil Pres",
+		"naceldirection":              "Nacelle Deviation",
 	}
 	percentageList = []string{"deviationpct", "dendeviationpct"}
 )
@@ -3004,11 +3083,19 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContex
 	seriesData := tk.M{}
 	resWSvsPower := []tk.M{}
 	resWSvsTipe := []tk.M{}
+	isScada10Min := true
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "power", fieldid}
+	tipe := strings.Replace(p.PlotWith.Name, " ", "_", -1)
 
 	if p.PlotWith.Source == "ScadaData" {
-		resWSvsPower, resWSvsTipe = getScatterValue(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid, p.Project)
+		resWSvsPower, resWSvsTipe = getScatterValue(list, tipe, fieldid, p.Project)
+		isScada10Min = false
+		if tipe == "Nacelle_Deviation" && project == "Lahori" {
+			fieldList = append(fieldList, "naceldirection")
+		}
 	} else {
-		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, strings.Replace(p.PlotWith.Name, " ", "_", -1), fieldid, p.Project)
+		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, tipe, fieldid, p.Project)
+		fieldList = []string{"timestamp", "turbine", "windspeed_ms", "activepower_kw", fieldid}
 	}
 	seriesData = setScatterData(p.PlotWith.Text, "WindSpeed", strings.Replace(p.PlotWith.Name, " ", "_", -1), colorField[2], "PlotWith", tk.M{"size": 2}, resWSvsTipe)
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
@@ -3016,10 +3103,23 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContex
 	dataSeries = append(dataSeries, turbineData)
 	dataSeries = append(dataSeries, seriesData)
 
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
