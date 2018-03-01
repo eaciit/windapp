@@ -37,6 +37,11 @@ pc.sScater = ko.observable(false);
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
 pc.IDList = [];
+pc.countList = 0;
+pc.LastFilter;
+pc.TableName;
+pc.FieldList;
+pc.ContentFilter;
 
 pc.getPDF = function(selector){
     app.loading(true);
@@ -128,6 +133,7 @@ pc.randomNumber = function () {
 }
 
 pc.generateElementFilter = function (id_element, source) {
+    pc.countList++;
     var id = (id_element == null ? pc.getRandomId() : id_element);
     var isDefault = false;
     if(source.indexOf("default") >= 0) {
@@ -142,46 +148,64 @@ pc.generateElementFilter = function (id_element, source) {
         isLast = true;
     }
 
-    var formFilter = '<div class="col-md-12 dynamic-filter" id="filter-form-'+ id + '">' +
-                            '<div class="row mgb10">' +
-                                '<div class="col-md-2 no-padding">' +
-                                    '<label class="control-label">Turbine</label>' +
-                                '</div>' +
-                                '<div class="col-md-9 no-padding">' +
-                                    '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
-                                '</div>' +
-                                '<div class="col-md-1 no-padding">' +
-                                    '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
-                                '</div>' +
+    // var formFilterOri = '<div class="col-md-12 dynamic-filter" id="filter-form-'+ id + '">' +
+    //                         '<div class="row mgb10">' +
+    //                             '<div class="col-md-2 no-padding">' +
+    //                                 '<label class="control-label">Turbine</label>' +
+    //                             '</div>' +
+    //                             '<div class="col-md-9 no-padding">' +
+    //                                 '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
+    //                             '</div>' +
+    //                             '<div class="col-md-1 no-padding">' +
+    //                                 '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
+    //                             '</div>' +
+    //                         '</div>' +
+    //                         '<div class="row mgb10">' +
+    //                             '<div class="col-md-2 no-padding">' +
+    //                                 '<label class="control-label lbl-period">Period</label>' +
+    //                             '</div>' +
+    //                             '<div class="col-md-10 no-padding">' +
+    //                                 '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
+    //                                 '<span class="show_hide custom-period">' +
+    //                                     '<input type="text" id="dateStart-' + id + '"/>' +
+    //                                     '<label class="control-label label-to">&nbsp;&nbsp;to</label>' +
+    //                                     '<div class="period-nwline">&nbsp;</div>' +
+    //                                     '<input type="text" id="dateEnd-' + id + '"/>' +
+    //                                 '</span>' +
+    //                             '</div>' +
+    //                         '</div>' +
+    //                         '<div class="row">' +
+    //                             '<hr class="horizontal-line" style="display:' + (isLast ? 'none' : 'inherit') + '">'+
+    //                         '</div>' +
+    //                     '</div>';
+    
+var formFilter =    '<div class="row dynamic-filter" id="filter-form-'+ id + '" data-count="'+ pc.countList +'">' +
+                        '<div class="mgb10">' +
+                            '<div class="col-md-3 no-padding">' +
+                                '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
                             '</div>' +
-                            '<div class="row mgb10">' +
-                                '<div class="col-md-2 no-padding">' +
-                                    '<label class="control-label lbl-period">Period</label>' +
-                                '</div>' +
-                                '<div class="col-md-10 no-padding">' +
-                                    '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
-                                    '<span class="show_hide custom-period">' +
-                                        '<input type="text" id="dateStart-' + id + '"/>' +
-                                        '<label class="control-label label-to">&nbsp;&nbsp;to</label>' +
-                                        '<div class="period-nwline">&nbsp;</div>' +
-                                        '<input type="text" id="dateEnd-' + id + '"/>' +
-                                    '</span>' +
-                                '</div>' +
+                            '<div class="col-md-9 no-padding">' +
+                                '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
+                                '<span class="show_hide custom-period">' +
+                                    '<input type="text" id="dateStart-' + id + '"/>' +
+                                    '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
+                                    '<input type="text" id="dateEnd-' + id + '"/>' +
+                                '</span>' +
                             '</div>' +
-                            '<div class="row">' +
-                                '<hr class="horizontal-line" style="display:' + (isLast ? 'none' : 'inherit') + '">'+
-                            '</div>' +
-                        '</div>';
-
+                            '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
+                        '</div>'
+                    '</div>';
+var versusFilter = '<div class="versus-wrapper" data-count="'+ pc.countList +'"><div class="versus">vs</div></div>';
 
     setTimeout(function () {
         $(".filter-part").append(formFilter);
+        $(".filter-part").append(versusFilter);
 
         $("#turbineList-" + id).kendoDropDownList({
             dataValueField: 'value',
             dataTextField: 'label',
             suggest: true,
-            dataSource: pc.turbineList()
+            dataSource: pc.turbineList(),
         });     
 
         $("#periodList-" + id).kendoDropDownList({
@@ -207,24 +231,26 @@ pc.generateElementFilter = function (id_element, source) {
             min: new Date("2013-01-01"),
             max:new Date(),
         });
-        setTimeout(function () {
-            if (source !== "default2") {
-                $('#turbineList-'+id).data('kendoDropDownList').select(0);
-            } else {
-                $('#turbineList-'+id).data('kendoDropDownList').select(1);
-            }
-        }, 100);
+        // setTimeout(function () {
+        //     if (source !== "default2") {
+        //         $('#turbineList-'+id).data('kendoDropDownList').select(pc.countList - 1);
+        //     } else {
+        //         $('#turbineList-'+id).data('kendoDropDownList').select(1);
+        //     }
+        // }, 100);
         pc.InitDefaultValue(id);
 
         if(source == "default2"){
-            setTimeout(function () {
-                pc.initChart();                           
-            }, 500);
+            // setTimeout(function () {
+            //     pc.initChart();                           
+            // }, 500);
         }
+        pc.checkElementLast();
     }, 500);
 }
 
 pc.removeFilter = function (id) {
+    pc.countList--;
     $("#filter-form-" + id).remove();
     var tempList = [];
     pc.IDList.forEach(function(val){
@@ -233,6 +259,38 @@ pc.removeFilter = function (id) {
         }
     });
     pc.IDList = tempList;
+    pc.checkElementLast();
+}
+
+pc.checkElementLast = function(){
+    var elms = $('.dynamic-filter');
+    $.each(elms, function(i, e){
+        if(!$(e).hasClass('dynamic-filter-last')) {
+            $(e).addClass('dynamic-filter-last');
+        }
+        var dataCount = parseInt($(e).attr('data-count'));
+        if(dataCount < pc.countList) {
+            $(e).removeClass('dynamic-filter-last');
+        }
+        var turbineElm = $(e).find('select.turbine-list');
+        var turbineElmId = turbineElm.attr('id');
+        setTimeout(function(){
+            $('#'+turbineElmId).data('kendoDropDownList').select(dataCount - 1);
+        }, 100);
+    });
+    var elmvs = $('.versus-wrapper');
+    $.each(elmvs, function(i, e){
+        if(!$(e).hasClass('versus-last')) {
+            $(e).addClass('versus-last');
+        }
+        var dataCount = parseInt($(e).attr('data-count'));
+        if(dataCount < pc.countList) {
+            $(e).removeClass('versus-last');
+        }
+    });
+    setTimeout(function () {
+        pc.initChart();                           
+    }, 500);
 }
 
 pc.showHidePeriod = function (idx) {
@@ -319,6 +377,45 @@ pc.InitDefaultValue = function (id) {
     $('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
 }
 
+pc.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: pc.LastFilter,
+        FieldList: pc.FieldList,
+        Tablename: pc.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: pc.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: pc.LastFilterDetails,
+            FieldList: pc.FieldListDetails,
+            Tablename: pc.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: pc.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+}
+
 pc.initChart = function() {
     app.loading(true);
 
@@ -363,8 +460,8 @@ pc.initChart = function() {
         ProjectList: projectList,
         TurbineList: turbineList,
         Details:     details,
-        DateStart: mostDateStart,
-        DateEnd: mostDateEnd,
+        MostDateStart: mostDateStart,
+        MostDateEnd: mostDateEnd,
     }
 
     toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
@@ -373,6 +470,10 @@ pc.initChart = function() {
             return;
         }
         var dataTurbine = res.data.Data;
+        pc.LastFilter = res.data.LastFilter;
+        pc.FieldList = res.data.FieldList;
+        pc.TableName = res.data.TableName;
+        pc.ContentFilter = res.data.ContentFilter;
         
         $('#chartPCcomparison').html("");
         $("#chartPCcomparison").kendoChart({
@@ -388,17 +489,18 @@ pc.initChart = function() {
             legend: {
                 position: "bottom",
                 visible: true,
-                align: "center",
-                offsetX : 50,
+                align: "start",
+                offsetX : 55,
                 labels: {
                     margin: {
-                        right : 20
+                        right : 0,
                     },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
             },
             chartArea: {
-                height: 375,
+                height: 400,
+                background: 'transparent',
             },
             seriesDefaults: {
                 type: "scatterLine",
@@ -598,14 +700,18 @@ pc.getScatter = function(paramLine, dtLine, startColorIdx) {
             //     visible: false,
             //     position: "bottom"
             // },
+            chartArea: {
+                height: 400,
+                background: 'transparent',
+            },
             legend: {
                 position: "bottom",
                 visible: true,
-                align: "center",
-                offsetX : 50,
+                align: "start",
+                offsetX : 55,
                 labels: {
                     margin: {
-                        right : 20
+                        right : 0,
                     },
                     font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },

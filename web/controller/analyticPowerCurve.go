@@ -34,7 +34,7 @@ var (
 	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
 	colorPCComparison     = []string{"#ff9933", "#4D9E4D", "#C4C920", "#B33D43", "#4068B3"}
-	colorLineComparison   = []string{"#FF6565", "#54B0AB", "#5A298F", "#4BB7DB", "#94D154"}
+	colorLineComparison   = []string{"#FF6565", "#54B0AB", "#4BB7DB", "#94D154", "#5A298F"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
 	headerExcelPC = map[string]string{
 		"avgwindspeed":        "Wind Speed",
@@ -602,7 +602,7 @@ func toDboxFilter(val interface{}) (newVal []*dbox.Filter) {
 	return
 }
 
-func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName map[string]string, err error) {
+func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName, turbineProject map[string]string, err error) {
 	query := DB().Connection.NewQuery().From("ref_turbine")
 	pipes := []tk.M{
 		tk.M{"$match": tk.M{"turbineid": tk.M{"$in": turbineIDList}}},
@@ -619,8 +619,10 @@ func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName map[string]st
 		return
 	}
 	turbineName = map[string]string{}
+	turbineProject = map[string]string{}
 	for _, val := range turbineList {
 		turbineName[val.GetString("turbineid")] = tk.Sprintf("%s<>%s", val.GetString("project"), val.GetString("turbinename"))
+		turbineProject[val.GetString("turbinename")] = tk.Sprintf("%s<>%s", val.GetString("project"), val.GetString("turbinename"))
 	}
 	return
 }
@@ -692,7 +694,7 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 		}
 		sortedTimeStamp = append(sortedTimeStamp, timeCount)
 	}
-	turbineName, err := GetTurbineNameForPC(turbineIDList)
+	turbineName, turbineProject, err := GetTurbineNameForPC(turbineIDList)
 	if err != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -718,7 +720,7 @@ func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) in
 		}
 	}
 	for _, _data := range sortedDataByTimeStamp { /* grouping sortedDataByTimeStamp per turbine */
-		keys := turbineName[_data.GetString("turbine")]
+		keys := turbineProject[_data.GetString("turbine")]
 		dataPerTurbine[keys] = append(dataPerTurbine[keys], _data)
 	}
 
@@ -1329,7 +1331,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 
 	type PayloadComparison struct {
 		ProjectList   []string
-		TurbineList   []string
+		TurbineList   []interface{}
 		Details       []ComparisonDetail
 		MostDateStart time.Time
 		MostDateEnd   time.Time
@@ -1340,6 +1342,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	tStartMost, tEndMost, e := helper.GetStartEndDate(k, "custom", payload.MostDateStart, payload.MostDateEnd)
+
+	filterExcel := []*dbox.Filter{}
+	filterExcel = append(filterExcel, dbox.Ne("_id", ""))
+	filterExcel = append(filterExcel, dbox.Gte("dateinfo.dateid", tStartMost))
+	filterExcel = append(filterExcel, dbox.Lte("dateinfo.dateid", tEndMost))
+	filterExcel = append(filterExcel, dbox.In("turbine", payload.TurbineList...))
+	filterExcel = append(filterExcel, dbox.Gt("power", 0))
+	filterExcel = append(filterExcel, dbox.Eq("available", 1))
 
 	var mux sync.Mutex
 	var wgProject sync.WaitGroup
@@ -1474,10 +1486,24 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	dataSeries := []tk.M{}
 	dataSeries = append(dataSeriesPC, dataSeriesLine...)
 
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", strings.Join(payload.ProjectList, ", ")),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStartMost.Format("02/01/2006"), tEndMost.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
