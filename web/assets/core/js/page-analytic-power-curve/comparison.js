@@ -37,6 +37,10 @@ pc.sScater = ko.observable(false);
 pc.rawturbine = ko.observableArray([]);
 pc.rawproject = ko.observableArray([]);
 pc.IDList = [];
+pc.LastFilter;
+pc.TableName;
+pc.FieldList;
+pc.ContentFilter;
 
 pc.getPDF = function(selector){
     app.loading(true);
@@ -319,6 +323,45 @@ pc.InitDefaultValue = function (id) {
     $('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
 }
 
+pc.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: pc.LastFilter,
+        FieldList: pc.FieldList,
+        Tablename: pc.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: pc.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: pc.LastFilterDetails,
+            FieldList: pc.FieldListDetails,
+            Tablename: pc.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: pc.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+}
+
 pc.initChart = function() {
     app.loading(true);
 
@@ -363,8 +406,8 @@ pc.initChart = function() {
         ProjectList: projectList,
         TurbineList: turbineList,
         Details:     details,
-        DateStart: mostDateStart,
-        DateEnd: mostDateEnd,
+        MostDateStart: mostDateStart,
+        MostDateEnd: mostDateEnd,
     }
 
     toolkit.ajaxPost(viewModel.appName + link, param, function(res) {
@@ -373,6 +416,10 @@ pc.initChart = function() {
             return;
         }
         var dataTurbine = res.data.Data;
+        pc.LastFilter = res.data.LastFilter;
+        pc.FieldList = res.data.FieldList;
+        pc.TableName = res.data.TableName;
+        pc.ContentFilter = res.data.ContentFilter;
         
         $('#chartPCcomparison').html("");
         $("#chartPCcomparison").kendoChart({
