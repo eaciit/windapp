@@ -140,6 +140,7 @@ pc.generateElementFilter = function (id_element, source) {
         isDefault = true;
     }
     if(pc.IDList.length == 5) {
+        swal('Warning', 'You can only add 5 filters', 'warning');
         return;
     }
     pc.IDList.push(id);
@@ -180,20 +181,20 @@ pc.generateElementFilter = function (id_element, source) {
     //                     '</div>';
     
 var formFilter =    '<div class="row dynamic-filter" id="filter-form-'+ id + '" data-count="'+ pc.countList +'">' +
-                        '<div class="mgb10">' +
-                            '<div class="col-md-3 no-padding">' +
-                                '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
-                            '</div>' +
-                            '<div class="col-md-9 no-padding">' +
+                        '<div class="col-md-3 no-padding">' +
+                            '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
+                        '</div>' +
+                        '<div class="col-md-9 no-padding">' +
+                            '<div class="input-group mb-3">'+
                                 '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
                                 '<span class="show_hide custom-period">' +
                                     '<input type="text" id="dateStart-' + id + '"/>' +
                                     '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
                                     '<input type="text" id="dateEnd-' + id + '"/>' +
                                 '</span>' +
-                            '</div>' +
-                            '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
-                        '</div>'
+                            '</div>'+
+                        '</div>' +
+                        '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="pc.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
                     '</div>';
 var versusFilter = '<div class="versus-wrapper" data-count="'+ pc.countList +'"><div class="versus">vs</div></div>';
 

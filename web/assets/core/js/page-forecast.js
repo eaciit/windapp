@@ -30,6 +30,7 @@ pg.TimeFilter = ko.observable(timefilter);
 
 pg.allowedMinTimeBlock = ko.observable(1);
 pg.allowedTimeBlock = ko.observable(timeNow);
+pg.allowedTimeStamp = ko.observable(moment(sDateNow + ' 00:15').add(-15, 'minute'));
 pg.currentRevNo = ko.observable('1');
 
 pg.getData = function() {
@@ -185,8 +186,8 @@ pg.genereateGrid = function(){
                 input: true,
                 numeric: false,
                 change: function(e) {
-                    var timeFilter = moment.utc().add(7, 'hour');
-                    pg.TimeFilter = ko.observable(timeFilter);
+                    // var timeFilter = moment.utc().add(7, 'hour');
+                    //pg.TimeFilter(pg.allowedTimeStamp().add(-15, 'minute'));
                 },
             },
             cellClose:  function(e) {
@@ -314,8 +315,8 @@ pg.genereateGrid = function(){
                 var avgCap = data.AvaCap;
                 var timeStamp = data.TimeStamp;
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
-                // var isAllowed = (schFcast != null && pg.allowedTimeBlock().isAfter(timefilter));
-                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
+                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter.add(-15, 'minute')));
+                // var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
@@ -731,9 +732,12 @@ pg.checkLatestRevNo = function(currSTime) {
                 var v = revInfos[i];
                 if(i>1) {
                     var timeMax = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.rev_time_max);
+                    var timeStamp = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.timestamp);
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
+                        pg.allowedTimeStamp(timeStamp.utc().add(6.5, 'hour'));
+                        pg.TimeFilter(timeStamp);
                         pg.currentRevNo(parseInt(v.rev_no).toString());
                         break;
                     }

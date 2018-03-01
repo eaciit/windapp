@@ -28,7 +28,6 @@
     padding-left: 20px;
     padding-right: 20px;
     margin-top: -5px;
-    margin-bottom: 10px;
 }
 .dynamic-filter {
     margin-bottom: 15px;
@@ -201,11 +200,11 @@ div.dynamic-filter:last-child, div.dynamic-filter-last {
     padding-top: 2px;
 }
 .turbine-list {
-    max-width: 100px;
+    max-width: 92.5%;
     margin-top: 0px;
 }
 .turbine-list .k-dropdown-wrap {
-    max-width: 100px;
+    max-width: 92.5%;
 }
 .control-label {
     padding-top: 5px;

@@ -879,14 +879,14 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		}
 
 		// cap value for sch
-		if isschvalavg {
-			if schval < 8 {
-				schval = 8
-			}
-			if schval > 52 {
-				schval = 52
-			}
+		// if isschvalavg {
+		if schval < 8 {
+			schval = 8
 		}
+		if schval > 52 {
+			schval = 52
+		}
+		// }
 
 		actualsub := 0.0
 		fcvaluesub := 0.0
