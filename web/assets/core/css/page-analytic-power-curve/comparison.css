@@ -76,8 +76,8 @@ div.dynamic-filter:last-child, div.dynamic-filter-last {
     padding: 0px 4px;
     font-size: 10px;
     position: absolute;
-    top: 6px;
-    right: 10px;
+    top: -25px;
+    right: 0px;
 }
 .horizontal-line{
     margin-top: 5px;
