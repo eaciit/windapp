@@ -132,7 +132,7 @@ nd.ChartNacelleDistributon =  function () {
             tooltip: {
                 visible: true,
                 // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
-                template: "#= category # : #= kendo.toString(value, 'p2')#",
+                template: "#= series.name # : #= category #"+String.fromCharCode(176)+" (#= kendo.toString(value, 'p2')#)",
                 // shared: true,
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
