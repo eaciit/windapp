@@ -1,2 +1,42 @@
 <script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/scatter.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/scatter.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+
+<div class="sc-wrapper">
+    <div class="row">
+        <div class="col-md-9 scatter">
+        	<div class="col-md-12">
+				<div class="tools pull-right btn-pdf">
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){sc.PowerCurveExporttoExcel('Scatter', false, false)}">
+				    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+				  	</button>
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){sc.getPDF('.scatter-div')}">
+				    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+				  	</button>
+				</div>
+			</div>
+			<div class="col-md-12">
+				<div class="scatter-div">
+					<div class="panel-heading template-pdf" style="margin-top: -10px">
+						<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+						<div class="col-md-12 text-center title-pdf">
+							<span data-bind="text:sc.project()"></span> | Power Curve Scatter |<span data-bind="text:sc.dateStart()"></span> until <span data-bind="text:sc.dateEnd()"></span>
+							
+						</div>
+					</div>
+					<div id="sc-chart"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-3">
+			<div class="scatter-chart">
+				<div class="scatter-comparison">
+					<span><label class="label-scatter col-md-3">Turbine</label></span>
+					<select class="scatter-type" id="sc-turbine" name="table" data-bind="kendoDropDownList: { data: sc.turbineList, value :sc.turbine, suggest: true , change: function(){ sc.refreshChart()} }">   </select><br/><br/>
+					<span><label class="label-scatter col-md-3">Plot With</label></span>
+					<select class="scatter-type" id="sc-scatter-type" name="table" data-bind="kendoDropDownList: { data: sc.scatterList, dataValueField: 'Name', dataTextField: 'Name', suggest: true , change: function(){sc.refreshChart()} }">
+            		</select>
+				</div>
+			</div>
+		</div>
+    </div>
+</div>

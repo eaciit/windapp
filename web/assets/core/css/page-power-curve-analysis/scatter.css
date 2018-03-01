@@ -1,0 +1,136 @@
+.sc-wrapper {
+    padding: 0 20px;
+}
+
+.scatter-div{
+    margin-top: 10px;
+}
+.label-to{
+    width:40px;
+    text-align: center;
+    margin-left: -5px;
+}
+.Epdf{
+    margin-top: -30px;
+    margin-right: 20px;
+    cursor:pointer
+}
+.ExportTo{
+    cursor: pointer;
+    margin-left: 2px !important;
+}
+
+@media(max-width: 991px){
+    .fa-file-pdf-o{
+        font-size: 16px;
+    }
+    .Epdf {
+        margin-right: 10px;
+    }
+    .ExportTo {
+        margin-right: 2px;
+    }
+}
+
+#legend-list button {
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 2px;
+}
+
+#legend-list {
+    text-align: center;
+}
+.label-scatter {
+    padding: 3px 5px 3px 3px;
+    font-weight: bold;
+    font-size: 12px;
+}
+.scatter-type {
+    font-size: 12px;   
+}
+
+.scatter-comparison {
+    margin-right: 8px;
+}
+
+#txtLessVal {
+    font-size: 12px;
+}
+
+#txtGreaterVal {
+    font-size: 12px;
+}
+
+.k-tooltip{
+    margin-left: -20px;
+}
+
+#legend-list {
+    padding: 0.5ex;
+    background-color: #ffffff;
+}
+
+#legend-list.legend {
+    margin-top: 0 !important;
+    position: fixed;
+    top: 0;
+    z-index: 10000;
+    border-radius: 0 0 0.5em 0.5em;
+}
+.mgb10{
+    margin-bottom: 7px;
+}
+.mt15{
+    margin-top: 15px;
+}
+.turbine-list{
+    width: 150px;
+}
+.project-list{
+    width: 150px;
+}
+.period-list{
+    width: 75px;
+}
+.totalavail_info {
+    position: absolute;
+    top: 43px;
+    right: 13px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 4px;
+    width: 85px;
+    font-size: 10px;
+}
+.dataavail_info {
+    position: absolute;
+    top: 66px;
+    right: 13px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 5px;
+    width: 85px;
+    font-size: 10px;
+}
+.form-part{
+    padding-left: 10px;
+}
+
+.template-pdf{
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 30px;
+}
+.k-pdf-export .template-pdf {
+    display: block;
+}
+.k-pdf-export #legend {
+    display: block; 
+}
