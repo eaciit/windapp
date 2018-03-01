@@ -56,7 +56,7 @@ pc.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group,  pc.project()+" PC Comparison.pdf");
+      kendo.drawing.pdf.saveAs(group,  pc.project()+"PC Comparison.pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
