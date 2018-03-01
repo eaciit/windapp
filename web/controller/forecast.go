@@ -449,7 +449,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
-		isschvalavg := true
+		//isschvalavg := true
 		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
 
 		if len(dtScada) > 0 {
@@ -480,19 +480,19 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			}
 			if dtForecast.Has("schsdlc") {
 				schval = dtForecast.GetFloat64("schsdlc")
-				isschvalavg = false
+				//isschvalavg = false
 			}
 		}
 
 		// cap value for sch
-		if isschvalavg {
-			if schval < 8 {
-				schval = 8
-			}
-			if schval > 52 {
-				schval = 52
-			}
+		// if isschvalavg {
+		if schval < 8 {
+			schval = 8
 		}
+		if schval > 52 {
+			schval = 52
+		}
+		// }
 
 		actualsub := 0.0
 		fcvaluesub := 0.0
@@ -874,7 +874,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			}
 			if dtForecast.Has("schsdlc") {
 				schval = dtForecast.GetFloat64("schsdlc")
-				isschvalavg = false
+				//isschvalavg = false
 			}
 		}
 
