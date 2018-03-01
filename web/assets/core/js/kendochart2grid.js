@@ -20,11 +20,21 @@
 		var chart = self.data('kendoChart')
 		var isUsingDataSource = false
 		var data = []
+
+		var addwidth = false
+		if (chart.options.categoryAxis.categories.length > 4) {
+			addwidth = true
+		}
+
 		var columns = [{
 			field: 'category',
 			template: dateFormat == undefined ? "#= category #" : Template,
 			title: " "
 		}]
+
+		if (addwidth) {
+			columns[0].width = "100px"
+		}
 
 		if (chart.options.series.length > 0) {
 			if (chart.options.series[0].data[0] instanceof Object) {
@@ -42,13 +52,19 @@
 				o[columnField] = d[e.field]
 
 				if (i == 0) {
-					columns.push({
+					var tColumn = {
 						field: columnField,
 						title: (e.hasOwnProperty('name') ? e.name : e.field),
 						attributes: { style: "text-align:center;" },
 						headerAttributes: { style: "text-align:center;" },
 						//template: "#: kendo.toString(kendo.parseDate(new Date('DateId')), 'dd-MM-yyyy')#"
-					})
+					}
+
+					if (addwidth) {
+						tColumn.width = "60px"
+					}
+
+					columns.push(tColumn)
 				}
 			})
 
@@ -73,6 +89,7 @@
 		if (self.data('kendoChart') != undefined) {
 			self.data('kendoChart').destroy()
 		}
+		// console.log(columns)
 	    self.empty()
 	    self.kendoGrid({
 	    	dataSource: {
