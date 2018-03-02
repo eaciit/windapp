@@ -407,6 +407,10 @@ page.getPowerCurveScatter = function() {
             return;
         }
         var dtSeries = res.data.Data;
+        page.LastFilter = res.data.LastFilter;
+        page.FieldList = res.data.FieldList;
+        page.TableName = res.data.TableName;
+        page.ContentFilter = res.data.ContentFilter;
         
         var minAxisY = res.data.MinAxisY;
         var maxAxisY = res.data.MaxAxisY;
@@ -600,6 +604,45 @@ page.setProjectTurbine = function(projects, turbines){
     page.rawturbine(sortedTurbine);
     page.rawproject(sortedProject);
 };
+
+page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: page.LastFilter,
+        FieldList: page.FieldList,
+        Tablename: page.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: page.LastFilterDetails,
+            FieldList: page.FieldListDetails,
+            Tablename: page.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: page.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+}
 
 
 $(document).ready(function() {

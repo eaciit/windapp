@@ -1883,11 +1883,34 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 	minAxisY := 0.0
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
+	typeDetail := map[string]tk.M{
+		"rotor": tk.M{
+			"field":      "rotorrpm",
+			"seriesname": "Rotor RPM",
+			"xfieldname": "Rotor",
+		},
+		"pitch": tk.M{
+			"field":      "avgbladeangle",
+			"seriesname": "Pitch Angle",
+			"xfieldname": "Pitch",
+		},
+		"generatorrpm": tk.M{
+			"field":      "generatorrpm",
+			"seriesname": "Generator RPM",
+			"xfieldname": "Generator",
+		},
+		"windspeed": tk.M{
+			"field":      "avgwindspeed",
+			"seriesname": "Wind Speed",
+			"xfieldname": "WindSpeed",
+		},
+	}
 
 	var mux sync.Mutex
 	var wg sync.WaitGroup
 	wg.Add(len(payload.Details))
 	turbineNameOrder := []string{} /* for sort the result */
+	tipe := ""
 	for idx, p := range payload.Details {
 		idx++
 		turbineName, e := helper.GetTurbineNameList(p.Project)
@@ -1899,6 +1922,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
+		tipe = p.ScatterType
 		go func(dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int,
 			_turbinename, _project, _turbine, _tipe string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
 			defer _wg.Done()
@@ -1942,28 +1966,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			data := tk.M{}
 			datas := []tk.M{}
 			seriesData := tk.M{}
-			typeDetail := map[string]tk.M{
-				"rotor": tk.M{
-					"field":      "rotorrpm",
-					"seriesname": "Rotor RPM",
-					"xfieldname": "Rotor",
-				},
-				"pitch": tk.M{
-					"field":      "avgbladeangle",
-					"seriesname": "Pitch Angle",
-					"xfieldname": "Pitch",
-				},
-				"generatorrpm": tk.M{
-					"field":      "generatorrpm",
-					"seriesname": "Generator RPM",
-					"xfieldname": "Generator",
-				},
-				"windspeed": tk.M{
-					"field":      "avgwindspeed",
-					"seriesname": "Wind Speed",
-					"xfieldname": "WindSpeed",
-				},
-			}
+
 			typeSelected := typeDetail[_tipe]
 			fieldName := typeSelected.GetString("field")
 			seriesName := typeSelected.GetString("seriesname")
@@ -2003,7 +2006,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
 
-		}(&dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName[p.Turbine], p.Project, p.Turbine, p.ScatterType, tStart, tEnd, &wg)
+		}(&dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName[p.Turbine], p.Project, p.Turbine, tipe, tStart, tEnd, &wg)
 	}
 	wg.Wait()
 
@@ -2018,19 +2021,32 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		}
 	}
 	dataSeries = tempResult
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", strings.Join(payload.ProjectList, ", ")),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStartMost.Format("02/01/2006"), tEndMost.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "power", typeDetail[tipe].GetString("field")}
 
 	result := struct {
-		Data     []tk.M
-		MinAxisX float64
-		MaxAxisX float64
-		MinAxisY float64
-		MaxAxisY float64
+		Data          []tk.M
+		MinAxisX      float64
+		MaxAxisX      float64
+		MinAxisY      float64
+		MaxAxisY      float64
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     dataSeries,
-		MinAxisX: minAxisX,
-		MaxAxisX: maxAxisX,
-		MinAxisY: minAxisY,
-		MaxAxisY: maxAxisY,
+		Data:          dataSeries,
+		MinAxisX:      minAxisX,
+		MaxAxisX:      maxAxisX,
+		MinAxisY:      minAxisY,
+		MaxAxisY:      maxAxisY,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, result, "success")
