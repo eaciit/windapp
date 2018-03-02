@@ -874,7 +874,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			}
 			if dtForecast.Has("schsdlc") {
 				schval = dtForecast.GetFloat64("schsdlc")
-				isschvalavg = false
+				// isschvalavg = false
 			}
 		}
 
