@@ -1844,7 +1844,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	type PayloadOperational struct {
+	type OperationalDetail struct {
 		Period      string
 		Project     string
 		Turbine     string
@@ -1853,22 +1853,65 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		ScatterType string
 	}
 
-	payload := []*PayloadOperational{}
+	type PayloadOperational struct {
+		ProjectList   []string
+		TurbineList   []interface{}
+		Details       []OperationalDetail
+		MostDateStart time.Time
+		MostDateEnd   time.Time
+	}
+
+	payload := PayloadOperational{}
 	e := k.GetPayload(&payload)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	tStartMost, tEndMost, e := helper.GetStartEndDate(k, "custom", payload.MostDateStart, payload.MostDateEnd)
+
+	filterExcel := []*dbox.Filter{}
+	filterExcel = append(filterExcel, dbox.Ne("_id", ""))
+	filterExcel = append(filterExcel, dbox.Gte("timestamp", tStartMost))
+	filterExcel = append(filterExcel, dbox.Lte("timestamp", tEndMost))
+	filterExcel = append(filterExcel, dbox.In("turbine", payload.TurbineList...))
+	filterExcel = append(filterExcel, dbox.Gt("power", 0))
+	filterExcel = append(filterExcel, dbox.Gt("avgwindspeed", 0))
+	filterExcel = append(filterExcel, dbox.Eq("available", 1))
+
 	minAxisX := 0.0
 	maxAxisX := 0.0
 	minAxisY := 0.0
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
+	typeDetail := map[string]tk.M{
+		"rotor": tk.M{
+			"field":      "rotorrpm",
+			"seriesname": "Rotor RPM",
+			"xfieldname": "Rotor",
+		},
+		"pitch": tk.M{
+			"field":      "avgbladeangle",
+			"seriesname": "Pitch Angle",
+			"xfieldname": "Pitch",
+		},
+		"generatorrpm": tk.M{
+			"field":      "generatorrpm",
+			"seriesname": "Generator RPM",
+			"xfieldname": "Generator",
+		},
+		"windspeed": tk.M{
+			"field":      "avgwindspeed",
+			"seriesname": "Wind Speed",
+			"xfieldname": "WindSpeed",
+		},
+	}
 
 	var mux sync.Mutex
 	var wg sync.WaitGroup
-	wg.Add(len(payload))
+	wg.Add(len(payload.Details))
 	turbineNameOrder := []string{} /* for sort the result */
-	for idx, p := range payload {
+	tipe := ""
+	for idx, p := range payload.Details {
 		idx++
 		turbineName, e := helper.GetTurbineNameList(p.Project)
 		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine])
@@ -1879,23 +1922,22 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		if e != nil {
 			return helper.CreateResult(false, nil, e.Error())
 		}
-		go func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int,
-			turbineName map[string]string, tStart, tEnd time.Time, wg *sync.WaitGroup) {
-			defer wg.Done()
+		tipe = p.ScatterType
+		go func(dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int,
+			_turbinename, _project, _turbine, _tipe string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
+			defer _wg.Done()
 			list := []tk.M{}
 			if e != nil {
 				return
 			}
-			turbine := p.Turbine
-			project := p.Project
 
 			var filter []*dbox.Filter
 			filter = []*dbox.Filter{}
 			filter = append(filter, dbox.Ne("_id", ""))
-			filter = append(filter, dbox.Gte("timestamp", tStart))
-			filter = append(filter, dbox.Lte("timestamp", tEnd))
-			filter = append(filter, dbox.Eq("turbine", turbine))
-			filter = append(filter, dbox.Eq("projectname", project))
+			filter = append(filter, dbox.Gte("timestamp", _tStart))
+			filter = append(filter, dbox.Lte("timestamp", _tEnd))
+			filter = append(filter, dbox.Eq("turbine", _turbine))
+			filter = append(filter, dbox.Eq("projectname", _project))
 			// filter = append(filter, dbox.Eq("oktime", 600))
 			filter = append(filter, dbox.Gt("power", 0))
 			filter = append(filter, dbox.Gt("avgwindspeed", 0))
@@ -1924,29 +1966,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			data := tk.M{}
 			datas := []tk.M{}
 			seriesData := tk.M{}
-			typeDetail := map[string]tk.M{
-				"rotor": tk.M{
-					"field":      "rotorrpm",
-					"seriesname": "Rotor RPM",
-					"xfieldname": "Rotor",
-				},
-				"pitch": tk.M{
-					"field":      "avgbladeangle",
-					"seriesname": "Pitch Angle",
-					"xfieldname": "Pitch",
-				},
-				"generatorrpm": tk.M{
-					"field":      "generatorrpm",
-					"seriesname": "Generator RPM",
-					"xfieldname": "Generator",
-				},
-				"windspeed": tk.M{
-					"field":      "avgwindspeed",
-					"seriesname": "Wind Speed",
-					"xfieldname": "WindSpeed",
-				},
-			}
-			typeSelected := typeDetail[p.ScatterType]
+
+			typeSelected := typeDetail[_tipe]
 			fieldName := typeSelected.GetString("field")
 			seriesName := typeSelected.GetString("seriesname")
 			xFieldName := typeSelected.GetString("xfieldname")
@@ -1980,12 +2001,12 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 				datas = append(datas, data)
 			}
 			seriesData = setScatterData(seriesName, xFieldName, "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+" to "+p.DateEnd.Format("02-Jan-2006")+")")
+			seriesData.Set("name", _turbinename+" ("+_tStart.Format("02-Jan-2006")+" to "+_tEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
 
-		}(p, &dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName, tStart, tEnd, &wg)
+		}(&dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName[p.Turbine], p.Project, p.Turbine, tipe, tStart, tEnd, &wg)
 	}
 	wg.Wait()
 
@@ -2000,19 +2021,32 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		}
 	}
 	dataSeries = tempResult
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", strings.Join(payload.ProjectList, ", ")),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStartMost.Format("02/01/2006"), tEndMost.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "power", typeDetail[tipe].GetString("field")}
 
 	result := struct {
-		Data     []tk.M
-		MinAxisX float64
-		MaxAxisX float64
-		MinAxisY float64
-		MaxAxisY float64
+		Data          []tk.M
+		MinAxisX      float64
+		MaxAxisX      float64
+		MinAxisY      float64
+		MaxAxisY      float64
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     dataSeries,
-		MinAxisX: minAxisX,
-		MaxAxisX: maxAxisX,
-		MinAxisY: minAxisY,
-		MaxAxisY: maxAxisY,
+		Data:          dataSeries,
+		MinAxisX:      minAxisX,
+		MaxAxisX:      maxAxisX,
+		MinAxisY:      minAxisY,
+		MaxAxisY:      maxAxisY,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, result, "success")
@@ -2933,24 +2967,19 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 	k.Config.OutputType = knot.OutputJson
 	result := []FieldAnalysis{}
 
-	// p := new(PayloadXyAnalysis)
-	// e := k.GetPayload(&p)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
+	p := tk.M{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	pipe := []tk.M{}
 	matches := tk.M{}.Set("inscatter", tk.M{}.Set("$ne", ""))
-	// if len(p.Project) >= 1 {
-	// 	matches.Set("projectname", p.Project[0])
-	// 	if len(p.Project) > 1 {
-	// 		matches.Set("projectname", tk.M{}.Set("$in", p.Project))
-	// 	}
-	// }
+	project := p.GetString("project")
 
 	pipe = append(pipe, tk.M{"$match": matches})
 	pipe = append(pipe, tk.M{"$group": tk.M{
-		"_id":   tk.M{"scada": "$scadafield", "scada10min": "$scada10minfield", "name": "$fieldname", "units": "$units", "inscatter": "$inscatter"},
+		"_id":   tk.M{"scada": "$scadafield", "scada10min": "$scada10minfield", "name": "$fieldname", "units": "$units", "inscatter": "$inscatter", "inproject": "$inproject"},
 		"order": tk.M{"$max": "$order"},
 	}})
 
@@ -2971,8 +3000,26 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 		if e != nil {
 			break
 		}
-		// tk.Println(tkm)
+
 		_id := tkm.Get("_id", tk.M{}).(tk.M)
+
+		// inproject := _id.Get("inproject", []string{}).([]string)
+		// iscontinue := true
+		// for _, _v := range inproject {
+		// 	if _v == project {
+		// 		iscontinue = false
+		// 		break
+		// 	}
+		// }
+
+		// if iscontinue {
+		// 	continue
+		// }
+
+		if !strings.Contains(_id.GetString("inproject"), project) {
+			continue
+		}
+
 		field := _id.GetString("scada10min")
 		if _id.GetString("inscatter") == "ScadaData" {
 			field = _id.GetString("scada")
