@@ -778,14 +778,14 @@ pc.getScatter = function(paramLine, dtLine, startColorIdx) {
             zoomable: true
         });
 
-        var chart = $("#chartPCcomparison").data("kendoChart");
+        /*var chart = $("#chartPCcomparison").data("kendoChart");
         var series = chart.options.series;
         for (var i = 0; i < series.length; i++) {
             if(i >= series.length-2) {
                 series[i].visibleInLegend = false;
             }
         };
-        chart.redraw();
+        chart.redraw();*/
 
         app.loading(false);
     });
