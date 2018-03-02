@@ -33,7 +33,7 @@ var (
 	// colorFieldDegradation = [...]string{"#ffcf9e", "#a6e7df", "#ffc8c0", "#ffe2b8", "#d9f2ba", "#a4d8e7", "#ffc0db", "#fab3ae", "#efa5a2", "#cfc8dc", "#d6a0e0", "#a8e6cc", "#f5b9bd", "#e7d8b5", "#ffbbd5", "#e7a89d", "#edc7be", "#ffa9ef", "#adddd0", "#9fe0f7", "#fabcaf", "#ff99af", "#b9cada", "#ffc1c1", "#ffeec1", "#c6ddff", "#c9bbb5"}
 	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
-	colorPCComparison     = []string{"#ff9933", "#4D9E4D", "#C4C920", "#B33D43", "#4068B3"}
+	colorPCComparison     = []string{"#ff9933", "#3AA19B", "#4CAECF", "#B33D43", "#4068B3"}
 	colorLineComparison   = []string{"#FF6565", "#54B0AB", "#4BB7DB", "#94D154", "#5A298F"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
 	headerExcelPC = map[string]string{
@@ -2473,6 +2473,131 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		FieldList:     fieldList,
 		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
 		ContentFilter: contentFilter,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetScatterComparison(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		dataSeries []tk.M
+	)
+
+	type ScatterComparison struct {
+		Period    string
+		DateStart time.Time
+		DateEnd   time.Time
+		Turbine   string
+		Project   string
+		Color     string
+	}
+
+	payload := []ScatterComparison{}
+	e := k.GetPayload(&payload)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbineNameOrder := []string{} /* for sort the result */
+
+	var mux sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(len(payload))
+
+	for _, p := range payload {
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		turbineNameOrder = append(turbineNameOrder, "Scatter-"+turbineName[p.Turbine]+" ("+tStart.Format("02-Jan-2006")+"  to "+tEnd.Format("02-Jan-2006")+")")
+
+		tNow := time.Now()
+		if tEnd.Sub(tNow).Hours() > 0.0 {
+			tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
+		}
+
+		turbine := p.Turbine
+		project := p.Project
+		colors := p.Color
+
+		go func(_dataSeries *[]tk.M, _project, _turbine, _turbinename, _colors string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
+			defer _wg.Done()
+
+			var filter []*dbox.Filter
+			filter = append(filter, dbox.Gte("dateinfo.dateid", _tStart))
+			filter = append(filter, dbox.Lte("dateinfo.dateid", _tEnd))
+			filter = append(filter, dbox.Eq("turbine", _turbine))
+			filter = append(filter, dbox.Eq("projectname", _project))
+			filter = append(filter, dbox.Eq("available", 1))
+			filter = append(filter, dbox.Gt("avgwindspeed", 0))
+			filter = append(filter, dbox.Gt("power", 0))
+
+			csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Cursor(nil)
+			if e != nil {
+				tk.Println("Error on GetScatterComparison func at payload range due to >>", e.Error())
+				return
+			}
+			defer csr.Close()
+
+			list := []tk.M{}
+			e = csr.Fetch(&list, 0, false)
+			if e != nil {
+				tk.Println("Error on GetScatterComparison func at payload range due to >>", e.Error())
+				return
+			}
+
+			turbineData := tk.M{
+				"name":       "Scatter-" + _turbinename + " (" + _tStart.Format("02-Jan-2006") + "  to " + _tEnd.Format("02-Jan-2006") + ")",
+				"xField":     "WindSpeed",
+				"yField":     "Power",
+				"colorField": "valueColor",
+				"type":       "scatter",
+				"markers":    tk.M{"size": 2},
+			}
+
+			datas := tk.M{}
+			arrDatas := []tk.M{}
+			for _, val := range list {
+				datas = tk.M{
+					"WindSpeed":  val.GetFloat64("avgwindspeed"),
+					"Power":      val.GetFloat64("power"),
+					"valueColor": _colors,
+				}
+
+				arrDatas = append(arrDatas, datas)
+			}
+
+			turbineData.Set("data", arrDatas)
+			mux.Lock()
+			*_dataSeries = append(*_dataSeries, turbineData)
+			mux.Unlock()
+
+		}(&dataSeries, project, turbine, turbineName[turbine], colors, tStart, tEnd, &wg)
+	}
+	wg.Wait()
+
+	tempResult := []tk.M{}
+	for _, val := range turbineNameOrder {
+	loopSeries:
+		for _, dtSeries := range dataSeries {
+			if dtSeries.GetString("name") == val {
+				tempResult = append(tempResult, dtSeries)
+				break loopSeries
+			}
+		}
+	}
+	dataSeries = tempResult
+
+	data := struct {
+		Data []tk.M
+	}{
+		Data: dataSeries,
 	}
 
 	return helper.CreateResult(true, data, "success")
