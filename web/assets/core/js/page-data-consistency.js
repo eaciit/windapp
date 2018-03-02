@@ -55,8 +55,8 @@ pg.getAvailDate = function(){
 
         var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
 
-        $('#dateStart').data('kendoDatePicker').value(startDate);
-        $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
+        // $('#dateStart').data('kendoDatePicker').value(startDate);
+        // $('#dateEnd').data('kendoDatePicker').value(kendo.toString(moment.utc(res.data[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
     });
 }
 pg.loadData = function(){
