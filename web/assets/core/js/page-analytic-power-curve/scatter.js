@@ -177,7 +177,9 @@ page.refreshChart = function() {
 page.getPowerCurveScatter = function() {
     app.loading(true);
     page.plotWith = $.grep(page.scatterList(), function(e){ return e.Name == $("#scatterType").data("kendoDropDownList").value(); })[0];
-
+    if (page.plotWith == undefined) {
+        page.plotWith = page.scatterList()[0]
+    }
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));   
 
@@ -296,7 +298,21 @@ page.getPowerCurveScatter = function() {
     });
 }
 
-page.getPowerCurveScatterFieldList = toolkit.ajaxPostDeffered(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {}, function(res) {
+
+// page.getPowerCurveScatterFieldList = toolkit.ajaxPostDeffered(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {project : page.project}, function(res) {
+//         if (!app.isFine(res)) {
+//             return;
+//         }
+
+//         var data = res.data;
+//         if(data !== null){
+//             page.scatterList(data);
+//             $("#scatterType").data("kendoDropDownList").select(0);
+//         }   
+//     });
+
+page.getPowerCurveScatterFieldList = function(project, callback){
+    toolkit.ajaxPostDeffered(viewModel.appName + "analyticpowercurve/getpcscatterfieldlist", {project : project}, function(res) {
         if (!app.isFine(res)) {
             return;
         }
@@ -305,8 +321,11 @@ page.getPowerCurveScatterFieldList = toolkit.ajaxPostDeffered(viewModel.appName 
         if(data !== null){
             page.scatterList(data);
             $("#scatterType").data("kendoDropDownList").select(0);
-        }   
+        }
+
+        callback && callback()
     });
+}
 
 $(document).ready(function() {
 
@@ -337,10 +356,37 @@ $(document).ready(function() {
             page.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             page.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
 
-            $.when(page.getPowerCurveScatterFieldList).done(function(d) {
+            // $.when(page.getPowerCurveScatterFieldList).done(function(d) {
+            //     page.LoadData();
+            // })
+            page.getPowerCurveScatterFieldList(page.project, function(){
                 page.LoadData();
             })
+
         },1000);
         
     });
+
+    setTimeout(function(){
+        // console.log("main")
+        $('#projectList').kendoDropDownList({
+            change: function () {
+                console.log("berubah")
+                var project = $('#projectList').data("kendoDropDownList").value();
+                di.getAvailDate();
+                fa.populateEngine(project);
+                page.getPowerCurveScatterFieldList(project);
+             }
+        });
+    }, 500);
+
+    // $('#projectList').kendoDropDownList({
+    //     change: function () { 
+    //         console.log("berubah")
+    //         var project = $('#projectList').data("kendoDropDownList").value();
+    //         page.getPowerCurveScatterFieldList(project);
+    //         di.getAvailDate();
+    //         fa.populateTurbine(project);
+    //      }
+    // });
 });

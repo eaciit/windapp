@@ -2951,24 +2951,19 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 	k.Config.OutputType = knot.OutputJson
 	result := []FieldAnalysis{}
 
-	// p := new(PayloadXyAnalysis)
-	// e := k.GetPayload(&p)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
+	p := tk.M{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	pipe := []tk.M{}
 	matches := tk.M{}.Set("inscatter", tk.M{}.Set("$ne", ""))
-	// if len(p.Project) >= 1 {
-	// 	matches.Set("projectname", p.Project[0])
-	// 	if len(p.Project) > 1 {
-	// 		matches.Set("projectname", tk.M{}.Set("$in", p.Project))
-	// 	}
-	// }
+	project := p.GetString("project")
 
 	pipe = append(pipe, tk.M{"$match": matches})
 	pipe = append(pipe, tk.M{"$group": tk.M{
-		"_id":   tk.M{"scada": "$scadafield", "scada10min": "$scada10minfield", "name": "$fieldname", "units": "$units", "inscatter": "$inscatter"},
+		"_id":   tk.M{"scada": "$scadafield", "scada10min": "$scada10minfield", "name": "$fieldname", "units": "$units", "inscatter": "$inscatter", "inproject": "$inproject"},
 		"order": tk.M{"$max": "$order"},
 	}})
 
@@ -2989,8 +2984,26 @@ func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext)
 		if e != nil {
 			break
 		}
-		// tk.Println(tkm)
+
 		_id := tkm.Get("_id", tk.M{}).(tk.M)
+
+		// inproject := _id.Get("inproject", []string{}).([]string)
+		// iscontinue := true
+		// for _, _v := range inproject {
+		// 	if _v == project {
+		// 		iscontinue = false
+		// 		break
+		// 	}
+		// }
+
+		// if iscontinue {
+		// 	continue
+		// }
+
+		if !strings.Contains(_id.GetString("inproject"), project) {
+			continue
+		}
+
 		field := _id.GetString("scada10min")
 		if _id.GetString("inscatter") == "ScadaData" {
 			field = _id.GetString("scada")
