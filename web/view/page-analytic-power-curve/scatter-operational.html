@@ -3,11 +3,19 @@
 	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter-operational.js?ANTI_CACHE={{.AntiCache}}"></script>
-<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/comparison.css">
 <style type="text/css">
 	.filter-content > .control-label , .input-group > .control-label {
 		width: 55px;
+	}
+	.btn-export {
+	    position: absolute;
+	    top: -20px;
+	    right: 10px;
+	    z-index: 10001;
+	}
+	.plot-with-part {
+		margin-top: -40px;
 	}
 </style>
 
@@ -23,10 +31,6 @@
 					<div class="col-md-1 no-padding">
 						<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
 					</div>
-					<label class="col-md-1 control-label">Plot With</label>
-					<div class="col-md-1 no-padding">
-						<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }"></select>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -34,16 +38,16 @@
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+				</div>
 				<div class="panel-body">
 					<div class="date-info">
-						<div class="date-info">
-		                      Data Available <span id="availabledatestartscada"></span><span id="availabledateendscada"></span></strong>
-						</div>
-                    </div>
+	                      Data Available <span id="availabledatestartscada"></span><span id="availabledateendscada"></span></strong>
+					</div>
 					<div class="clearfix">&nbsp;</div>
 
-					<div class="col-md-8 scatter">
-						<div class="tools btn-group pull-right btn-pdf">
+					<div class="col-md-8 chart-wrapper">
+						<div class="tools pull-right btn-export">
 							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve Comparison', true, true)}">
 									<i class="fa fa-file-excel-o" aria-hidden="true"></i>
 							</button>
@@ -51,7 +55,7 @@
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
 						</div>
-						<div class="scatter-chart">
+						<div class="div-comparison">
 							<div class="panel-heading template-pdf" style="margin-top: -10px">
 								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
 								<div class="col-md-12 text-center title-pdf">
@@ -63,6 +67,9 @@
 					</div>
 					<div class="col-md-4 right-filter">
 						<div class="row">
+							<div class="col-md-12 plot-with-part">
+								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }"></select>
+							</div>
 							<div class="col-md-12 filter-part"></div>
 						</div>
 						<div class="row">
