@@ -41,8 +41,8 @@ pg.getData = function() {
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD')); 
     var param = {
         period: fa.period,
-        dateStart: dateStart,
-        dateEnd: dateEnd,
+        dateStart: new Date(moment(dateStart).format('YYYY-MM-DD')),
+        dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
         turbine: fa.turbine(),
         project: fa.project,
     };

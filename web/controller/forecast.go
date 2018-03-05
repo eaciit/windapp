@@ -310,7 +310,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	chanDone := make(chan bool)
 
 	if scada15minpath != "" {
-		if _, err := os.Stat(scada15minpath); err == nil {
+		if _, err := os.Stat(scada15minpath); !os.IsNotExist(err) {
 			dirsToRead := getDirectoriesToRead(tStart, tEnd)
 			if len(dirsToRead) > 0 {
 				dirs := []string{}
@@ -343,14 +343,14 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 						go readFiles(&wg, scadaChan, dir, project, p.Turbine, pcSrc)
 					}
 				}
+
+				if totalDirs > 0 {
+					wg.Wait()
+				}
+				close(scadaChan)
+				<-chanDone
 			}
 		}
-
-		if totalDirs > 0 {
-			wg.Wait()
-		}
-		close(scadaChan)
-		<-chanDone
 	}
 
 	if len(scadaSrc) > 0 {
