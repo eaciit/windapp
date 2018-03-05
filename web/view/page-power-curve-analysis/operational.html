@@ -1,2 +1,55 @@
 <script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/operational.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/operational.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+
+
+<div class="op-wrapper">
+    <div class="row">
+        <div class="col-md-8 op-scatter">
+        	<div class="col-md-12">
+				<label class="col-md-1 control-label">Project</label>
+				<div class="col-md-6 no-padding">
+					<select class="project-list no-padding" id="op-project" name="table" style="width: 100%"></select>
+				</div>
+				<div class="col-md-1 no-padding" style="margin-top: 5px;">
+					<button type="button" id="op-btn-refresh" class="btn btn-xs btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+				</div>
+				<div class="tools pull-right btn-pdf">
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){op.PowerCurveExporttoExcel('Scatter', false, false)}">
+				    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+				  	</button>
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){op.getPDF('#op-pdf')}">
+				    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+				  	</button>
+				</div>
+			</div>
+			<div class="col-md-12" style="margin-top: 10px;">
+				<div class="scatter-div" id="op-pdf">
+					<div class="panel-heading template-pdf">
+						<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+						<div class="col-md-12 text-center title-pdf">
+							<span>Power Curve Comparison</span>
+						</div>
+					</div>
+					<div id="op-chart"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 right-filter">
+			<div class="col-md-12">
+				<div class="col-md-12">
+					<div class="col-md-12 plot-with-part">
+						<select class="scatter-type" id="op-scatterType" name="table" data-bind="kendoDropDownList: { data: op.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){op.refreshChart()} }"></select>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<div class="op-filter-part"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 op-button-add">
+					<button class="btn btn-sm btn-success" onclick="op.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add Filter</button>				
+				</div>
+			</div>
+		</div>
+    </div>
+</div>
