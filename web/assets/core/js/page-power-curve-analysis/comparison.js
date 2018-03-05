@@ -614,53 +614,32 @@ cm.getScatter = function(paramLine, dtLine, startColorIdx) {
     app.loading(true);
     var paramList = [];
     paramLine.forEach(function(data){
-        turbineList = [];
-        kolor = [];
-        kolor.push(dtLine[startColorIdx].color);
-        turbineList.push(data.Turbine);
         var dateStart = data.DateStart;
         var dateEnd = data.DateEnd;
         var param = {
             period: data.Period,
             dateStart: dateStart,
             dateEnd: new Date(moment(dateEnd).format('YYYY-MM-DD')),
-            turbine: turbineList,
+            turbine: data.Turbine,
             project: data.Project,
-            Color: kolor,
-            isDeviation: false,
-            deviationVal: "",
-            DeviationOpr: "0",
-            IsDownTime: false,
-            ViewSession: "",
-            isPower0: false,
+            Color: dtLine[startColorIdx].color,
         };
         paramList.push(param);
         startColorIdx++;
     });
     var dataPowerCurves = [];
-    var reqScatter1 = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", paramList[0], function(res) {
+    var reqScatter = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getscattercomparison", paramList, function(res) {
         if (!app.isFine(res)) {
             return;
         }
-        var dataPowerCurves1 = res.data.Data;
-        if (dataPowerCurves1 != null) {
-            if (dataPowerCurves1.length > 0) {
-                dataPowerCurves.push(dataPowerCurves1[0]);
+        var resData = res.data.Data;
+        if (resData != null) {
+            if (resData.length > 0) {
+                dataPowerCurves = resData
             }
         }
     });
-    var reqScatter2 = toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpowercurve", paramList[1], function(res) {
-        if (!app.isFine(res)) {
-            return;
-        }
-        var dataPowerCurves2 = res.data.Data;
-        if (dataPowerCurves2 != null) {
-            if (dataPowerCurves2.length > 0) {
-                dataPowerCurves.push(dataPowerCurves2[0]);
-            }
-        }
-    });
-    $.when(reqScatter1, reqScatter2).done(function() {
+    $.when(reqScatter).done(function() {
         var dtSeries = new Array();
         if (dataPowerCurves != null) {
             if (dataPowerCurves.length > 0) {
@@ -785,15 +764,6 @@ cm.getScatter = function(paramLine, dtLine, startColorIdx) {
             pannable: true,
             zoomable: true
         });
-
-        var chart = $("#cm-chart").data("kendoChart");
-        var series = chart.options.series;
-        for (var i = 0; i < series.length; i++) {
-            if(i >= series.length-2) {
-                series[i].visibleInLegend = false;
-            }
-        };
-        chart.redraw();
 
         app.loading(false);
     });
