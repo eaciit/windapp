@@ -25,12 +25,12 @@ pg.SelectedSeries = ko.observable('');
 
 var timeNow = moment.utc().add(5.5, 'hour');
 var sDateNow = timeNow.format('YYYY-MM-DD');
-var timefilter = moment.utc().add(7, 'hour');
+var timefilter = moment.utc().add(6.5, 'hour').add(15, 'minutes');
 pg.TimeFilter = ko.observable(timefilter);
 
 pg.allowedMinTimeBlock = ko.observable(1);
 pg.allowedTimeBlock = ko.observable(timeNow);
-pg.allowedTimeStamp = ko.observable(moment(sDateNow + ' 00:15').add(-15, 'minute'));
+pg.allowedTimeStamp = ko.observable(moment(sDateNow + ' 00:15'));
 pg.currentRevNo = ko.observable('1');
 
 pg.getData = function() {
@@ -732,7 +732,8 @@ pg.checkLatestRevNo = function(currSTime) {
                 var v = revInfos[i];
                 if(i>1) {
                     var timeMax = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.rev_time_max);
-                    var timeStamp = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.timestamp);
+                    var timeStamp = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.timestamp).utc();
+                    timeStamp = timeStamp.add(6.5, 'hours').add(15, 'minutes');
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
@@ -742,9 +743,9 @@ pg.checkLatestRevNo = function(currSTime) {
                                 $("#gridForecasting").data("kendoGrid").refresh(); // not tested yet
                             } catch(e) {}
                         }
-                        pg.allowedTimeStamp(timeStamp.utc().add(6.5, 'hour'));
+                        pg.allowedTimeStamp(timeStamp);
                         // pg.allowedTimeStamp(timeStamp);
-                        pg.TimeFilter(timeStamp.add(15, 'minutes'));
+                        pg.TimeFilter(timeStamp);
                         pg.currentRevNo(parseInt(v.rev_no).toString());
                         break;
                     }
