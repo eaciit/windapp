@@ -286,8 +286,8 @@ pg.genereateGrid = function(){
                     template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", 
                     format: '{0:n0}',
                     attributes: {
-                        "class": "#:(AvaCap != null && moment(TimeStamp).utc().add(15, 'minutes').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(AvaCap != null && moment(TimeStamp).utc().add(15, 'minutes').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
@@ -297,8 +297,8 @@ pg.genereateGrid = function(){
                     template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", 
                     format: '{0:n2}',
                     attributes: {
-                        "class": "#:(SchFcast != null && moment(TimeStamp).utc().add(15, 'minutes').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(SchFcast != null && moment(TimeStamp).utc().add(15, 'minutes').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
@@ -315,11 +315,11 @@ pg.genereateGrid = function(){
                 var data = e.model;
                 var schFcast = data.SchFcast;
                 var avgCap = data.AvaCap;
-                var timeStamp = new Date(data.TimeStamp);//.add(5.5, 'hour');
+                var timeStamp = moment(data.TimeStamp).utc().add(5.5, 'hour').add(15, 'minute');
                 console.log(timeStamp);
-                var timefilter = pg.TimeFilter();
+                var timefilter = moment(pg.TimeFilter()).utc().add(5.5, 'hour');
                 console.log(timefilter);
-                var isAllowed = (timeStamp >= timefilter);
+                var isAllowed = (timeStamp.isAfter(timefilter));
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
