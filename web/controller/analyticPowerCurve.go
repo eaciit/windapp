@@ -2557,6 +2557,7 @@ func (m *AnalyticPowerCurveController) GetScatterComparison(k *knot.WebContext) 
 				"name":       "Scatter-" + _turbinename + " (" + _tStart.Format("02-Jan-2006") + "  to " + _tEnd.Format("02-Jan-2006") + ")",
 				"xField":     "WindSpeed",
 				"yField":     "Power",
+				"color":      _colors,
 				"colorField": "valueColor",
 				"type":       "scatter",
 				"markers":    tk.M{"size": 2},
