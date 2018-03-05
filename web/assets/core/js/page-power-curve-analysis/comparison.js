@@ -338,7 +338,7 @@ cm.showHidePeriod = function (idx) {
        $('#dateStart-' + id).data('kendoDatePicker').value(startYearDate);
        $('#dateEnd-' + id).data('kendoDatePicker').value(endYearDate);
 
-        $(".show_hide").show();
+        $("#show_hide").show();
     } else {
         if(period == 'last24hours'){
              $('#dateStart-' + id).data('kendoDatePicker').value(last24hours);

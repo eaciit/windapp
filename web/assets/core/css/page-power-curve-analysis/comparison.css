@@ -1,14 +1,18 @@
-.filter-part{
+.plot-with-part{
+    margin-left: -20px;
+    margin-bottom: 20px;
+}
+.filter-part , .op-filter-part{
        margin-left: 0px;
     margin-right: 20px;
 }
-.dynamic-filter {
+.dynamic-filter, .op-dynamic-filter {
     margin-bottom: 15px;
     position: relative;
     border-bottom: 1px solid #f1f3f4;
     padding-bottom: 21px;
 }
-div.dynamic-filter:last-child, div.dynamic-filter-last {
+div.dynamic-filter:last-child, div.dynamic-filter-last,  div.op-dynamic-filter:last-child, div.op-dynamic-filter-last, {
     border-bottom: none;
     padding-bottom: 10px;
 }
@@ -36,7 +40,7 @@ div.dynamic-filter:last-child, div.dynamic-filter-last {
     margin-left: 7px;
     margin-right: 7px;
 }
-.button-add {
+.button-add, .op-button-add {
     margin-left: 5px;
 }
 .remove-btn{
@@ -66,5 +70,8 @@ div.dynamic-filter:last-child, div.dynamic-filter-last {
     border-top: none;
 }
 .cm-turbine-list{
+    width: 100px;
+}
+.op-turbine-list{
     width: 100px;
 }
