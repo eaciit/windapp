@@ -23,14 +23,15 @@ pg.Series = ko.observableArray([]);
 pg.MaxValue = ko.observable(0);
 pg.SelectedSeries = ko.observable('');
 
-var timeNow = moment.utc().add(5.5, 'hour');
+var timeNow = moment.utc().add(5.5, 'hours');
 var sDateNow = timeNow.format('YYYY-MM-DD');
-var timefilter = moment.utc().add(6.5, 'hour').add(15, 'minutes');
+var timefilter = timeNow.add(75, 'minutes');
+// var timefilter = moment(sDateNow + ' 00:15').utc().add(6.5, 'hours');;
 pg.TimeFilter = ko.observable(timefilter);
 
 pg.allowedMinTimeBlock = ko.observable(1);
 pg.allowedTimeBlock = ko.observable(timeNow);
-pg.allowedTimeStamp = ko.observable(moment(sDateNow + ' 00:15'));
+pg.allowedTimeStamp = ko.observable(timefilter);
 pg.currentRevNo = ko.observable('1');
 
 pg.getData = function() {
@@ -284,8 +285,8 @@ pg.genereateGrid = function(){
                     template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", 
                     format: '{0:n0}',
                     attributes: {
-                        "class": "#:(AvaCap != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(AvaCap != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
@@ -295,8 +296,8 @@ pg.genereateGrid = function(){
                     template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", 
                     format: '{0:n2}',
                     attributes: {
-                        "class": "#:(SchFcast != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(SchFcast != null && moment(TimeStamp).isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
@@ -313,10 +314,11 @@ pg.genereateGrid = function(){
                 var data = e.model;
                 var schFcast = data.SchFcast;
                 var avgCap = data.AvaCap;
-                var timeStamp = data.TimeStamp;
+                var timeStamp = moment(data.TimeStamp).utc().add(5.5, 'hour');
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
                 // var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter.add(-15, 'minute')));
-                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
+                // var isAllowed = (schFcast != null && moment(timeStamp).utc().isAfter(timefilter));
+                var isAllowed = timeStamp.isAfter(timefilter);
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
@@ -733,7 +735,7 @@ pg.checkLatestRevNo = function(currSTime) {
                 if(i>1) {
                     var timeMax = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.rev_time_max);
                     var timeStamp = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.timestamp).utc();
-                    timeStamp = timeStamp.add(6.5, 'hours').add(15, 'minutes');
+                    timeStamp = timeStamp.add(5.5, 'hours').add(-15, 'minutes');
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
