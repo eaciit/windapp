@@ -521,7 +521,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			"ID":            id,
 			"Date":          tp.TimePeriod.Format("02/01/2006"),
 			"TimeBlock":     tp.TimeRange,
-			"TimeStamp":     tp.TimePeriod,
+			"TimeStamp":     tp.TimePeriod.Format("2006-01-02 15:04"),
 			"TimeBlockInt":  tp.TimeBlock,
 			"AvaCap":        avacap,
 			"Forecast":      fcvalue,
