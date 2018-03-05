@@ -4,7 +4,7 @@
 }
 .filter-part , .op-filter-part{
        margin-left: 0px;
-    margin-right: 20px;
+    /*margin-right: 20px;*/
 }
 .dynamic-filter, .op-dynamic-filter {
     margin-bottom: 15px;
@@ -48,7 +48,7 @@ div.dynamic-filter:last-child, div.dynamic-filter-last,  div.op-dynamic-filter:l
     font-size: 10px;
     position: absolute;
     top: -25px;
-    right: 0px;
+    right: 10px;
 }
 .horizontal-line{
     margin-top: 5px;
