@@ -27,11 +27,11 @@ var timeNow = moment.utc().add(5.5, 'hours');
 var sDateNow = timeNow.format('YYYY-MM-DD');
 var timefilter = timeNow.add(75, 'minutes');
 // var timefilter = moment(sDateNow + ' 00:15').utc().add(6.5, 'hours');;
-pg.TimeFilter = ko.observable(new Date(timefilter));
+pg.TimeFilter = ko.observable(timefilter);
 
 pg.allowedMinTimeBlock = ko.observable(1);
 pg.allowedTimeBlock = ko.observable(timeNow);
-pg.allowedTimeStamp = ko.observable(new Date(timefilter));
+pg.allowedTimeStamp = ko.observable(timefilter);
 pg.currentRevNo = ko.observable('1');
 
 pg.getData = function() {
@@ -286,8 +286,8 @@ pg.genereateGrid = function(){
                     template : "#: (AvaCap==null?'-':kendo.toString(AvaCap, 'n0')) #", 
                     format: '{0:n0}',
                     attributes: {
-                        "class": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(AvaCap != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Forecast", title: "Forecast<br>(MW)", template : "#: (Forecast==null?'-':kendo.toString(Forecast, 'n2')) #", format: '{0:n2}'},
@@ -297,8 +297,8 @@ pg.genereateGrid = function(){
                     template : "#: (SchFcast==null?'-':kendo.toString(SchFcast, 'n2')) #", 
                     format: '{0:n2}',
                     attributes: {
-                        "class": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
-                        "title": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(moment(pg.TimeFilter()).utc().add(5.5, 'hour'))?'Click to edit this value':'Not allowed to edit this value')#",
+                        "class": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(pg.TimeFilter())?'cell-editable':'cell-editable-no')# tooltipster tooltipstered",
+                        "title": "#:(SchFcast != null && moment(TimeStamp).utc().add(5.5, 'hour').add(15, 'minute').isAfter(pg.TimeFilter())?'Click to edit this value':'Not allowed to edit this value')#",
                     },
                 },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
@@ -317,7 +317,7 @@ pg.genereateGrid = function(){
                 var avgCap = data.AvaCap;
                 var timeStamp = moment(data.TimeStamp).utc().add(5.5, 'hour').add(15, 'minute');
                 console.log(timeStamp);
-                var timefilter = moment(pg.TimeFilter()).utc().add(5.5, 'hour');
+                var timefilter = pg.TimeFilter();
                 console.log(timefilter);
                 var isAllowed = (timeStamp.isAfter(timefilter));
                 if(!isAllowed) {  
@@ -736,18 +736,17 @@ pg.checkLatestRevNo = function(currSTime) {
                 if(i>1) {
                     var timeMax = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.rev_time_max);
                     var timeStamp = moment(timeNow.format("YYYY-MM-DD") + ' ' + v.timestamp);
-                    //timeStamp = timeStamp.add(5.5, 'hours').add(-15, 'minutes');
+                    timeStamp = timeStamp.add(5.5, 'hours');
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
-                        // if(timeStamp.utc().add(6.5, 'hour').isAfter(pg.allowedTimeStamp())) {
-                        if(timeStamp.isAfter(pg.allowedTimeStamp())) {
+                        if(timeStamp.isAfter(pg.TimeFilter())) {
                             try {
                                 $("#gridForecasting").data("kendoGrid").refresh(); // not tested yet
                             } catch(e) {}
                         }
-                        pg.allowedTimeStamp(new Date(timeStamp));
-                        pg.TimeFilter(new Date(timeStamp));
+                        pg.allowedTimeStamp(timeStamp);
+                        pg.TimeFilter(timeStamp);
                         pg.currentRevNo(parseInt(v.rev_no).toString());
                         break;
                     }
