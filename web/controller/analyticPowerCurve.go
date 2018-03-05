@@ -33,8 +33,8 @@ var (
 	// colorFieldDegradation = [...]string{"#ffcf9e", "#a6e7df", "#ffc8c0", "#ffe2b8", "#d9f2ba", "#a4d8e7", "#ffc0db", "#fab3ae", "#efa5a2", "#cfc8dc", "#d6a0e0", "#a8e6cc", "#f5b9bd", "#e7d8b5", "#ffbbd5", "#e7a89d", "#edc7be", "#ffa9ef", "#adddd0", "#9fe0f7", "#fabcaf", "#ff99af", "#b9cada", "#ffc1c1", "#ffeec1", "#c6ddff", "#c9bbb5"}
 	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
-	colorPCComparison     = []string{"#ff9933", "#3AA19B", "#4CAECF", "#B33D43", "#4068B3"}
-	colorLineComparison   = []string{"#FF6565", "#54B0AB", "#4BB7DB", "#94D154", "#5A298F"}
+	colorPCComparison     = []string{"#ff9933", "#4D9E4D", "#C4C920", "#B33D43", "#4068B3"}
+	colorLineComparison   = []string{"#FF6565", "#3AA19B", "#4CAECF", "#94D154", "#5A298F"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
 	headerExcelPC = map[string]string{
 		"avgwindspeed":                "Wind Speed",
@@ -1433,42 +1433,43 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebCo
 	filterExcel = append(filterExcel, dbox.Eq("available", 1))
 
 	var mux sync.Mutex
-	var wgProject sync.WaitGroup
-	wgProject.Add(len(payload.ProjectList))
 	dataSeriesPC := []tk.M{}
-	for idx, _project := range payload.ProjectList {
-		go func(projectname string, _wg *sync.WaitGroup, _dataSeriesPC *[]tk.M, index int) {
-			defer _wg.Done()
-			engine := ""
-			if projectname == "Dewas" {
-				engine = "S-97"
-			}
 
-			PCData, e := getPCData(projectname, engine, true)
-			if e != nil {
-				tk.Println("Error on GetListPowerCurveComparison func at payload.ProjectList range due to >>", e.Error())
-				return
-			}
+	powerCurve := []PowerCurveModel{}
 
-			PCData.Set("name", "Power Curve "+projectname)
-			PCData.Set("idxseries", index)
-			PCData.Set("color", colorPCComparison[index])
-			mux.Lock()
-			*_dataSeriesPC = append(*_dataSeriesPC, PCData)
-			mux.Unlock()
-		}(_project, &wgProject, &dataSeriesPC, idx)
+	csr, e := DB().Connection.NewQuery().From(new(PowerCurveModel).TableName()).
+		Order("model", "windspeed").Cursor(nil)
+	if e != nil {
+		tk.Println("Error on GetListPowerCurveComparison func at payload.ProjectList range due to >>", e.Error())
+		return helper.CreateResult(false, nil, e.Error())
 	}
-	wgProject.Wait()
-	tempResultPC := []tk.M{}
-	for _, _project := range payload.ProjectList {
-		for _, dtSeries := range dataSeriesPC {
-			split := strings.Split(dtSeries.GetString("name"), "Power Curve ")
-			if split[1] == _project {
-				tempResultPC = append(tempResultPC, dtSeries)
-			}
+	defer csr.Close()
+
+	e = csr.Fetch(&powerCurve, 0, false)
+	if e != nil {
+		tk.Println("Error on GetListPowerCurveComparison func at payload.ProjectList range due to >>", e.Error())
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	PCPerProject := map[string][][]float64{}
+	for _, val := range powerCurve {
+		if (val.Model == "Dewas" && val.Engine == "S-97") || val.Engine == "" {
+			PCPerProject[val.Model] = append(PCPerProject[val.Model], []float64{val.WindSpeed, val.Power1})
 		}
 	}
-	dataSeriesPC = tempResultPC
+
+	for idx, _project := range payload.ProjectList {
+		dataSeriesPC = append(dataSeriesPC, tk.M{
+			"name":      "Power Curve " + _project,
+			"idxseries": idx,
+			"type":      "scatterLine",
+			"dashType":  "longDash",
+			"style":     "smooth",
+			"color":     colorPCComparison[idx],
+			"markers":   tk.M{"visible": false},
+			"width":     3,
+			"data":      PCPerProject[_project],
+		})
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(len(payload.Details))

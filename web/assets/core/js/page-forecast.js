@@ -315,8 +315,8 @@ pg.genereateGrid = function(){
                 var avgCap = data.AvaCap;
                 var timeStamp = data.TimeStamp;
                 var timefilter = pg.TimeFilter();//moment.utc().add(6.5, 'hour');
-                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter.add(-15, 'minute')));
-                // var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
+                // var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter.add(-15, 'minute')));
+                var isAllowed = (schFcast != null && moment(timeStamp).isAfter(timefilter));
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
                     e.preventDefault();
@@ -736,8 +736,15 @@ pg.checkLatestRevNo = function(currSTime) {
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
+                        // if(timeStamp.utc().add(6.5, 'hour').isAfter(pg.allowedTimeStamp())) {
+                        if(timeStamp.isAfter(pg.allowedTimeStamp())) {
+                            try {
+                                $("#gridForecasting").data("kendoGrid").refresh(); // not tested yet
+                            } catch(e) {}
+                        }
                         pg.allowedTimeStamp(timeStamp.utc().add(6.5, 'hour'));
-                        pg.TimeFilter(timeStamp);
+                        // pg.allowedTimeStamp(timeStamp);
+                        pg.TimeFilter(timeStamp.add(15, 'minutes'));
                         pg.currentRevNo(parseInt(v.rev_no).toString());
                         break;
                     }
