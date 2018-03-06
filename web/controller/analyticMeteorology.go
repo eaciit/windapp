@@ -307,6 +307,20 @@ func (m *AnalyticMeteorologyController) GetEnergyCorrelation(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	for k, _ := range turbineName {
+		isappend := true
+		for _, val := range arrturbine {
+			if val == k {
+				isappend = false
+				break
+			}
+		}
+
+		if isappend {
+			arrturbine = append(arrturbine, k)
+		}
+	}
+
 	for _, _turbine := range pturbine {
 		_tkm := tk.M{}.Set(tk.Sprintf("%#v", "Turbine"), turbineName[_turbine])
 		for i := 1; i < len(arrturbine); i++ {
