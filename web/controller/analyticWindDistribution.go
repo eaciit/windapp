@@ -524,7 +524,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 		dataSeries = append(dataMetTower, dataScada...)
 		turbineAvail = append(turbineAvail, turbineAvailTemp...)
 	} else {
-		if p.Project == "Lahori" && p.BreakDown == "nacelledeviation" {
+		if (p.Project == "Lahori" || p.Project == "Taralkatti") && p.BreakDown == "nacelledeviation" {
 			dataSeries, turbineAvail = GetScadaDataLahori(turbineName, turbineNameSorted, turbine, queryT, p.BreakDown, tStart, tEnd)
 		} else {
 			dataSeries, turbineAvail = GetScadaData(turbineName, turbineNameSorted, turbine, queryT, p.BreakDown, false)
