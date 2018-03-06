@@ -57,6 +57,7 @@ pg.getData = function() {
 
         var latestSubjects = d.data[0].LatestSubject;
         var subjects = '';
+        var text = '';
         if(latestSubjects.length > 0) {
             var delim = '';
             var subject0 = '';
@@ -68,10 +69,10 @@ pg.getData = function() {
                 delim = ' | ';
             });
             var revNo = subject0.toLowerCase().split('rev')[1].trim();
-            var text = 'Send email for current day Rev '+ (pg.currentRevNo()==''?revNo:pg.currentRevNo());
+            text = 'Send email for current day Rev '+ (pg.currentRevNo()==''?revNo:pg.currentRevNo());
             $('.date-info').html(subjects);
         } else {
-            var text = 'Send email for current day Rev 0';
+            text = 'Send email for current day Rev 0';
             $('.date-info').html('No data forecast for '+ fa.project);
         }
         pg.TextSendMailToday(text);
@@ -162,6 +163,7 @@ pg.genereateGrid = function(){
                         fields: {
                             ID: { editable: false },
                             Date: { editable: false },
+                            DateToShow: { editable: false },
                             TimeBlock: { editable: false },
                             TimeBlockInt: { editable: false },
                             AvaCap: { type: "number" },
@@ -276,7 +278,7 @@ pg.genereateGrid = function(){
                 app.loading(false);
             },
             columns: [
-                { field: "Date", title: "Date"},
+                { field: "DateToShow", title: "Date"},
                 { field: "TimeBlock", title: "Time", width: 100, },
                 { field: "TimeBlockInt", title: "Time Block", width: 60, },
                 // { field: "TimeBlockInt", title: "Time<br/>Block", width: 50, },
@@ -316,9 +318,9 @@ pg.genereateGrid = function(){
                 var schFcast = data.SchFcast;
                 var avgCap = data.AvaCap;
                 var timeStamp = moment(data.TimeStamp).utc().add(5.5, 'hour').add(15, 'minute');
-                console.log(timeStamp);
+                //console.log(timeStamp);
                 var timefilter = pg.TimeFilter();
-                console.log(timefilter);
+                //console.log(timefilter);
                 var isAllowed = (timeStamp.isAfter(timefilter));
                 if(!isAllowed) {  
                     $(e.container[0]).removeAttr('class'); // to remove background as editable cell
@@ -717,7 +719,8 @@ pg.clock = function() {
         var timeClock = timeNow.format("HH:mm:ss");
         var currMin = timeNow.minute();
         var currSTime = timeNow.format("HH:mm");
-        if(currMin==0 || currMin==30 || startClock) {
+        var currSec = timeNow.second();
+        if((currMin==0 && currSec==0) || (currMin==30 && currSec==0) || startClock) {
             pg.checkLatestRevNo(currSTime);
         }
         startClock = false;
@@ -740,14 +743,29 @@ pg.checkLatestRevNo = function(currSTime) {
                     if(timeMax.isAfter(currTime)) {
                         pg.allowedMinTimeBlock(parseInt(v.min_timeblock));
                         pg.allowedTimeBlock(timeMax);
-                        if(timeStamp.isAfter(pg.TimeFilter())) {
+                        //if(timeStamp.isAfter(pg.TimeFilter())) {
                             try {
-                                $("#gridForecasting").data("kendoGrid").refresh(); // not tested yet
-                            } catch(e) {}
-                        }
+                                 // not tested yet
+                                $('#gridForecasting').data('kendoGrid').dataSource.read();
+                                $("#gridForecasting").data("kendoGrid").refresh();
+                            } catch(e) {
+                                console.log(e);
+                            }
+
+                            try {
+                                // not tested yet
+                                $('#gridForecasting').data('kendoGrid').dataSource.read().then(function() {
+                                    $('#gridForecasting').data('kendoGrid').refresh();
+                                });
+                            } catch(e) {
+                                console.log(e);
+                            }
+                        //}
                         pg.allowedTimeStamp(timeStamp);
                         pg.TimeFilter(timeStamp);
                         pg.currentRevNo(parseInt(v.rev_no).toString());
+                        var text = 'Send email for current day Rev '+ pg.currentRevNo();
+                        pg.TextSendMailToday(text);
                         break;
                     }
                 }
