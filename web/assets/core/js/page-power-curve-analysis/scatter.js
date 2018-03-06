@@ -186,7 +186,7 @@ sc.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) 
             app.loading(false);
             return;
         }
-        // window.location = viewModel.appName + "/".concat(res.data);
+        window.location = viewModel.appName + "/".concat(res.data);
         app.loading(false);
     });
 
