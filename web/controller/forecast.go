@@ -517,9 +517,14 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			}
 		}
 
+		dateToShow := tp.TimePeriod.Format("02/01/2006")
+		if tp.TimeRange == "23:45 - 00:00" {
+			dateToShow = tp.TimePeriod.AddDate(0, 0, -1).Format("02/01/2006")
+		}
 		item := tk.M{
 			"ID":            id,
 			"Date":          tp.TimePeriod.Format("02/01/2006"),
+			"DateToShow":    dateToShow,
 			"TimeBlock":     tp.TimeRange,
 			"TimeStamp":     tp.TimePeriod.Format("2006-01-02 15:04"),
 			"TimeBlockInt":  tp.TimeBlock,
