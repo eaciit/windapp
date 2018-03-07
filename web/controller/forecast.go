@@ -490,7 +490,6 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 
 		// cap value for sch
 		// if isschvalavg && isedited < 1 {
-		// if isschvalavg && isedited < 1 {
 		if isedited < 1 && schval != defaultValue {
 			if schval < 8 {
 				schval = 8
