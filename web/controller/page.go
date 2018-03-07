@@ -235,6 +235,13 @@ func (w *PageController) ClusterWiseGeneration(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, true)
 }
+func (w *PageController) AnalyticDgrCluster(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-dgr-cluster.html"
+
+	return w.GetParams(r, true)
+}
 
 func (w *PageController) AnalyticKeyMetrics(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
