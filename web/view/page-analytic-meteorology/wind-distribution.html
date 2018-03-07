@@ -1,4 +1,10 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/wind-distribution.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+	circle {
+		r: 4;
+	}
+</style>
+
 <div class="col-md-9">
 	<div class="tools btn-group pull-right btn-pdf">
 		<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){wd.getPDF('.div-windis')}">
