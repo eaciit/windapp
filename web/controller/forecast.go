@@ -169,7 +169,7 @@ func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
 
 	if len(p.Values) > 0 {
 		for _, v := range p.Values {
-			err := DB().Connection.NewQuery().Update().From("ForecastData").Where(dbox.Eq("_id", v.Id)).Exec(tk.M{}.Set("data", tk.M{}.Set("schsdlc", v.Value).Set("avgcapacity", v.ValueCap)))
+			err := DB().Connection.NewQuery().Update().From("ForecastData").Where(dbox.Eq("_id", v.Id)).Exec(tk.M{}.Set("data", tk.M{}.Set("schsdlc", v.Value).Set("avgcapacity", v.ValueCap).Set("isedited", 1)))
 			if err != nil {
 				tk.Printf("Update data failed : %s\n", err.Error())
 			}
@@ -450,6 +450,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		dsmpenalty := ""
 		deviation := defaultValue
 		//isschvalavg := true
+		isedited := 0
 		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
 
 		if len(dtScada) > 0 {
@@ -482,17 +483,21 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 				schval = dtForecast.GetFloat64("schsdlc")
 				//isschvalavg = false
 			}
+			if dtForecast.Has("isedited") {
+				isedited = dtForecast.GetInt("isedited")
+			}
 		}
 
 		// cap value for sch
-		// if isschvalavg {
-		if schval < 8 {
-			schval = 8
+		// if isschvalavg && isedited < 1 {
+		if isedited < 1 && schval != defaultValue {
+			if schval < 8 {
+				schval = 8
+			}
+			if schval > 52 {
+				schval = 52
+			}
 		}
-		if schval > 52 {
-			schval = 52
-		}
-		// }
 
 		actualsub := 0.0
 		fcvaluesub := 0.0
@@ -879,7 +884,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			}
 			if dtForecast.Has("schsdlc") {
 				schval = dtForecast.GetFloat64("schsdlc")
-				//isschvalavg = false
+				// isschvalavg = false
 			}
 		}
 
@@ -974,11 +979,13 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	if len(forecast) > 0 {
 		from := tk.M{"email": "ostro.support@eaciit.com", "name": "Ostro Support"}
 		tos := []tk.M{
+			tk.M{"email": "oms@ostro.in", "name": "OMS"},
 			tk.M{"email": "priyadarshan.b@ostro.in", "name": "Priyadarshan B"},
 		}
 		ccs := []tk.M{
 			tk.M{"email": "sandhya@eaciit.com", "name": "Sandhya Jain"},
 			tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika"},
+			tk.M{"email": "shreyas@eaciit.com", "name": "Shreyas Mithare"},
 		}
 		bccs := []tk.M{}
 		createXlsAndSend(p.Project, p.Date, p.Subject, from, tos, ccs, bccs, dataReturn)
