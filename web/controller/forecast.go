@@ -747,14 +747,14 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 						go readFiles(&wg, scadaChan, dir, project, p.Turbine, pcSrc)
 					}
 				}
+
+				if totalDirs > 0 {
+					wg.Wait()
+				}
+				close(scadaChan)
+				<-chanDone
 			}
 		}
-
-		if totalDirs > 0 {
-			wg.Wait()
-		}
-		close(scadaChan)
-		<-chanDone
 	}
 
 	if len(scadaSrc) > 0 {
@@ -853,6 +853,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		devsch := defaultValue
 		dsmpenalty := ""
 		deviation := defaultValue
+		isedited := 0
 		// isschvalavg := true
 		id := tk.Sprintf("%s_%v_%s", project, tp.TimeBlock, tpkey)
 
@@ -886,15 +887,21 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 				schval = dtForecast.GetFloat64("schsdlc")
 				// isschvalavg = false
 			}
+			if dtForecast.Has("isedited") {
+				isedited = dtForecast.GetInt("isedited")
+				// isschvalavg = false
+			}
 		}
 
 		// cap value for sch
 		// if isschvalavg {
-		if schval < 8 {
-			schval = 8
-		}
-		if schval > 52 {
-			schval = 52
+		if isedited < 1 && schval != defaultValue {
+			if schval < 8 {
+				schval = 8
+			}
+			if schval > 52 {
+				schval = 52
+			}
 		}
 		// }
 
@@ -921,9 +928,14 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			}
 		}
 
+		dateToShow := tp.TimePeriod.Format("02/01/2006")
+		if tp.TimeRange == "23:45 - 00:00" {
+			dateToShow = tp.TimePeriod.AddDate(0, 0, -1).Format("02/01/2006")
+		}
 		item := tk.M{
 			"ID":            id,
 			"Date":          tp.TimePeriod.Format("02/01/2006"),
+			"DateToShow":    dateToShow,
 			"TimeBlock":     tp.TimeRange,
 			"TimeStamp":     tp.TimePeriod,
 			"TimeBlockInt":  tp.TimeBlock,
