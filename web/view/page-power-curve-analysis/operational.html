@@ -6,12 +6,14 @@
     <div class="row">
         <div class="col-md-8 op-scatter">
         	<div class="col-md-12">
-				<label class="col-md-1 control-label">Project</label>
-				<div class="col-md-6 no-padding">
-					<select class="project-list no-padding" id="op-project" name="table" style="width: 100%"></select>
-				</div>
-				<div class="col-md-1 no-padding" style="margin-top: 5px;">
-					<button type="button" id="op-btn-refresh" class="btn btn-xs btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+        		<div class="col-md-9 om-filter-project">
+					<label class="col-md-1 control-label">Project</label>
+					<div class="col-md-9 no-padding">
+						<select class="project-list no-padding" id="op-project" name="table" style="width: 100%"></select>
+					</div>
+					<div class="col-md-1 no-padding pull-right" style="margin-top: 5px;margin-right: 15px;">
+						<button type="button" id="op-btn-refresh" class="btn btn-xs btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+					</div>
 				</div>
 				<div class="tools pull-right btn-pdf">
 					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){op.PowerCurveExporttoExcel('Operational Power Curve', true, true)}">
