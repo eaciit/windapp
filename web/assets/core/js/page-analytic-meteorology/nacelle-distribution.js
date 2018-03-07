@@ -103,6 +103,9 @@ nd.ChartNacelleDistributon =  function () {
                 height: 360
             },
             series: dataSeries,
+            seriesHover: function(e) {
+                $.each(document.getElementsByTagName("circle"), function(idx, value){value.attributes.r.value = "4"});
+            },
             valueAxis: {
                 labels: {
                     format: "{0:p0}",
