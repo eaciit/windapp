@@ -23,6 +23,7 @@ im.FieldList;
 im.ContentFilter;
 
 im.PrintPdf = ko.observable(false);
+
 im.getPDF = function(selector){
     
     app.loading(true);

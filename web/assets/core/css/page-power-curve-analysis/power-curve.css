@@ -54,7 +54,7 @@
 }
 
 .pc-selected-filter {
-    margin-top: -7px;
+    margin-top: 15px;
 }
 .pc-selected-filter .deviation-wrapper .form-control {
     padding: 2px 5px;
@@ -69,4 +69,88 @@
     max-width: 50px;
     text-align: right;
     margin-top: -4px;
+}
+.filters{
+    margin-top: -25px;
+    position: relative;
+    z-index: 11;
+}
+
+#airdensity_info {
+    position: absolute;
+    top: 36px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+#dataavail_info {
+    position: absolute;
+    top: 62px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+#totaldataavail_info {
+    position: absolute;
+    top: 88px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+
+.template-pdf{
+    display: none;
+}
+.legend-item
+{
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+    }
+.legend-item .legend-marker
+{
+    display:inline-block;
+    width:8px;
+    height:8px;
+}
+.template-pdf{
+    display: none;
+}
+#legend{
+    margin-top: 20px;
+    padding-left: 20px;
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 30px;
+}
+
+.k-pdf-export #airdensity_info{
+    top: 80px;
+}
+.k-pdf-export #dataavail_info{
+    top: 105px;
+}
+.k-pdf-export #totaldataavail_info{
+    top: 130px;
+}
+
+.k-pdf-export .template-pdf {
+    display: block;
+}
+
+.k-pdf-export #legend {
+    display: block; 
 }

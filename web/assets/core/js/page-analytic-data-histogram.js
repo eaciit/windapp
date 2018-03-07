@@ -598,11 +598,13 @@ km.callbackTempTags = function() {
 $(document).ready(function () {
     // init event for each elements needed
     $('#btnRefresh').on('click', function () {
-        app.loading(true);
         fa.checkTurbine();
-        $("#sTempTags").data("kendoDropDownList").setDataSource(km.tempTagsDs());
-        $("#sTempTags").data("kendoDropDownList").select(0);
-        km.getMaxMinValueTemp(true);
+        if (fa.LoadData()) {
+            app.loading(true);
+            $("#sTempTags").data("kendoDropDownList").setDataSource(km.tempTagsDs());
+            $("#sTempTags").data("kendoDropDownList").select(0);
+            km.getMaxMinValueTemp(true);
+        }
     });
 
     $('#exportXlsx').on('click', function (e) {

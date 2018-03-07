@@ -9,9 +9,31 @@
                 <button type="button" id="btnRefresh" data-bind="css: fa.infoFiltersChanged() == true ? 'flash-button' : 'no-flash'" class="btn btn-sm btn-primary btn-filter-refresh filter-changed no-flash" aria-hidden="true" onclick="ms.internalRefresh()"><i class="fa fa-refresh"></i>&nbsp;Refresh &nbsp;</button>
             </div>
         </div>
+        <div class="col-md-9">
+            <span class="tools pull-right" style="margin-right: 20px">
+                <!-- <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Power curves shown till last month"></i> -->
+                <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Excel" onclick="ms.PowerCurveExporttoExcel('Monthly Scatter', true, false)">
+                    <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Pdf" onclick="ms.getPDF('.tobeprint')">
+                    <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                </button>
+            </span>
+        </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-12 tobeprint">
+            <div class="col-md-12" data-bind="visible: ms.PrintPdf">
+                <img src="/web/res/img/ostro-logo.svg" class="navbar-brand">
+                <span class="navbar-brand" style="padding: 15px 0px;font-size: 24px;">
+                    ENERGY
+                </span>
+            </div>
+            <div class="col-md-12" style="text-align: center;font-size: 18px;margin-bottom: 15px;" data-bind="visible: ms.PrintPdf">
+                <label id="pdf-title">ASD</label>
+                <br>
+                <label>Monthly Scatter</label>
+            </div>
             <div class="ms-individual-month" data-bind="foreach: ms.dataPCEachTurbine">
                 <div class="col-md-4 col-xs-12 ms-power-curve-item">
                     <div class="totalavail_info">

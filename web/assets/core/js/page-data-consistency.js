@@ -200,7 +200,7 @@ vm.currentMenu('Data Consistency');
 vm.currentTitle('Data Consistency');
 vm.breadcrumb([{ title: "KPI's", href: '#' }, { title: 'Data Consistency', href: viewModel.appName + 'page/analyticdataconsistency' }]);
 
-$(function(){
+$(document).ready(function () {
     pg.getAvailDate();
     fa.LoadData();
 
@@ -213,7 +213,9 @@ $(function(){
         fa.checkTurbine();
         pg.resetStatus();
 
-        pg.DataCon();
+        if (fa.LoadData()) {
+            pg.DataCon();
+        }
         // $('.nav').find('li.active').find('a').trigger( "click" );
     });
 
@@ -224,4 +226,4 @@ $(function(){
             fa.populateTurbine(project);
         }
     });
-})
+});
