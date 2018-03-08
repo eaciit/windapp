@@ -184,6 +184,54 @@ func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, dataReturn, "")
 }
 
+func (m *ForecastController) GetTurbineDown(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Project string
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	turbineDown := 0
+	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	dateend, _ := time.Parse("2006-01-02 15:04:05", "0001-01-01 00:00:00")
+	matches := []tk.M{
+		tk.M{"projectname": p.Project},
+		//tk.M{"$or": []tk.M{
+		tk.M{"dateinfostart.dateid": tk.M{"$eq": today}},
+		tk.M{"dateinfoend.dateid": tk.M{"$eq": dateend}},
+		tk.M{"isdeleted": false},
+		//}},
+	}
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$group": tk.M{
+			"_id":   "$turbine",
+			"total": tk.M{"$sum": 1},
+		}},
+	}
+	csrtd, e := DBRealtime().NewQuery().
+		From("AlarmHFD").
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrtd.Close()
+
+	dtDowns := []tk.M{}
+	e = csrtd.Fetch(&dtDowns, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	if len(dtDowns) > 0 {
+		turbineDown = len(dtDowns) //[0].GetInt("total")
+	}
+
+	return helper.CreateResult(true, turbineDown, "")
+}
+
 func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 

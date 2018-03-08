@@ -773,6 +773,16 @@ pg.checkLatestRevNo = function(currSTime) {
         }
     }
 }
+pg.getUpdatedTurbineDown = function() {
+    var url = viewModel.appName + 'forecast/getturbinedown';
+    var param = {
+        project: fa.project,
+    };
+    var getdata = toolkit.ajaxPostDeffered(url, param, function(res) {});
+    $.when(getdata).done(function(d){
+        pg.TurbineDown(d.data);
+    });
+}
 
 $(function(){
     $('#projectList').kendoDropDownList({
@@ -805,4 +815,8 @@ $(function(){
 
     pg.initLoad();
     pg.clock();
+
+    setInterval(function(){
+        pg.getUpdatedTurbineDown();
+    }, 30000);
 })
