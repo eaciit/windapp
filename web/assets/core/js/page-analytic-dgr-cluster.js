@@ -77,10 +77,11 @@ page.InitGraph = function(){
         legend: {
             position: "top",
             visible: true,
-            width : 930,
+            // width : 930,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
+            },
+            spacing : 35,
         },
         chartArea: {
             height : 370,
