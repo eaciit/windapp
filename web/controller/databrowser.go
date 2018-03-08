@@ -1227,6 +1227,125 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 	return xVal
 }
 
+func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	p.Misc.Set("knot_data", k)
+	matches, pipes, project := []tk.M{}, []tk.M{}, ""
+
+	tstart, tend := time.Time{}, time.Time{}
+	for _, val := range p.Filter.Filters {
+		if val.Field == "startdate" {
+			if val.Op == "$gte" {
+				tstart = tk.ToDate(tk.ToString(val.Value)[:10], "2006-01-02")
+			} else {
+				tend = tk.ToDate(tk.ToString(val.Value)[:10], "2006-01-02")
+			}
+			continue
+		}
+
+		if val.Field == "projectname" {
+			project = tk.ToString(val.Value)
+		}
+		matches = append(matches, tk.M{val.Field: tk.M{val.Op: val.Value}})
+	}
+	tend = tend.AddDate(0, 0, 1)
+	dates := []tk.M{
+		tk.M{"$and": []tk.M{tk.M{"startdate": tk.M{"$gte": tstart}}, tk.M{"startdate": tk.M{"$lt": tend}}}},
+		tk.M{"$and": []tk.M{tk.M{"enddate": tk.M{"$gte": tstart}}, tk.M{"enddate": tk.M{"$lt": tend}}}},
+		tk.M{"$and": []tk.M{tk.M{"startdate": tk.M{"$gte": tstart}}, tk.M{"enddate": tk.M{"$lt": tend}}}},
+	}
+
+	matches = append(matches, tk.M{"$or": dates})
+
+	matches = append(matches, tk.M{"reduceavailability": true})
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "startdate": 1, "enddate": 1, "reduceavailability": 1, "powerlost": 1, "alertdescription": 1, "detail": 1}})
+	pipes = append(pipes, tk.M{"$unwind": tk.M{"path": "$detail"}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "startdate": 1, "enddate": 1, "reduceavailability": 1, "powerlost": 1, "alertdescription": 1,
+		"detail.startdate": 1, "detail.enddate": 1, "detail.powerlost": 1, "detail.duration": 1, "detail.griddown": 1, "detail.machinedown": 1}})
+	pipes = append(pipes, tk.M{"$match": tk.M{"detail.startdate": tk.M{"$gte": tstart, "$lt": tend}}})
+
+	if len(p.Sort) > 0 {
+		sortList := map[string]int{}
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				sortList[strings.ToLower(val.Field)] = -1
+			} else {
+				sortList[strings.ToLower(val.Field)] = 1
+			}
+		}
+		pipes = append(pipes, tk.M{"$sort": sortList})
+	}
+
+	pipes = append(pipes, []tk.M{
+		tk.M{"$skip": p.Skip},
+		tk.M{"$limit": p.Take},
+	}...)
+
+	csr, e := DB().Connection.NewQuery().
+		From("Alarm").Command("pipe", pipes).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	Datas := []tk.M{}
+	e = csr.Fetch(&Datas, 0, false)
+
+	turbinename, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for i, data := range Datas {
+		detail := data.Get("detail", tk.M{}).(tk.M)
+
+		_tstart := detail.Get("startdate", time.Time{}).(time.Time)
+		_tend := detail.Get("enddate", time.Time{}).(time.Time)
+
+		if !_tstart.IsZero() && !_tend.IsZero() {
+			detail.Set("duration", _tend.UTC().Sub(_tstart.UTC()).Seconds())
+			data.Set("detail", detail)
+		}
+
+		idturbine := data.GetString("turbine")
+		tname, cond := turbinename[idturbine]
+		if !cond {
+			tname = idturbine
+		}
+		data.Set("turbinename", tname)
+
+		Datas[i] = data
+	}
+
+	data := struct {
+		Data           []tk.M
+		Total          int
+		TotalPowerLost float64
+		TotalTurbine   int
+		TotalDuration  float64
+		LastFilter     *helper.FilterJS
+		LastSort       []helper.Sorting
+	}{
+		Data:           Datas,
+		Total:          csr.Count(),
+		TotalPowerLost: 0,
+		TotalTurbine:   0,
+		TotalDuration:  0,
+		LastFilter:     p.Filter,
+		LastSort:       p.Sort,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 // Generate excel
 
 func (m *DataBrowserController) GenExcelData(k *knot.WebContext) interface{} {
