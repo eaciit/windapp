@@ -387,7 +387,7 @@ func (m *ClusterWiseGeneration) GetDataDGRCompare(k *knot.WebContext) interface{
 		_project = p.Project
 	}
 
-	allSeries := []interface{}{}
+	allSeries, allCompare := []interface{}{}, []string{}
 	reffdgrturb := getturbinedgr(p.Project)
 
 	ids := tk.M{"project": "$chosensite", "turbine": "$turbine"}
@@ -399,6 +399,8 @@ func (m *ClusterWiseGeneration) GetDataDGRCompare(k *knot.WebContext) interface{
 		if e != nil {
 			continue
 		}
+
+		allCompare = append(allCompare, tk.Sprintf("%s to %s", tStart.Format("02-Jan-2006"), tEnd.Format("02-Jan-2006")))
 
 		matches := tk.M{"dateinfo.dateid": tk.M{"$gte": tStart, "$lte": tEnd}}
 		matches.Set("chosensite", _project)
@@ -552,6 +554,6 @@ func (m *ClusterWiseGeneration) GetDataDGRCompare(k *knot.WebContext) interface{
 
 	}
 
-	result := tk.M{}.Set("totalturbine", len(p.Turbine)).Set("data", allSeries).Set("projectname", p.Project)
+	result := tk.M{}.Set("totalturbine", len(p.Turbine)).Set("data", allSeries).Set("projectname", p.Project).Set("compare", allCompare)
 	return helper.CreateResult(true, result, "success")
 }
