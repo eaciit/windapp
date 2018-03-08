@@ -79,6 +79,8 @@ dbled.InitLEDgrid = function() {
                     }
                     $('#totalturbineLED').html(kendo.toString(res.data.TotalTurbine, 'n0'));
                     $('#totaldataLED').html(kendo.toString(res.data.Total, 'n0'));
+                    $('#totalpowerlostLED').html(kendo.toString(res.data.TotalPowerLost, 'n2') + ' MWh');
+                    $('#totaldurationLED').html(kendo.toString(res.data.TotalDuration, 'n2') + ' hours');
 
                     return res.data.Total;
                 }
@@ -132,7 +134,7 @@ dbled.InitLEDgrid = function() {
                 filterable: false,
                 sortable: false,
             }, {
-                title: "Power Lost",
+                title: "Lost Energy (kWh)",
                 field: "detail.powerlost",
                 width: 90,
                 sortable: false,
