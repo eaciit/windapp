@@ -636,6 +636,13 @@ func (w *PageController) XYAnalysis(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true)
 }
 
+func (w *PageController) XYAnalysis3D(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-xy-analysis3d.html"
+	return w.GetParams(r, true)
+}
+
 func (w *PageController) SCMManagement(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
