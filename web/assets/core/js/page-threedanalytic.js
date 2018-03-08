@@ -302,7 +302,7 @@ pg.createChartVis2 = function() {
 
       data.add({x:x,y:y,z:z,style:style});
     }
-
+    console.log(data)
     // specify options
     var options = {
       width:  '600px',
@@ -375,14 +375,14 @@ pg.createChartVis3 = function() {
 }
 
 pg.getData = function() {
-    pg.createChart();
-    pg.createChart1();
-    pg.createChart2();
-    pg.createChart3();
-    pg.createChartVis();
-    pg.createChartVis1();
+    // pg.createChart();
+    // pg.createChart1();
+    // pg.createChart2();
+    // pg.createChart3();
+    // pg.createChartVis();
+    // pg.createChartVis1();
     pg.createChartVis2();
-    pg.createChartVis3();
+    // pg.createChartVis3();
 }
 
 pg.initLoad = function() {

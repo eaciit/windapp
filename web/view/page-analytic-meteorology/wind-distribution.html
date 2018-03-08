@@ -1,6 +1,6 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/wind-distribution.js?ANTI_CACHE={{.AntiCache}}"></script>
 <style type="text/css">
-	circle {
+	.wind-dist-chart circle {
 		r: 4;
 	}
 </style>
@@ -18,7 +18,7 @@
 				<span data-bind="text:wd.project()"></span> | Wind Distribution | <span data-bind="text:wd.dateStart()"></span> until <span data-bind="text:wd.dateEnd()"></span><br>
 			</div>
 		</div>
-		<div class="windrose-comp-chart">
+		<div class="wind-dist-chart">
 			<div id="windDistribution" class="windrose-item-comparison"></div>
 			<script id="legendItemTemplate" type="text/kendo">
 		    	<span class="legend-windis">

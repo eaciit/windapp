@@ -16,6 +16,17 @@ page.GenerationDetails = {
 };
 page.countList = 0;
 page.IDList = [];
+page.compareList = ko.observableArray([]);
+
+
+
+// var colorField =  ["#398a6b", "#f3a41b", "#2f81b7", "#c8be00", "#30b4c9", "#d90057", "#f0c55d", "#800080", "#e67c52", "#9098ad", "#9e7d54", "#a468a6"];
+
+
+var sumColor =["#398a6b", "#30b4c9", "#e67c52"];   
+var maColor = ["#f3a41b",  "#d90057","#9098ad"];
+var gaColor = ["#2f81b7", "#f0c55d","#9e7d54"];
+var raColor = ["#c8be00",  "#800080","#a468a6"];
 
 function toObject(arr, heads) {
     var tmp = {};
@@ -65,13 +76,14 @@ page.InitGraph = function(){
         legend: {
             position: "top",
             visible: true,
+            width : 920,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         chartArea: {
             height : 370,
-            padding: 10,
+            // padding: 10,
         },
         seriesDefaults: {},
         series: [],
@@ -109,46 +121,73 @@ page.LoadData = function(){
     var project = $('#projectList').data('kendoDropDownList').value();
     var dateStart = $('#dateStart').data('kendoDatePicker').value();
     var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+    var link = "clusterwisegeneration/getdatadgrcompare";
+    var details = [];
+
+    page.IDList.forEach(function(id){
+        var dateStartDetail = $('#dateStart-'+id).data('kendoDatePicker').value();
+            dateStartDetail = new Date(Date.UTC(dateStartDetail.getFullYear(), dateStartDetail.getMonth(), dateStartDetail.getDate(), 0, 0, 0));
+
+        var dateEndDetail  = $('#dateEnd-'+id).data('kendoDatePicker').value();
+            dateEndDetail = new Date(Date.UTC(dateEndDetail.getFullYear(), dateEndDetail.getMonth(), dateEndDetail.getDate(), 0, 0, 0));
+
+        var detail = {
+            Period       : $('#periodList-'+id).data('kendoDropDownList').value(),
+            DateStart    : dateStartDetail,
+            DateEnd      : dateEndDetail,
+        };
+
+        details.push(detail);
+    });
+
+    console.log(details);
 
     var param = {
         period: fa.period,
+        details:   details,
         dateStart: dateStart,
         dateEnd: dateEnd,
         turbine: fa.turbine(),
         project: project
     };
 
-    toolkit.ajaxPost(viewModel.appName + "clusterwisegeneration/getdatadgr", param, function (res) {
+
+    toolkit.ajaxPost(viewModel.appName + link, param, function (res) {
         if (!app.isFine(res)) {
             return;
         }
 
-        var data = res.data.data;
+
+        var dataSource = res.data.data;
 
         var categoryTurbine = [];
         var categoryCluster = [];
-        var datas = [];
         var series = [];
-        $.each(data, function(key, val){
-            var data = {
-                turbine : val.turbine, 
-                cluster : val.cluster,
-                sumGeneration : val.sumGeneration.value,
-                averageGa: val.averageGa.value,
-                averageMa: val.averageMa.value,
-                averageRa: val.averageRa.value,
-                
-            }
-            datas.push(data);
+        
+         $.each(dataSource, function(i, res){
+            var serie = [];
+            $.each(res, function(key, val){
+                var data = {
+                    turbine : val.turbine, 
+                    cluster : val.cluster,
+                    sumGeneration : val.sumGeneration.value,
+                    averageGa: val.averageGa.value,
+                    averageMa: val.averageMa.value,
+                    averageRa: val.averageRa.value,
+
+                }
+                serie.push(data);
+            });
+            serie =  _.sortBy(serie, ['cluster', 'turbine']);
+            series.push(serie);
         });
 
-        datas =  _.sortBy(datas, ['cluster', 'turbine']);
-
-        // console.log(datas);
         
-        page.dataSource(data);
-        // page.generateChart(data);
-        page.RenderGenerationWidget(datas);
+
+        page.dataSource(series);
+        page.compareList(res.data.compare);
+
+        page.RenderGenerationWidget(series[0]);
         app.loading(false);
     });
 
@@ -213,53 +252,14 @@ page.RenderGenerationWidget = function(master, isDetail, site){
 
     var categoryTurbine = [];
     var categoryCluster = [];
-    $.each(page.dataSource(), function(key, val){
+    $.each(page.dataSource()[0], function(key, val){
         categoryCluster.push(val.cluster)
     });
 
     var chart  = page.InitGraph();
     chart.title.text = (site !== undefined) ? site +" "+conf.Title : conf.Title;
     chart.dataSource = master;
-    chart.series = [
-        {
-            name: "Sum of Controller Generation",
-            axis : "generation",
-            field : "sumGeneration",
-            type: "column",
-            color : "#3d8dbd",
-        },{
-            name: "Average of MA (%)",
-            axis : "avail",
-            style: "smooth",
-            field : "averageMa",
-            type: "line",
-            width: 3,
-            color : "#ffca28",
-            markers: {
-                visible: false,
-            },
-        },{
-            name: "Average of GA (%)",
-            axis : "avail",
-            field : "averageGa",
-            type: "line",
-            color: "#ff7043",
-            width: 3,
-            markers: {
-                visible: false,
-            },
-        },{
-            name: "Average of RA (%)",
-            axis : "avail",
-            field : "averageRa",
-            type: "line",
-            color: "#9c9c9c",
-            width: 4,
-            markers: {
-                visible: false,
-            },
-        }
-    ];
+    chart.series = page.setSeries();
     chart.valueAxes = [{
             name: "generation",
             title: {
@@ -333,6 +333,60 @@ page.RenderGenerationWidget = function(master, isDetail, site){
 }
 
 
+page.setSeries = function(){
+    var seriesData = [];
+
+    for(var idx = 0 ; idx < page.dataSource().length ; idx++){
+           var sum = {
+                name: "Sum of Con. Gen. (" + page.compareList()[idx]+" )" ,
+                axis : "generation",
+                field : "sumGeneration",
+                type: "column",
+                color : sumColor[idx],
+            };
+
+           var avgMA = {
+                name: "Avg of MA (%) (" + page.compareList()[idx]+" )" ,
+                axis : "avail",
+                style: "smooth",
+                field : "averageMa",
+                type: "line",
+                width: 2,
+                color : maColor[idx],
+                markers: {
+                    visible: false,
+                },
+            }; 
+            var avgGA = {
+                name: "Avg of GA (%) (" + page.compareList()[idx]+" )" ,
+                axis : "avail",
+                style: "smooth",
+                field : "averageGa",
+                type: "line",
+                color: gaColor[idx],
+                width: 2,
+                markers: {
+                    visible: false,
+                },
+            };
+            var avgRA = {
+                name: "Avg of RA (%) (" + page.compareList()[idx]+" )" ,
+                axis : "avail",
+                style: "smooth",
+                field : "averageRa",
+                type: "line",
+                color: raColor[idx],
+                width: 2,
+                markers: {
+                    visible: false,
+                },
+            }
+
+        seriesData.push(sum,avgMA,avgGA,avgRA);
+    }
+
+    return seriesData;
+}
 page.redrawCategory = function(categoryCluster){
     categoryCluster = $.unique(categoryCluster);
     categoryCluster.sort(function(a,b){return a-b});
@@ -395,38 +449,33 @@ page.generateElementFilter = function (id_element, source) {
             dataTextField: 'text',
             suggest: true,
             change: function () { 
-                // page.showHidePeriod(id) 
+                page.LoadData();
             }
         });
 
         $('#dateStart-' + id).kendoDatePicker({
-            value: new Date(),
+            value: fa.dateStart,
             format: 'dd-MMM-yyyy',
             min: new Date("2013-01-01"),
             max:new Date(),
             change: function(){
-                // page.initChart();
+                page.LoadData();
             }
         });
 
         $('#dateEnd-' + id).kendoDatePicker({
-            value: new Date(),
+            value: fa.dateEnd,
             format: 'dd-MMM-yyyy',
             min: new Date("2013-01-01"),
             max:new Date(),
             change: function(){
-                // page.initChart();
+               page.LoadData();
             }
         });
 
         page.InitDefaultValue(id);
-
-        if(source == "default2"){
-            // setTimeout(function () {
-            //     page.initChart();                           
-            // }, 500);
-        }
         page.checkElementLast();
+
     }, 500);
 }
 page.removeFilter = function (id) {
@@ -505,13 +554,16 @@ $(function(){
             fa.populateTurbine(project);
         }
     });
+   
 
-    setTimeout(function(){
-        page.generateElementFilter(null, "default1");
-        page.generateElementFilter(null, "default2");
-        $.when(di.getAvailDate("DGRData")).done(function(){
-            fa.LoadData();
+    $.when(di.getAvailDate("DGRData")).then(
+        function(){
+            page.generateElementFilter(null, "default1");
+        },
+        function(){
             page.LoadData();
-        })
-    },300);
+        }
+        
+    )
+   
 });
