@@ -1,4 +1,10 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/wind-distribution.js?ANTI_CACHE={{.AntiCache}}"></script>
+<style type="text/css">
+	.wind-dist-chart circle {
+		r: 4;
+	}
+</style>
+
 <div class="col-md-9">
 	<div class="tools btn-group pull-right btn-pdf">
 		<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){wd.getPDF('.div-windis')}">
@@ -12,7 +18,7 @@
 				<span data-bind="text:wd.project()"></span> | Wind Distribution | <span data-bind="text:wd.dateStart()"></span> until <span data-bind="text:wd.dateEnd()"></span><br>
 			</div>
 		</div>
-		<div class="windrose-comp-chart">
+		<div class="wind-dist-chart">
 			<div id="windDistribution" class="windrose-item-comparison"></div>
 			<script id="legendItemTemplate" type="text/kendo">
 		    	<span class="legend-windis">
