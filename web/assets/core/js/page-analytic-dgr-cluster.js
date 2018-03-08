@@ -77,14 +77,14 @@ page.InitGraph = function(){
         legend: {
             position: "top",
             visible: true,
-            width : 900,
+            width : 930,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
         },
         chartArea: {
             height : 370,
-            // padding: 10,
+            padding: 10,
         },
         seriesDefaults: {},
         series: [],
@@ -208,6 +208,78 @@ page.GetGraphWidth = function(selectorGraph){
     };  
 
     return tmp;
+}
+
+page.showHidePeriod = function (idx) {
+    var id = (idx == null ? 1 : idx);
+    var period = $('#periodList-' + id).data('kendoDropDownList').value();
+
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
+    var endMonthDate = new Date(app.getDateMax(maxDateData));
+    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+    if (period == "custom") {
+        $("#show_hide" + id).show();
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+    } else if (period == "monthly") {
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+
+        $("#show_hide" + id).show();
+    } else if (period == "annual") {
+        $("#show_hide" + id).show();
+
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+
+       $('#dateStart-' + id).data('kendoDatePicker').value(startYearDate);
+       $('#dateEnd-' + id).data('kendoDatePicker').value(endYearDate);
+
+        $("#show_hide").show();
+    } else {
+        if(period == 'last24hours'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(last24hours);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }else if(period == 'last7days'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(lastweek);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }
+        $("#show_hide" + id).hide();
+    }
 }
     
 page.RenderGenerationWidget = function(master, isDetail, site){
@@ -438,7 +510,7 @@ page.generateElementFilter = function (id_element, source) {
                             '<div class="mgb10">' +
                                 '<div class="col-md-12 no-padding">' +
                                     '<select class="period-list" id="periodList-' + id + '" name="table" width="90"></select>' +
-                                    '<span class="custom-period" id="show_hide-' + id + '">' +
+                                    '<span class="custom-period" id="show_hide' + id + '">' +
                                         '<input type="text" id="dateStart-' + id + '"/>' +
                                         '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
                                         '<input type="text" id="dateEnd-' + id + '"/>' +
@@ -454,7 +526,7 @@ page.generateElementFilter = function (id_element, source) {
         $(".filter-part").append(versusFilter);
 
         $("#periodList-" + id).kendoDropDownList({
-            dataSource: fa.periodList(),
+            dataSource: [{value:"custom",text:"Custom"}],
             dataValueField: 'value',
             dataTextField: 'text',
             suggest: true,
