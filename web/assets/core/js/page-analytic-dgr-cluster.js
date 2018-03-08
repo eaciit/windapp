@@ -17,6 +17,7 @@ page.GenerationDetails = {
 page.countList = 0;
 page.IDList = [];
 page.compareList = ko.observableArray([]);
+page.allData = ko.observableArray([]);
 
 
 
@@ -76,7 +77,7 @@ page.InitGraph = function(){
         legend: {
             position: "top",
             visible: true,
-            width : 920,
+            width : 900,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             }
@@ -140,8 +141,6 @@ page.LoadData = function(){
         details.push(detail);
     });
 
-    console.log(details);
-
     var param = {
         period: fa.period,
         details:   details,
@@ -163,28 +162,35 @@ page.LoadData = function(){
         var categoryTurbine = [];
         var categoryCluster = [];
         var series = [];
+        var allData = [];
         
          $.each(dataSource, function(i, res){
             var serie = [];
-            $.each(res, function(key, val){
-                var data = {
-                    turbine : val.turbine, 
-                    cluster : val.cluster,
-                    sumGeneration : val.sumGeneration.value,
-                    averageGa: val.averageGa.value,
-                    averageMa: val.averageMa.value,
-                    averageRa: val.averageRa.value,
 
-                }
+            $.each(res, function(key, val){
+                var data = {}
+
+                data["turbine"] = val.turbine, 
+                data["cluster"] = val.cluster,
+                data["sumGeneration"+i] = val.sumGeneration.value,
+                data["averageGa"+i] = val.averageGa.value,
+                data["averageMa"+i] = val.averageMa.value,
+                data["averageRa"+i] = val.averageRa.value,
+
+                
+                allData.push(data);
                 serie.push(data);
             });
             serie =  _.sortBy(serie, ['cluster', 'turbine']);
+            allData = _.sortBy(serie, ['cluster', 'turbine']);
             series.push(serie);
         });
 
         
 
         page.dataSource(series);
+
+        page.allData( [].concat.apply([], series));
         page.compareList(res.data.compare);
 
         page.RenderGenerationWidget(series[0]);
@@ -205,6 +211,7 @@ page.GetGraphWidth = function(selectorGraph){
 }
     
 page.RenderGenerationWidget = function(master, isDetail, site){
+    console.log(master);
 
     var conf = page.GenerationDetails;
     conf.IsLoading(true);
@@ -258,7 +265,7 @@ page.RenderGenerationWidget = function(master, isDetail, site){
 
     var chart  = page.InitGraph();
     chart.title.text = (site !== undefined) ? site +" "+conf.Title : conf.Title;
-    chart.dataSource = master;
+    chart.dataSource = page.allData();
     chart.series = page.setSeries();
     chart.valueAxes = [{
             name: "generation",
@@ -297,7 +304,6 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             min: 0.8,
         }],
 
-    chart.categoryAxis.field = "turbine";
     chart.tooltip = {
             visible: true,
             background: "rgb(255,255,255, 0.9)",
@@ -340,8 +346,9 @@ page.setSeries = function(){
            var sum = {
                 name: "Sum of Con. Gen. (" + page.compareList()[idx]+" )" ,
                 axis : "generation",
-                field : "sumGeneration",
+                field : "sumGeneration"+idx,
                 type: "column",
+                categoryField : "turbine",
                 color : sumColor[idx],
             };
 
@@ -349,7 +356,8 @@ page.setSeries = function(){
                 name: "Avg of MA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageMa",
+                categoryField : "turbine",
+                field : "averageMa"+idx,
                 type: "line",
                 width: 2,
                 color : maColor[idx],
@@ -361,7 +369,8 @@ page.setSeries = function(){
                 name: "Avg of GA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageGa",
+                categoryField : "turbine",
+                field : "averageGa"+idx,
                 type: "line",
                 color: gaColor[idx],
                 width: 2,
@@ -373,7 +382,8 @@ page.setSeries = function(){
                 name: "Avg of RA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageRa",
+                categoryField : "turbine",
+                field : "averageRa"+idx,
                 type: "line",
                 color: raColor[idx],
                 width: 2,
@@ -495,6 +505,8 @@ page.removeFilter = function (id) {
     }else{
         $(".button-add").hide()
     }
+
+    page.LoadData();
 }
 
 page.checkElementLast = function(){
@@ -535,8 +547,17 @@ page.InitDefaultValue = function (id) {
     $('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
 }
 
+page.hideFilter = function(){
+    $("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".control-label:contains('Period')").hide();
+    $(".control-label:contains('to')").hide();
+}
+
 $(function(){
     app.loading(true);
+    page.hideFilter();
     $('#btnRefresh').on('click', function () {
         setTimeout(function () {
             page.LoadData();
