@@ -463,6 +463,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			avacap = dtForecast.GetFloat64("avgcapacity")
 			fcvalue = dtForecast.GetFloat64("schcapacity")
 			schval = dtForecast.GetFloat64("schcapacity")
+			fcastws = dtForecast.GetFloat64("windspeed")
 			// calculate sch value from actual power of 15 min data
 			// if actual != defaultValue {
 			// 	schval = (actual + fcvalue) / 2
