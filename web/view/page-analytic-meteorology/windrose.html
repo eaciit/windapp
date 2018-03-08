@@ -59,7 +59,7 @@
 				<div class="col-md-12 col-xs-12 list div-legend legend-pdf">
 					<div id="legend-list" class="col-md-12 pl15">
 						  # for (var i = 0; i < legend.length; i++) { #
-						  	<button class="btn btn-default btn-sm btn-legend" type="button" id="#=legend[i].id #" style="background:#= wr.getColor(legend[i].color)#;border-color:#= wr.getColor(legend[i].color)#;"></button> <span class="span-legend"> #: legend[i].category #</span>
+						  	<button class="btn btn-default btn-sm btn-legend" type="button" id="#=legend[i].id #" style="background:#= wr.getColor(legend[i].color, i)#;border-color:#= wr.getColor(legend[i].color, i)#;"></button> <span class="span-legend"> #: legend[i].category #</span>
 						  # } #
 	                </div>
 				</div>
