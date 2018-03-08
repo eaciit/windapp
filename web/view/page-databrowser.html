@@ -8,6 +8,7 @@
 <script src="{{BaseUrl}}res/core/js/page-databrowser/scadahfd.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/downtime.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/downtimehfd.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-databrowser/lostenergydetail.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/custom.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/event.js?ANTI_CACHE={{.AntiCache}}"></script>
 <script src="{{BaseUrl}}res/core/js/page-databrowser/met.js?ANTI_CACHE={{.AntiCache}}"></script>
@@ -33,12 +34,12 @@
                                 <!-- <li id="scadaTab" role="presentation" class="active"><a onclick="dbr.Scada()" href="#scadaoem" aria-controls="scadaoem" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li> -->
                                 <li id="scadahfdTab" role="presentation" class="active" ><a onclick="dbr.ScadaHFD()" href="#scadahfd" aria-controls="scadahfd" role="tab" data-toggle="tab" class="tab-custom">Scada Data HFD</a></li>
                                <li id="downtimeeventhfdTab" role="presentation"><a onclick="dbr.DowntimeHFD()" href="#downtimeeventhfd" aria-controls="downtimeeventhfd" role="tab" data-toggle="tab" class="tab-custom">Downtime Event HFD</a></li>
+                                <li id="lostenergydetailTab" role="presentation"><a onclick="dbr.LostEnergyDetail()" href="#lostenergydetail" aria-controls="lostenergydetail" role="tab" data-toggle="tab" class="tab-custom">Lost Energy Detail</a></li>
                                 <li id="customTab" role="presentation" ><a onclick="dbr.Custom()" href="#custom" aria-controls="custom" role="tab" data-toggle="tab" class="tab-custom">Scada Data OEM</a></li>
                                 <li id="downtimeeventTab" role="presentation"><a onclick="dbr.Downtime()" href="#downtimeevent" aria-controls="downtimeevent" role="tab" data-toggle="tab" class="tab-custom">Downtime Event OEM</a></li>
                                 <li id="eventTab" role="presentation"><a onclick="dbr.Event()" href="#eventraw" aria-controls="eventraw" role="tab" data-toggle="tab" class="tab-custom">Event Raw OEM</a></li>
                                 <li id="metTab" role="presentation"><a onclick="dbr.Met()" href="#MET" aria-controls="MET" role="tab" data-toggle="tab" class="tab-custom">Permanent Met Tower Data</a></li>
                                 <li id="jmrTab" role="presentation"><a onclick="dbr.JMR()" href="#JMR" aria-controls="JMR" role="tab" data-toggle="tab" class="tab-custom">JMR & Breakup</a></li>
- 
                             </ul>
                             <div class="tab-content">
                                 <!-- <div role="tabpanel" class="tab-pane active" id="scadaoem">
@@ -136,6 +137,7 @@
                                         </div>
                                     </div>
                                 </div>
+
                                 <div role="tabpanel" class="tab-pane" id="downtimeevent">
                                     <div data-bind="visible:!dbr.downeventvis()">
                                         <div class="control-summary left-border-org">
@@ -205,6 +207,7 @@
                                         </div>
                                     </div>
                                 </div>
+
                                 <div role="tabpanel" class="tab-pane" id="downtimeeventhfd">
                                     <div data-bind="visible:!dbr.downeventhfdvis()">
                                         <div class="control-summary left-border-org">
@@ -224,6 +227,27 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div role="tabpanel" class="tab-pane" id="lostenergydetail">
+                                    <div data-bind="visible:!dbr.lostenergydetail()">
+                                        <div class="control-summary left-border-org">
+                                            <label class="summary-header">Total Turbine</label><br />
+                                            <label id="totalturbineLED" class="summary-number">0</label>
+                                        </div>
+                                        <div class="control-summary left-border-green">
+                                            <label class="summary-header">Total Data</label><br />
+                                            <label id="totaldataLED" class="summary-number">0</label>
+                                        </div>
+                                        <div class="tab-pane-content">
+                                            <div class="clearfix">&nbsp;</div>
+                                            <div class="etoExcel">
+                                                <button type="button" class="btn btn-sm btn-primary tooltipster tooltipstered" aria-hidden="true" title="Export to Excel" onclick="DataBrowserExporttoExcel('LostEnergyDetail')"><i class="fa fa-file-excel-o"></i></button>
+                                            </div>
+                                            <div id="LEDgrid" class="grid-custom-db-new"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                    <!--  <ul class="nav nav-tabs " role="tablist">
                         <li id="mainTab" role="presentation" class="active"><a onclick="Data.LoadData()" href="#Main" aria-controls="Main" role="tab" data-toggle="tab" class="tab-custom">Main</a></li>

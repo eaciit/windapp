@@ -20,8 +20,12 @@ wr.ExportWindRose = function () {
     });
 }
 
-wr.getColor = function(color) {
+wr.getColor = function(color, index) {
     var c;
+    var idName = "btn" + index;
+    if (!listOfButton[idName]) {
+        color = "#8f8f8f";
+    }
     if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(color)){
         c= color.substring(1).split('');
         if(c.length== 3){
