@@ -1271,6 +1271,18 @@ func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interfac
 	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "startdate": 1, "enddate": 1, "reduceavailability": 1, "powerlost": 1, "alertdescription": 1,
 		"detail.startdate": 1, "detail.enddate": 1, "detail.powerlost": 1, "detail.duration": 1, "detail.griddown": 1, "detail.machinedown": 1}})
 	pipes = append(pipes, tk.M{"$match": tk.M{"detail.startdate": tk.M{"$gte": tstart, "$lt": tend}}})
+	pipesAggr := []tk.M{}
+	for _, val := range pipes {
+		pipesAggr = append(pipesAggr, val)
+	}
+	pipesAggr = append(pipesAggr, tk.M{
+		"$group": tk.M{
+			"_id":            "$turbine",
+			"totalpowerlost": tk.M{"$sum": "$detail.powerlost"},
+			"totalduration":  tk.M{"$sum": "$detail.duration"},
+			"totaldata":      tk.M{"$sum": 1},
+		},
+	})
 
 	if len(p.Sort) > 0 {
 		sortList := map[string]int{}
@@ -1325,6 +1337,26 @@ func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interfac
 		Datas[i] = data
 	}
 
+	csrAggr, e := DB().Connection.NewQuery().
+		From("Alarm").Command("pipe", pipesAggr).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrAggr.Close()
+
+	dataAggr := []tk.M{}
+	e = csrAggr.Fetch(&dataAggr, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	totalPower, totalDuration, totalData := 0.0, 0.0, 0
+	for _, val := range dataAggr {
+		totalPower += val.GetFloat64("totalpowerlost")
+		totalDuration += val.GetFloat64("totalduration")
+		totalData += val.GetInt("totaldata")
+	}
+
 	data := struct {
 		Data           []tk.M
 		Total          int
@@ -1335,10 +1367,10 @@ func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interfac
 		LastSort       []helper.Sorting
 	}{
 		Data:           Datas,
-		Total:          csr.Count(),
-		TotalPowerLost: 0,
-		TotalTurbine:   0,
-		TotalDuration:  0,
+		Total:          totalData,
+		TotalPowerLost: totalPower / 1000,
+		TotalTurbine:   len(dataAggr),
+		TotalDuration:  totalDuration,
 		LastFilter:     p.Filter,
 		LastSort:       p.Sort,
 	}

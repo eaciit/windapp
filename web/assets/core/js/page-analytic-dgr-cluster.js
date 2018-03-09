@@ -17,6 +17,7 @@ page.GenerationDetails = {
 page.countList = 0;
 page.IDList = [];
 page.compareList = ko.observableArray([]);
+page.allData = ko.observableArray([]);
 
 
 
@@ -76,14 +77,15 @@ page.InitGraph = function(){
         legend: {
             position: "top",
             visible: true,
-            width : 920,
+            // width : 930,
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            }
+            },
+            spacing : 35,
         },
         chartArea: {
             height : 370,
-            // padding: 10,
+            padding: 10,
         },
         seriesDefaults: {},
         series: [],
@@ -140,8 +142,6 @@ page.LoadData = function(){
         details.push(detail);
     });
 
-    console.log(details);
-
     var param = {
         period: fa.period,
         details:   details,
@@ -163,28 +163,35 @@ page.LoadData = function(){
         var categoryTurbine = [];
         var categoryCluster = [];
         var series = [];
+        var allData = [];
         
          $.each(dataSource, function(i, res){
             var serie = [];
-            $.each(res, function(key, val){
-                var data = {
-                    turbine : val.turbine, 
-                    cluster : val.cluster,
-                    sumGeneration : val.sumGeneration.value,
-                    averageGa: val.averageGa.value,
-                    averageMa: val.averageMa.value,
-                    averageRa: val.averageRa.value,
 
-                }
+            $.each(res, function(key, val){
+                var data = {}
+
+                data["turbine"] = val.turbine, 
+                data["cluster"] = val.cluster,
+                data["sumGeneration"+i] = val.sumGeneration.value,
+                data["averageGa"+i] = val.averageGa.value,
+                data["averageMa"+i] = val.averageMa.value,
+                data["averageRa"+i] = val.averageRa.value,
+
+                
+                allData.push(data);
                 serie.push(data);
             });
             serie =  _.sortBy(serie, ['cluster', 'turbine']);
+            allData = _.sortBy(serie, ['cluster', 'turbine']);
             series.push(serie);
         });
 
         
 
         page.dataSource(series);
+
+        page.allData( [].concat.apply([], series));
         page.compareList(res.data.compare);
 
         page.RenderGenerationWidget(series[0]);
@@ -203,8 +210,81 @@ page.GetGraphWidth = function(selectorGraph){
 
     return tmp;
 }
+
+page.showHidePeriod = function (idx) {
+    var id = (idx == null ? 1 : idx);
+    var period = $('#periodList-' + id).data('kendoDropDownList').value();
+
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
+    var endMonthDate = new Date(app.getDateMax(maxDateData));
+    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+    if (period == "custom") {
+        $("#show_hide" + id).show();
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+    } else if (period == "monthly") {
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+
+        $("#show_hide" + id).show();
+    } else if (period == "annual") {
+        $("#show_hide" + id).show();
+
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+
+       $('#dateStart-' + id).data('kendoDatePicker').value(startYearDate);
+       $('#dateEnd-' + id).data('kendoDatePicker').value(endYearDate);
+
+        $("#show_hide").show();
+    } else {
+        if(period == 'last24hours'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(last24hours);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }else if(period == 'last7days'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(lastweek);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }
+        $("#show_hide" + id).hide();
+    }
+}
     
 page.RenderGenerationWidget = function(master, isDetail, site){
+    console.log(master);
 
     var conf = page.GenerationDetails;
     conf.IsLoading(true);
@@ -258,7 +338,7 @@ page.RenderGenerationWidget = function(master, isDetail, site){
 
     var chart  = page.InitGraph();
     chart.title.text = (site !== undefined) ? site +" "+conf.Title : conf.Title;
-    chart.dataSource = master;
+    chart.dataSource = page.allData();
     chart.series = page.setSeries();
     chart.valueAxes = [{
             name: "generation",
@@ -297,7 +377,6 @@ page.RenderGenerationWidget = function(master, isDetail, site){
             min: 0.8,
         }],
 
-    chart.categoryAxis.field = "turbine";
     chart.tooltip = {
             visible: true,
             background: "rgb(255,255,255, 0.9)",
@@ -340,8 +419,9 @@ page.setSeries = function(){
            var sum = {
                 name: "Sum of Con. Gen. (" + page.compareList()[idx]+" )" ,
                 axis : "generation",
-                field : "sumGeneration",
+                field : "sumGeneration"+idx,
                 type: "column",
+                categoryField : "turbine",
                 color : sumColor[idx],
             };
 
@@ -349,7 +429,8 @@ page.setSeries = function(){
                 name: "Avg of MA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageMa",
+                categoryField : "turbine",
+                field : "averageMa"+idx,
                 type: "line",
                 width: 2,
                 color : maColor[idx],
@@ -361,7 +442,8 @@ page.setSeries = function(){
                 name: "Avg of GA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageGa",
+                categoryField : "turbine",
+                field : "averageGa"+idx,
                 type: "line",
                 color: gaColor[idx],
                 width: 2,
@@ -373,7 +455,8 @@ page.setSeries = function(){
                 name: "Avg of RA (%) (" + page.compareList()[idx]+" )" ,
                 axis : "avail",
                 style: "smooth",
-                field : "averageRa",
+                categoryField : "turbine",
+                field : "averageRa"+idx,
                 type: "line",
                 color: raColor[idx],
                 width: 2,
@@ -428,7 +511,7 @@ page.generateElementFilter = function (id_element, source) {
                             '<div class="mgb10">' +
                                 '<div class="col-md-12 no-padding">' +
                                     '<select class="period-list" id="periodList-' + id + '" name="table" width="90"></select>' +
-                                    '<span class="custom-period" id="show_hide-' + id + '">' +
+                                    '<span class="custom-period" id="show_hide' + id + '">' +
                                         '<input type="text" id="dateStart-' + id + '"/>' +
                                         '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
                                         '<input type="text" id="dateEnd-' + id + '"/>' +
@@ -444,7 +527,7 @@ page.generateElementFilter = function (id_element, source) {
         $(".filter-part").append(versusFilter);
 
         $("#periodList-" + id).kendoDropDownList({
-            dataSource: fa.periodList(),
+            dataSource: [{value:"custom",text:"Custom"}],
             dataValueField: 'value',
             dataTextField: 'text',
             suggest: true,
@@ -495,6 +578,8 @@ page.removeFilter = function (id) {
     }else{
         $(".button-add").hide()
     }
+
+    page.LoadData();
 }
 
 page.checkElementLast = function(){
@@ -535,8 +620,17 @@ page.InitDefaultValue = function (id) {
     $('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
 }
 
+page.hideFilter = function(){
+    $("#periodList").closest(".k-widget").hide();
+    $("#dateStart").closest(".k-widget").hide();
+    $("#dateEnd").closest(".k-widget").hide();
+    $(".control-label:contains('Period')").hide();
+    $(".control-label:contains('to')").hide();
+}
+
 $(function(){
     app.loading(true);
+    page.hideFilter();
     $('#btnRefresh').on('click', function () {
         setTimeout(function () {
             page.LoadData();
