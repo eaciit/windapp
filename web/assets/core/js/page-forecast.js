@@ -603,46 +603,55 @@ pg.generateGridRecipient = function(){
     }
     var urlRec = viewModel.appName + 'forecast/getrecipientlist';
     toolkit.ajaxPost(urlRec, paramRec, function(res) {
-        setTimeout(function(){
-            $("#gridRecipient").html('');
-            $("#gridRecipient").kendoGrid({
-                dataSource: {
-                    data: res.data,
-                    pageSize: 15,
+        $("#gridRecipient").html('');
+        $("#gridRecipient").kendoGrid({
+            dataSource: {
+                requestStart: function(e) {
+                    kendo.ui.progress($("#gridRecipient"), true);
                 },
-                height: 319,
-                sortable: true,
-                filterable: false,
-                pageable: {
-                    input: false,
-                    numeric: false,
-                    info: false,
+                requestEnd: function(e) {
+                    setTimeout(function(){
+                        kendo.ui.progress($("#gridRecipient"), false);
+                    }, 300);
                 },
-                columns: [
-                    { 
-                        field: "", 
-                        title: "#", 
-                        width: 60, 
-                        template : function(item) {
-                            return '<a href="javascript:void(0);" onclick="pg.editRecipient(\''+ item._id +'\')" class="text-warning tooltipster tooltipstered" title="Edit this data"><i class="fa fa-pencil-square"></i></a>&nbsp;&nbsp;&nbsp;' +
-                            '<a href="javascript:void(0);" onclick="pg.deleteRecipient(\''+ item._id +'\')" class="text-danger tooltipster tooltipstered" title="Delete this data"><i class="fa fa-remove"></i></a>';
-                        }, 
-                        attributes: {
-                            "class": "text-center",
-                        }
-                    },
-                    { field: "Email", title: "Email", width: 160, },
-                    { field: "Name", title: "Name", width: 180, },
-                    { field: "RecipientType", title: "Type", width: 80, },
-                ],
-                // dataBound: function(e) {
-                //     app.gridBoundTooltipster('a');
-                // },
-            });
-            $("#gridRecipient").data("kendoGrid").refresh();
-            app.prepareTooltipster($('.tooltipster'));
-        }, 300); 
+                data: res.data,
+                pageSize: 5,
+            },
+            height: 220,
+            sortable: true,
+            filterable: false,
+            pageable: {
+                input: false,
+                numeric: false,
+                info: false,
+            },
+            columns: [
+                { 
+                    field: "", 
+                    title: "#", 
+                    width: 60, 
+                    template : function(item) {
+                        return '<a href="javascript:void(0);" onclick="pg.editRecipient(\''+ item._id +'\')" class="text-warning tooltipster tooltipstered" title="Edit this data"><i class="fa fa-pencil-square"></i></a>&nbsp;&nbsp;&nbsp;' +
+                        '<a href="javascript:void(0);" onclick="pg.deleteRecipient(\''+ item._id +'\')" class="text-danger tooltipster tooltipstered" title="Delete this data"><i class="fa fa-remove"></i></a>';
+                    }, 
+                    attributes: {
+                        "class": "text-center",
+                    }
+                },
+                { field: "Email", title: "Email", width: 160, },
+                { field: "RecipientType", title: "Type", width: 80, template: function(item){
+                    return item.RecipientType.toUpperCase();
+                }, },
+                { field: "Name", title: "Name", width: 180, },
+            ],
+        });
+        $("#gridRecipient").data("kendoGrid").refresh();
+        app.prepareTooltipster($('.tooltipster'));
     });
+}
+pg.validateEmail = function(email) {
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
 }
 
 pg.GetMaxValue = function() {
@@ -920,12 +929,17 @@ pg.saveRecipient = function() {
     var email = $('#r-email').val();
     var name = $('#r-name').val();
     if(email=='') {
-       swal("Error!", "Please enter an email address.", "error"); 
-       return;
+        swal("Error!", "Please enter an email address.", "error"); 
+        return;
     }
     if(name=='') {
-       swal("Error!", "Please enter name.", "error"); 
-       return;
+        swal("Error!", "Please enter name.", "error"); 
+        return;
+    }
+    var isMailValid = pg.validateEmail(email);
+    if(!isMailValid) {
+        swal("Error!", "Please enter a valid email address.", "error"); 
+        return;
     }
     app.loading(true);
     var param = {
