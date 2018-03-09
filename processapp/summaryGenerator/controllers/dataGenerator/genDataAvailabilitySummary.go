@@ -51,28 +51,28 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 
 	// OEM
 	go func() {
+		defer wg.Done()
 		availOEM = ev.scadaOEMSummary()
-		wg.Done()
 	}()
 	// HFD
 	go func() {
+		defer wg.Done()
 		availHFD = ev.scadaHFDSummary()
-		wg.Done()
 	}()
 	// Met Tower
 	go func() {
+		defer wg.Done()
 		availMet = ev.metTowerSummary()
-		wg.Done()
 	}()
 	// OEM PROJECT
 	go func() {
+		defer wg.Done()
 		availOEMProject = ev.scadaOEMSummaryProject()
-		wg.Done()
 	}()
 	// HFD PROJECT
 	go func() {
+		defer wg.Done()
 		availHFDProject = ev.scadaHFDSummaryProject()
-		wg.Done()
 	}()
 	// HFD Daily
 	// go func() {
@@ -135,9 +135,6 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 		os.Exit(0)
 	}
 
-	countx := 0
-	maxPar := 5
-
 	details := []DataAvailabilityDetail{}
 
 	now := getTimeNow()
@@ -153,21 +150,16 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 		match := tk.M{}
 		match.Set("projectname", value.GetString("project"))
 		match.Set("turbine", turbine)
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		go workerTurbine(turbine, value.GetString("project"), new(ScadaDataOEM).TableName(), match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -189,9 +181,6 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 		os.Exit(0)
 	}
 
-	countx := 0
-	maxPar := 5
-
 	details := []DataAvailabilityDetail{}
 
 	now := getTimeNow()
@@ -208,8 +197,8 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	availability.PeriodTo = periodTo
 	match := tk.M{}
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 
 		match.Set("projectname", value.GetString("project"))
@@ -217,13 +206,8 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		match.Set("isnull", false)
 		go workerTurbine(turbine, value.GetString("project"), "Scada10MinHFD", match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -245,9 +229,6 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 		os.Exit(0)
 	}
 
-	countx := 0
-	maxPar := 5
-
 	details := []DataAvailabilityDetail{}
 
 	now := getTimeNow()
@@ -263,19 +244,14 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 		match := tk.M{}
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		go workerTurbine(turbine, value.GetString("project"), new(MetTower).TableName(), match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -297,8 +273,6 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 		os.Exit(0)
 	}
 
-	countx := 0
-
 	details := []DataAvailabilityDetail{}
 
 	now := getTimeNow()
@@ -314,20 +288,17 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.ProjectList))
 	for _, projectData := range ev.BaseController.ProjectList {
 		projectID := projectData.ProjectId
 		if projectID != "" {
-			wg.Add(1)
 			match := tk.M{}
 			match.Set("projectname", projectID)
 			match.Set("timestamp", tk.M{"$gte": periodFrom})
 			go workerProject(projectID, new(ScadaDataOEM).TableName(), match, &details, ev, ctx, &wg)
 		}
-		countx++
-		if len(ev.BaseController.ProjectList) == countx {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -349,8 +320,6 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 		os.Exit(0)
 	}
 
-	countx := 0
-
 	details := []DataAvailabilityDetail{}
 
 	now := getTimeNow()
@@ -366,21 +335,18 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.ProjectList))
 	for _, projectData := range ev.BaseController.ProjectList {
 		projectID := projectData.ProjectId
 		if projectID != "" {
-			wg.Add(1)
 			match := tk.M{}
 			match.Set("projectname", projectID)
 			match.Set("timestamp", tk.M{"$gte": periodFrom})
 			match.Set("isnull", false)
 			go workerProject(projectID, "Scada10MinHFD", match, &details, ev, ctx, &wg)
 		}
-		countx++
-		if len(ev.BaseController.ProjectList) == countx {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -389,6 +355,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 func workerTurbine(t, projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
+	defer wg.Done()
 	now := getTimeNow() /* bulan ini */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
@@ -512,12 +479,11 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
-
-	wg.Done()
 }
 
 func workerProject(projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
+	defer wg.Done()
 	now := getTimeNow()
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
@@ -627,8 +593,6 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", projectName, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
-
-	wg.Done()
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailability {
