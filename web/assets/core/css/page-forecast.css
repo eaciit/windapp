@@ -130,13 +130,18 @@ tr:hover .cell-editable {
     font-size: 14px;
     font-weight: 600;
 }
-.material-switch {
+.mail-auto-wrapper {
     margin-top: 10px;
     margin-bottom: 15px;
     border: 1px solid lightgray;
     border-left: none;
     border-right: none;
     padding: 15px 0;
+}
+.material-switch {
+    width: 170px;
+    padding: 0;
+    margin: 0 auto;
 }
 .material-switch > label::after {
     background: rgb(255, 255, 255);
@@ -167,6 +172,15 @@ tr:hover .cell-editable {
 }
 .auto-mail-off {
     color: #ff0000;
+}
+.mail-recipient h4 {
+    margin: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+#gridRecipient {
+    margin-bottom: 5px;
 }
 #gridRecipient tr td i {
     font-size: 14px;
