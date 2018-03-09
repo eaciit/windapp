@@ -1434,7 +1434,7 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 				currentRow.AddCell()
 			}
 
-			sdate := d.GetString("Date")
+			sdate := d.GetString("DateToShow")
 			stimerange := d.GetString("TimeBlock")
 			timeblock := d.GetInt("TimeBlockInt")
 			avc := d.GetFloat64("AvaCap")
