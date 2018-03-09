@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
@@ -147,6 +149,192 @@ func (m *ForecastController) GetListTurbineDown(k *knot.WebContext) interface{} 
 	}
 
 	return helper.CreateResult(true, dataReturn, "")
+}
+
+func (m *ForecastController) GetRecipientList(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Project string
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	dataReturn := []ForecastRecipients{}
+	matches := []tk.M{
+		tk.M{"projectname": p.Project},
+	}
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+	}
+	csrtd, e := DB().Connection.NewQuery().
+		From(new(ForecastRecipients).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csrtd.Close()
+
+	e = csrtd.Fetch(&dataReturn, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	return helper.CreateResult(true, dataReturn, "")
+}
+
+func (m *ForecastController) SaveRecipient(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Id      bson.ObjectId
+		Project string
+		Email   string
+		Name    string
+		RType   string
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	csr, _ := DB().Connection.NewQuery().From(new(ForecastRecipients).TableName()).
+		Where(dbox.And(dbox.Eq("email", p.Email), dbox.Eq("projectname", p.Project))).
+		Select().Cursor(nil)
+	defer csr.Close()
+	totalData := csr.Count()
+	if p.Id == "" && totalData > 0 {
+		return helper.CreateResult(false, "NOK", "Email address already exists!")
+	}
+
+	mdl := new(ForecastRecipients)
+	if p.Id != "" {
+		mdl.Id = p.Id
+	} else {
+		mdl.Id = bson.NewObjectId()
+	}
+	mdl.ProjectName = p.Project
+	mdl.Email = p.Email
+	mdl.Name = p.Name
+	mdl.RecipientType = p.RType
+	e = DB().Save(mdl)
+	if e != nil {
+		return helper.CreateResult(false, "NOK", "Save: "+e.Error())
+	}
+
+	return helper.CreateResult(true, "OK", "")
+}
+
+func (m *ForecastController) GetRecipient(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Id bson.ObjectId
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, "NOK", e.Error())
+	}
+
+	mdl := new(ForecastRecipients)
+	e = DB().GetById(mdl, p.Id)
+	if e != nil {
+		return helper.CreateResult(false, "NOK", "GetData: "+e.Error())
+	}
+
+	return helper.CreateResult(true, mdl, "")
+}
+
+func (m *ForecastController) DeleteRecipient(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Id bson.ObjectId
+	}
+
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result := new(ForecastRecipients).New()
+	e = DB().GetById(result, p.Id)
+	if e != nil {
+		return helper.CreateResult(false, nil, "GetDataById: "+e.Error())
+	}
+	e = DB().Delete(result)
+	if e != nil {
+		return helper.CreateResult(false, nil, "Delete: "+e.Error())
+	}
+
+	return helper.CreateResult(true, "OK", "")
+}
+
+func (m *ForecastController) UpdateAutoSend(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type Payload struct {
+		Project  string
+		IsAuto   int
+		UserId   string
+		Password string
+	}
+	p := new(Payload)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	matches := []tk.M{
+		tk.M{"_id": p.Project},
+	}
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+	}
+	csr, e := DB().Connection.NewQuery().
+		From(new(ForecastConfig).TableName()).
+		Command("pipe", pipes).
+		Cursor(nil)
+	defer csr.Close()
+
+	fconfig := ForecastConfig{}
+	e = csr.Fetch(&fconfig, 1, false)
+	if e != nil {
+		return helper.CreateResult(false, "NOK", "No forecast config data. Please contact your administrator.")
+	}
+
+	success := true
+	message := ""
+
+	allowedUsers := fconfig.AllowedUsers
+	if yes, _ := inArray(p.UserId, allowedUsers); !yes {
+		success = false
+		message = tk.Sprintf("User %s not allowed to update forecast auto send mail.", p.UserId)
+	}
+
+	credentials := tk.M{"username": p.UserId, "password": p.Password}
+	_, _, err := LoginProcess(credentials)
+	if err != nil {
+		success = false
+		message = err.Error()
+	}
+
+	if success {
+		timeNow := time.Now().UTC()
+		err := DB().Connection.NewQuery().Update().From(new(ForecastConfig).TableName()).
+			Where(dbox.Eq("_id", p.Project)).Exec(tk.M{}.Set("data", tk.M{}.Set("isautosend", p.IsAuto).
+			Set("lastsetauto", timeNow).Set("lastsetby", "")))
+		if err != nil {
+			success = false
+			message = tk.Sprintf("Update data failed : %s\n", err.Error())
+		}
+	}
+
+	return helper.CreateResult(success, p.Project, message)
 }
 
 func (m *ForecastController) UpdateSldc(k *knot.WebContext) interface{} {
@@ -409,6 +597,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 	}
 
+	// get turbine down
 	turbineDown := 0
 	today, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
 	dateend, _ := time.Parse("2006-01-02 15:04:05", "0001-01-01 00:00:00")
@@ -441,6 +630,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	if len(dtDowns) > 0 {
 		turbineDown = len(dtDowns) //[0].GetInt("total")
 	}
+
+	// get forecast config for current project
+	fconfig := new(ForecastConfig)
+	e = DB().GetById(fconfig, p.Project)
+	tk.Printf("%#v\n", fconfig)
+	isauto := fconfig.IsAutoSend
 
 	// get total production from the realtime
 	defaultValue := -999999.0
@@ -565,9 +760,13 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		if actual != defaultValue {
 			deviation = math.Abs(actualsub - schvalsub)
 
-			if avacap != defaultValue {
+			if avacap != defaultValue && avacap > 0 {
 				devfcast = (actualsub - fcvaluesub) / avacap
 				devsch = (actualsub - schvalsub) / avacap
+			}
+			if avacap == 0 {
+				devfcast = 0.0
+				devsch = 0.0
 			}
 		}
 
@@ -595,6 +794,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			"Deviation":     deviation,
 			"TurbineDown":   turbineDown,
 			"LatestSubject": latestSubject,
+			"IsAutoSend":    isauto,
 		}
 		if item.GetFloat64("AvaCap") == defaultValue {
 			item.Set("AvaCap", nil)
@@ -1038,18 +1238,59 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	sendMail := true
 	msg := ""
 	if len(forecast) > 0 {
-		from := tk.M{"email": "ostro.support@eaciit.com", "name": "Ostro Support"}
-		tos := []tk.M{
-			tk.M{"email": "oms@ostro.in", "name": "OMS"},
-			tk.M{"email": "priyadarshan.b@ostro.in", "name": "Priyadarshan B"},
-		}
-		ccs := []tk.M{
-			tk.M{"email": "sandhya@eaciit.com", "name": "Sandhya Jain"},
-			tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika"},
-			tk.M{"email": "shreyas@eaciit.com", "name": "Shreyas Mithare"},
-		}
+
+		tos := []tk.M{}
+		ccs := []tk.M{}
 		bccs := []tk.M{}
-		createXlsAndSend(p.Project, p.Date, p.Subject, from, tos, ccs, bccs, dataReturn)
+
+		recs := []ForecastRecipients{}
+		csrRec, _ := DB().Connection.NewQuery().From(new(ForecastRecipients).TableName()).Where(dbox.Eq("projectname", p.Project)).Select().Cursor(nil)
+		defer csrRec.Close()
+
+		err := csrRec.Fetch(&recs, 0, false)
+		if err != nil {
+			return helper.CreateResult(false, nil, err.Error())
+		}
+
+		if len(recs) > 0 {
+			from := tk.M{"email": "ostro.support@eaciit.com", "name": "Ostro Support"}
+			for _, r := range recs {
+				switch r.RecipientType {
+				case "to":
+					tos = append(tos, tk.M{
+						"email": r.Email,
+						"name":  r.Name,
+					})
+				case "cc":
+					ccs = append(ccs, tk.M{
+						"email": r.Email,
+						"name":  r.Name,
+					})
+				case "bcc":
+					bccs = append(bccs, tk.M{
+						"email": r.Email,
+						"name":  r.Name,
+					})
+				}
+			}
+			if len(tos) > 0 {
+				return helper.CreateResult(false, nil, "Mail to address not registered!")
+			}
+			// tos = []tk.M{
+			// 	tk.M{"email": "oms@ostro.in", "name": "OMS"},
+			// 	tk.M{"email": "priyadarshan.b@ostro.in", "name": "Priyadarshan B"},
+			// }
+			// ccs = []tk.M{
+			// 	tk.M{"email": "sandhya@eaciit.com", "name": "Sandhya Jain"},
+			// 	tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika"},
+			// 	tk.M{"email": "shreyas@eaciit.com", "name": "Shreyas Mithare"},
+			// }
+			// bccs = []tk.M{}
+			createXlsAndSend(p.Project, p.Date, p.Subject, from, tos, ccs, bccs, dataReturn)
+		} else {
+			sendMail = false
+			msg = "No recipient registered!"
+		}
 	} else {
 		revNos := strings.Split(strings.ToLower(p.Subject), "rev")
 		revNo := strings.TrimSpace(tk.Sprintf("%s ", revNos[1])[0:3])
