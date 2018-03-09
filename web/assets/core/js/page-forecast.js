@@ -34,6 +34,8 @@ pg.allowedTimeBlock = ko.observable(timeNow);
 pg.allowedTimeStamp = ko.observable(timefilter);
 pg.currentRevNo = ko.observable('1');
 
+pg.AutoMail = ko.observable('Off');
+
 pg.getData = function() {
     app.loading(true);
     var url = viewModel.appName + 'forecast/getlist';
@@ -50,10 +52,29 @@ pg.getData = function() {
     $.when(getdata).done(function(d){
         pg.DataSource(d.data);
         pg.TurbineDown(d.data[0].TurbineDown);
+        
+        // set auto send mail
+        var isauto = d.data[0].IsAutoSend;
+        if(isauto==1) {
+            pg.AutoMail('On');
+            $('#auto-mail').prop('checked', true);
+            $('.auto-mail-status').addClass('text');
+            $('.auto-mail-status').addClass('text-success');
+            $('.auto-mail-status').addClass('auto-mail-on');
+            $('.auto-mail-status').removeClass('auto-mail-off');
+        } else {
+            pg.AutoMail('Off');
+            $('#auto-mail').prop('checked', false);
+            $('.auto-mail-status').removeClass('text');
+            $('.auto-mail-status').removeClass('text-success');
+            $('.auto-mail-status').removeClass('auto-mail-on');
+            $('.auto-mail-status').addClass('auto-mail-off');
+        }
+
         if(pg.CurrentTab()=='grid')
             pg.genereateGrid();
         else
-            pg.genereateChart();
+            pg.generateChart();
 
         var latestSubjects = d.data[0].LatestSubject;
         var subjects = '';
@@ -76,6 +97,7 @@ pg.getData = function() {
             $('.date-info').html('No data forecast for '+ fa.project);
         }
         pg.TextSendMailToday(text);
+        pg.generateGridRecipient();
         app.loading(false);
     });
 }
@@ -189,6 +211,7 @@ pg.genereateGrid = function(){
             pageable: {
                 input: true,
                 numeric: false,
+                pageSizes: [15, 20, 50, 100, "all"],
                 change: function(e) {
                     // var timeFilter = moment.utc().add(7, 'hour');
                     //pg.TimeFilter(pg.allowedTimeStamp().add(-15, 'minute'));
@@ -333,7 +356,7 @@ pg.genereateGrid = function(){
     }, 300);
 }
 
-pg.genereateChart = function(){
+pg.generateChart = function(){
     app.loading(true);
     var date1 = $('#dateStart').data('kendoDatePicker').value();
     var date2 = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
@@ -574,6 +597,54 @@ pg.genereateChart = function(){
     setTimeout(function(){ pg.GetMaxValue(); }, 500);
 }
 
+pg.generateGridRecipient = function(){
+    var paramRec = {
+        project: fa.project,
+    }
+    var urlRec = viewModel.appName + 'forecast/getrecipientlist';
+    toolkit.ajaxPost(urlRec, paramRec, function(res) {
+        setTimeout(function(){
+            $("#gridRecipient").html('');
+            $("#gridRecipient").kendoGrid({
+                dataSource: {
+                    data: res.data,
+                    pageSize: 15,
+                },
+                height: 319,
+                sortable: true,
+                filterable: false,
+                pageable: {
+                    input: false,
+                    numeric: false,
+                    info: false,
+                },
+                columns: [
+                    { 
+                        field: "", 
+                        title: "#", 
+                        width: 60, 
+                        template : function(item) {
+                            return '<a href="javascript:void(0);" onclick="pg.editRecipient(\''+ item._id +'\')" class="text-warning tooltipster tooltipstered" title="Edit this data"><i class="fa fa-pencil-square"></i></a>&nbsp;&nbsp;&nbsp;' +
+                            '<a href="javascript:void(0);" onclick="pg.deleteRecipient(\''+ item._id +'\')" class="text-danger tooltipster tooltipstered" title="Delete this data"><i class="fa fa-remove"></i></a>';
+                        }, 
+                        attributes: {
+                            "class": "text-center",
+                        }
+                    },
+                    { field: "Email", title: "Email", width: 160, },
+                    { field: "Name", title: "Name", width: 180, },
+                    { field: "RecipientType", title: "Type", width: 80, },
+                ],
+                // dataBound: function(e) {
+                //     app.gridBoundTooltipster('a');
+                // },
+            });
+            $("#gridRecipient").data("kendoGrid").refresh();
+            app.prepareTooltipster($('.tooltipster'));
+        }, 300); 
+    });
+}
+
 pg.GetMaxValue = function() {
     var maxValue = 0;
     var dt = _.find(pg.Series(), function(o){ return o.field == pg.SelectedSeries(); });
@@ -624,7 +695,7 @@ pg.initLoad = function() {
         fa.LoadData();
 
         // set end date for this module only, forecast data coming until end of next day
-        var newMaxDate = new Date(moment().utc().add(1, 'days').year(), moment().utc().add(1, 'days').month(), moment().utc().add(1, 'days').date());
+        var newMaxDate = new Date(moment().utc().add(5.5, 'hours').add(1, 'days').year(), moment().utc().add(5.5, 'hours').add(1, 'days').month(), moment().utc().add(5.5, 'hours').add(1, 'days').date());
         app.currentDateData = moment(newMaxDate).format("YYYY-MM-DD HH:mm:ss");
         var maxDateData = new Date(app.getUTCDate(app.currentDateData));
         var lastEndDate = new Date(app.getDateMax(maxDateData));
@@ -707,7 +778,6 @@ pg.generateGridTurbineDown = function() {
 }
 pg.editData = function() {
     pg.EditMode('edited');
-    
 }
 pg.saveData = function() {
     pg.EditMode('saved');
@@ -783,6 +853,164 @@ pg.getUpdatedTurbineDown = function() {
         pg.TurbineDown(d.data);
     });
 }
+pg.resetRecipientForm = function(){
+    $('#r-id').val('');
+    $('#r-email').val('');
+    $('#r-name').val('');
+    $('#r-type').val('to');
+}
+pg.showRecipientForm = function(){
+    $('#modalRecipient').modal('show');
+}
+pg.hideRecipientForm = function(){
+    $('#modalRecipient').modal('hide');
+}
+pg.editRecipient = function(id) {
+    app.loading(true);
+    var param = {
+        id: id,
+    };
+    var url = viewModel.appName + 'forecast/getrecipient';
+    toolkit.ajaxPost(url, param, function(res) {
+        if(res.success) {
+            var data = res.data;
+            $('#r-id').val(data._id);
+            $('#r-email').val(data.Email);
+            $('#r-name').val(data.Name);
+            $('#r-type').val(data.RecipientType);
+
+            pg.showRecipientForm();
+        } else {
+            swal("Error!", res.message, "error");
+        }
+        app.loading(false);
+    });
+}
+pg.deleteRecipient = function(id) {
+    if(id!='') {
+        swal({
+            title: 'Delete recipient?',
+            text: '',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Delete It'
+        }, function(isConfirm) {
+            if(isConfirm) {
+                app.loading(true);
+                var param = {
+                    id: id,
+                };
+                var url = viewModel.appName + 'forecast/deleterecipient';
+                toolkit.ajaxPost(url, param, function(res) {
+                    if(res.success) {
+                        pg.generateGridRecipient();
+                    } else {
+                        swal("Error!", res.message, "error");
+                    }
+                    app.loading(false);
+                });
+            }
+            return;
+        });
+    }
+}
+pg.saveRecipient = function() {
+    var email = $('#r-email').val();
+    var name = $('#r-name').val();
+    if(email=='') {
+       swal("Error!", "Please enter an email address.", "error"); 
+       return;
+    }
+    if(name=='') {
+       swal("Error!", "Please enter name.", "error"); 
+       return;
+    }
+    app.loading(true);
+    var param = {
+        id: $('#r-id').val(),
+        project: fa.project,
+        email: email,
+        name: name,
+        rtype: $('#r-type').val(),
+    };
+    var url = viewModel.appName + 'forecast/saverecipient';
+    toolkit.ajaxPost(url, param, function(res) {
+        if(res.success) {
+            pg.resetRecipientForm();
+            pg.hideRecipientForm();
+            pg.generateGridRecipient();
+        } else {
+            swal("Error!", res.message, "error");
+        }
+        app.loading(false);
+    });
+}
+pg.showLoginForm = function(){
+    $('#modalLogin').modal('show');
+}
+pg.hideLoginForm = function(){
+    $('#modalLogin').modal('hide');
+}
+pg.confirmAutoMail = function() {
+    pg.showLoginForm();
+}
+pg.updateAutoMail = function() {
+    var ischecked = $('#auto-mail').is(':checked');
+    var isauto = 0;
+    var autotext = 'OFF';
+    if(ischecked) {
+        isauto = 1;
+        autotext = 'ON';
+    }
+    var param = {
+        project: fa.project,
+        isauto: isauto,
+        userid: $('#userid').val(),
+        password: $('#password').val(),
+    };
+    var url = viewModel.appName + 'forecast/updateautosend';
+    var success = false;
+    var msg = 'Failed to set auto send mail for '+ param.project +' to '+ autotext;
+    app.loading(true);
+    toolkit.ajaxPost(url, param, function(res) {
+        success = res.success;
+        msg = res.message;
+        app.loading(false);
+
+        if(success) {
+            setTimeout(function(){
+                swal("Success!", "Auto send mail for " + param.project + " has set to "+ autotext +" successfully.", "success");
+            }, 300);
+        } else {
+            setTimeout(function(){
+                swal({title: "Warning!", text: msg, type: "warning"},function(){
+                    pg.showLoginForm();
+                    return;
+                });
+            }, 300);
+        }
+    });
+}
+pg.cancelSetAutoMail = function() {
+    var ischecked = $('#auto-mail').is(':checked');
+    if(ischecked) {
+        pg.AutoMail('Off');
+        $('.auto-mail-status').removeClass('text');
+        $('.auto-mail-status').removeClass('text-success');
+        $('.auto-mail-status').removeClass('auto-mail-on');
+        $('.auto-mail-status').addClass('auto-mail-off');
+        $('#auto-mail').prop('checked', false);
+    } else {
+        pg.AutoMail('On');
+        $('.auto-mail-status').addClass('text');
+        $('.auto-mail-status').addClass('text-success');
+        $('.auto-mail-status').addClass('auto-mail-on');
+        $('.auto-mail-status').removeClass('auto-mail-off');
+        $('#auto-mail').prop('checked', true);
+    }
+}
 
 $(function(){
     $('#projectList').kendoDropDownList({
@@ -795,6 +1023,54 @@ $(function(){
     });
     $('#btnRefresh').on('click', function () {
         pg.refresh();
+    });
+    $('#auto-mail').on('click', function(){
+        var ischecked = $(this).is(':checked');
+        if(ischecked) {
+            pg.AutoMail('On');
+            $('.auto-mail-status').addClass('text');
+            $('.auto-mail-status').addClass('text-success');
+            $('.auto-mail-status').addClass('auto-mail-on');
+            $('.auto-mail-status').removeClass('auto-mail-off');
+        } else {
+            pg.AutoMail('Off');
+            $('.auto-mail-status').removeClass('text');
+            $('.auto-mail-status').removeClass('text-success');
+            $('.auto-mail-status').removeClass('auto-mail-on');
+            $('.auto-mail-status').addClass('auto-mail-off');
+        }
+        pg.confirmAutoMail();
+    });
+    $('#btnConfirmUser').on('click', function(e){
+        pg.hideLoginForm();
+        swal({
+            title: 'Set auto mail send to '+ pg.AutoMail() +'?',
+            text: '',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Set It'
+        }, function(isConfirm) {
+            if(isConfirm) {
+                pg.hideLoginForm();
+                pg.updateAutoMail();
+            } else {
+                pg.showLoginForm();
+            }
+            return;
+        });
+        e.preventDefault();
+    });
+    $('#btnCloseUser').on('click', function(){
+        pg.cancelSetAutoMail();
+        pg.hideLoginForm();
+    });
+    $('#btnAddRecipient').on('click', function(){
+        pg.showRecipientForm();
+    });
+    $('#btnSaveRecipient').on('click', function(){
+        pg.saveRecipient();
     });
 
     $('.modal-draggable .modal-content').draggable();

@@ -130,3 +130,50 @@ tr:hover .cell-editable {
     font-size: 14px;
     font-weight: 600;
 }
+.material-switch {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border: 1px solid lightgray;
+    border-left: none;
+    border-right: none;
+    padding: 15px 0;
+}
+.material-switch > label::after {
+    background: rgb(255, 255, 255);
+    border-radius: 16px;
+    border: 1px solid lightgrey;
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+    content: '';
+    height: 24px;
+    left: -4px;
+    margin-top: -8px;
+    position: absolute;
+    top: -4px;
+    transition: all 0.3s ease-in-out;
+    width: 24px;
+}
+.auto-mail-title {
+    font-size: 13px;
+    padding-right: 7px;
+}
+.auto-mail-status {
+    font-size: 13px;
+    padding-left: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.auto-mail-on {
+    color: #008d4c;
+}
+.auto-mail-off {
+    color: #ff0000;
+}
+#gridRecipient tr td i {
+    font-size: 14px;
+}
+#gridRecipient tr:hover td i {
+    color: white;
+}
+#gridRecipient tr td a.text-warning {
+    color: #e99e3c;
+}

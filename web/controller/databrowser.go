@@ -856,9 +856,19 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}
 	matches := []tk.M{}
 	for _, val := range filter {
-		matches = append(matches, tk.M{
+		ttkm := tk.M{
 			val.Field: tk.M{val.Op: val.Value},
-		})
+		}
+
+		if val.Field == "timestamp" {
+			ttime := val.Value.(time.Time).UTC()
+			ttkm = tk.M{
+				val.Field: tk.M{val.Op: ttime},
+			}
+			// tk.Println(ttkm)
+		}
+
+		matches = append(matches, ttkm)
 	}
 	if tipe == "ScadaHFD" {
 		matches = append(matches, tk.M{
@@ -1019,7 +1029,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	AvgWS := 0.0
 
 	aggrData := []tk.M{}
-	groups := tk.M{}
+	groups, gprojects := tk.M{}, tk.M{}
 
 	switch tipe {
 	case "ScadaOEM":
@@ -1032,23 +1042,42 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			"TotalEnergy":      tk.M{"$sum": "$energy"},
 			"DataCount":        tk.M{"$sum": 1},
 		}
+		gprojects.Set("turbine", 1).Set("power", 1).Set("powerlost", 1).Set("ai_intern_activpower", 1).Set("ai_intern_windspeed", 1).Set("energy", 1)
 	case "ScadaHFD":
 		groups = tk.M{
 			"_id":              "$turbine",
-			"TotalActivePower": tk.M{"$sum": "$activepower_kw"},
-			"AvgWindSpeed":     tk.M{"$sum": "$windspeed_ms"},
+			"TotalActivePower": tk.M{"$sum": "$power"},
+			"AvgWindSpeed":     tk.M{"$sum": "$avgwindspeed"},
 			"DataCount":        tk.M{"$sum": 1},
 		}
+		gprojects.Set("turbine", 1).Set("power", 1).Set("avgwindspeed", 1)
+		tablename = "ScadaData"
+		for i, _match := range matches {
+			if _match.Has("windspeed_ms") {
+				_match.Set("avgwindspeed", _match.Get("windspeed_ms"))
+				_match.Unset("windspeed_ms")
+			}
+			if _match.Has("activepower_kw") {
+				_match.Set("power", _match.Get("activepower_kw"))
+				_match.Unset("activepower_kw")
+			}
+			if _match.Has("isnull") {
+				_match.Set("available", 1)
+				_match.Unset("isnull")
+			}
+			matches[i] = _match
+		}
 	}
+
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$project": gprojects},
 		tk.M{"$group": groups},
 	}
+	// tk.Printf("%#v\n", matches)
+	// tk.Printf("%#v\n", groups)
 
-	//tk.Printf("%#v\n", matches)
-	//tk.Printf("%#v\n", groups)
-
-	//tk.Printf("%#v\n", pipes)
+	// tk.Printf("%#v\n", pipes)
 
 	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
