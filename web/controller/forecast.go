@@ -1238,7 +1238,6 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	sendMail := true
 	msg := ""
 	if len(forecast) > 0 {
-
 		tos := []tk.M{}
 		ccs := []tk.M{}
 		bccs := []tk.M{}
@@ -1249,7 +1248,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 
 		err := csrRec.Fetch(&recs, 0, false)
 		if err != nil {
-			return helper.CreateResult(false, nil, err.Error())
+			return helper.CreateResult(false, "NOK", "Failed to get recipients: "+err.Error())
 		}
 
 		if len(recs) > 0 {
@@ -1273,8 +1272,8 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 					})
 				}
 			}
-			if len(tos) > 0 {
-				return helper.CreateResult(false, nil, "Mail to address not registered!")
+			if len(tos) <= 0 {
+				return helper.CreateResult(false, "NOK", "Mail to address not registered!")
 			}
 			// tos = []tk.M{
 			// 	tk.M{"email": "oms@ostro.in", "name": "OMS"},
