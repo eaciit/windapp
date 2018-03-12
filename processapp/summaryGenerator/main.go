@@ -83,6 +83,7 @@ func main() {
 		// new(DataAvailabilitySummary).ConvertDataAvailabilitySummary(base)
 		// new(EventReduceAvailability).ConvertEventReduceAvailability(base)
 		// new(DineuralProfileSummary).CreateDineuralProfileSummary(base)
+		// new(TurbulenceIntensitySummary).CreateTurbulenceIntensitySummary(base)
 
 		// // custom function temporary running
 		// new(UpdateScadaOemMinutes).UpdateDeviation(base)
