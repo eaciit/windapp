@@ -64,6 +64,7 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	query = append(query, tk.M{"windspeed_ms_stddev": tk.M{"$gte": -200}})
 
 	query = append(query, tk.M{"windspeed_ms": tk.M{"$exists": true}})
+	query = append(query, tk.M{"activepower_kw": tk.M{"$exists": true}})
 	// query = append(query, tk.M{"activepower_kw": tk.M{"$ne": nil}})
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": query}})
@@ -90,6 +91,11 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	})
 	pipesmet = append(pipesmet, tk.M{"$sort": tk.M{"_id.windspeedbin": 1}})
 
+	//debugging purpose
+	// dtstart := time.Now()
+	// dduration := 0.0
+	// _ = dduration
+
 	csr, e := DB().Connection.NewQuery().
 		From("Scada10MinHFD").
 		Command("pipe", pipes).
@@ -99,15 +105,28 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 1 %v\n", dduration)
+	// dtstart = time.Now()
+
+	// tk.Println(csr.Count())
+
+	// if csr.Count() > 0 {
 	for {
 		item := tk.M{}
 		e = csr.Fetch(&item, 1, false)
+		// tk.Printf("%#v\n", item)
 		if e != nil {
 			break
 		}
 		scadaHfds = append(scadaHfds, item)
 	}
+	// }
 	csr.Close()
+
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 2 %v\n", dduration)
+	// dtstart = time.Now()
 
 	csrt, e := DB().Connection.NewQuery().
 		From(new(MetTower).TableName()).
@@ -117,6 +136,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 3 %v\n", dduration)
+	// dtstart = time.Now()
 
 	//if csrt.Count() > 0 {
 	for {
@@ -130,6 +153,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	// e = csrt.Fetch(&metTowers, 0, false)
 	//}
 	csrt.Close()
+
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 4 %v\n", dduration)
+	// dtstart = time.Now()
 
 	// tk.Printf("metTowers : %s \n", len(metTowers))
 	turbineName, e := helper.GetTurbineNameList(p.Project)
@@ -152,6 +179,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		})
 	}
 
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 5 %v\n", dduration)
+	// dtstart = time.Now()
+
 	for _, m := range scadaHfds {
 		iDs := m.Get("_id").(tk.M)
 		turbine := iDs.GetString("turbine")
@@ -167,6 +198,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		})
 	}
 
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 6 %v\n", dduration)
+	// dtstart = time.Now()
+
 	if len(p.Turbine) == 0 {
 		for _, listVal := range datas {
 			exist := false
@@ -181,10 +216,18 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		}
 	}
 
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 7 %v\n", dduration)
+	// dtstart = time.Now()
+
 	for _, turX := range turbine {
 		sortTurbines = append(sortTurbines, turX.(string))
 	}
 	sort.Strings(sortTurbines)
+
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 8 %v\n", dduration)
+	// dtstart = time.Now()
 
 	selArr := 0
 	for _, turbineX := range sortTurbines {
@@ -217,6 +260,10 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 		dataSeries = append(dataSeries, turbineData)
 		selArr++
 	}
+
+	// dduration = time.Now().Sub(dtstart).Seconds()
+	// // tk.Printf("Duration 9 %v\n", dduration)
+	// dtstart = time.Now()
 
 	if datas == nil {
 		datas = make([]tk.M, 0)
