@@ -134,7 +134,8 @@ page.LoadData = function(){
             dateEndDetail = new Date(Date.UTC(dateEndDetail.getFullYear(), dateEndDetail.getMonth(), dateEndDetail.getDate(), 0, 0, 0));
 
         var detail = {
-            Period       : $('#periodList-'+id).data('kendoDropDownList').value(),
+            // Period       : $('#periodList-'+id).data('kendoDropDownList').value(),
+            Period       : "custom",
             DateStart    : dateStartDetail,
             DateEnd      : dateEndDetail,
         };
@@ -213,7 +214,8 @@ page.GetGraphWidth = function(selectorGraph){
 
 page.showHidePeriod = function (idx) {
     var id = (idx == null ? 1 : idx);
-    var period = $('#periodList-' + id).data('kendoDropDownList').value();
+    // var period = $('#periodList-' + id).data('kendoDropDownList').value();
+    var period = "custom";
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
@@ -510,7 +512,7 @@ page.generateElementFilter = function (id_element, source) {
     var formFilter =    '<div class="row dynamic-filter" id="filter-form-'+ id + '" data-count="'+ page.countList +'">' +
                             '<div class="mgb10">' +
                                 '<div class="col-md-12 no-padding">' +
-                                    '<select class="period-list" id="periodList-' + id + '" name="table" width="90"></select>' +
+                                    // '<select class="period-list" id="periodList-' + id + '" name="table" width="90"></select>' +
                                     '<span class="custom-period" id="show_hide' + id + '">' +
                                         '<input type="text" id="dateStart-' + id + '"/>' +
                                         '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
@@ -526,15 +528,15 @@ page.generateElementFilter = function (id_element, source) {
         $(".filter-part").append(formFilter);
         $(".filter-part").append(versusFilter);
 
-        $("#periodList-" + id).kendoDropDownList({
-            dataSource: [{value:"custom",text:"Custom"}],
-            dataValueField: 'value',
-            dataTextField: 'text',
-            suggest: true,
-            change: function () { 
-                page.LoadData();
-            }
-        });
+        // $("#periodList-" + id).kendoDropDownList({
+        //     dataSource: [{value:"custom",text:"Custom"}],
+        //     dataValueField: 'value',
+        //     dataTextField: 'text',
+        //     suggest: true,
+        //     change: function () { 
+        //         page.LoadData();
+        //     }
+        // });
 
         $('#dateStart-' + id).kendoDatePicker({
             value: fa.dateStart,
@@ -559,6 +561,7 @@ page.generateElementFilter = function (id_element, source) {
         page.InitDefaultValue(id);
         page.checkElementLast();
 
+        page.LoadData();
     }, 500);
 }
 page.removeFilter = function (id) {
@@ -609,8 +612,8 @@ page.checkElementLast = function(){
 }
 
 page.InitDefaultValue = function (id) {
-    $("#periodList-" + id).data("kendoDropDownList").value("custom");
-    $("#periodList-" + id).data("kendoDropDownList").trigger("change");
+    // $("#periodList-" + id).data("kendoDropDownList").value("custom");
+    // $("#periodList-" + id).data("kendoDropDownList").trigger("change");
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-7,0,0,0,0));
@@ -621,7 +624,7 @@ page.InitDefaultValue = function (id) {
 }
 
 page.hideFilter = function(){
-    $("#periodList").closest(".k-widget").hide();
+    // $("#periodList").closest(".k-widget").hide();
     $("#dateStart").closest(".k-widget").hide();
     $("#dateEnd").closest(".k-widget").hide();
     $(".control-label:contains('Period')").hide();
@@ -654,10 +657,10 @@ $(function(){
         function(){
             page.generateElementFilter(null, "default1");
         },
-        function(){
-            page.LoadData();
-        }
-        
+        // function(){
+        //     console.log("Load data")            
+        //     page.LoadData();
+        // }
     )
    
 });
