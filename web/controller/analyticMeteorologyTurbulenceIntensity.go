@@ -154,7 +154,6 @@ func (m *AnalyticMeteorologyController) GetTurbulenceIntensity(k *knot.WebContex
 	return results
 }
 
-/// getting scatter for TI
 func (m *AnalyticMeteorologyController) GetTurbulenceIntensityScatter(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
