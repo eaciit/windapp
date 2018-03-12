@@ -101,6 +101,9 @@ var ti = {
 	        	tempData[idx].idxseries = idx;
 	        });
 	        data.ChartSeries = tempData;
+	        if (data.MetSeries.length > 0) {
+	        	data.ChartSeries.unshift(data.MetSeries[0]);
+	        }
 	        pm.ChartSeriesturbulence(data.ChartSeries)
 	        pm.DtTurbulence(data)
 

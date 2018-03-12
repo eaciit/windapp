@@ -95,8 +95,8 @@ page.GetFieldList = function(){
             page.y2Axis(data);
             window.setTimeout(function(){
                 $("#xAxis").data("kendoDropDownList").select(1);
-                $("#yAxis").data("kendoDropDownList").select(2);
-                $("#y2Axis").data("kendoDropDownList").select(0);
+                $("#yAxis").data("kendoDropDownList").select(0);
+                $("#y2Axis").data("kendoDropDownList").select(8);
             },500)
         }   
     });
@@ -105,7 +105,7 @@ page.GetFieldList = function(){
 page.InitDefaultValue = function () {
     $("#periodList").data("kendoDropDownList").value("custom");
     $("#periodList").data("kendoDropDownList").trigger("change");
-    $("#StateList").data("kendoDropDownList").trigger("change");
+    $("#StateList").data("kendoMultiSelect").trigger("change");
     $.when(page.SetValueFields()).done(function(){
         page.checkKey();
     });
@@ -113,13 +113,15 @@ page.InitDefaultValue = function () {
 }
 
 page.SetProjectList = function(){
-    var state = $("#StateList").data("kendoDropDownList").value();
+    var state = $("#StateList").data("kendoMultiSelect").value();
     page.ProjectListState([]);
 
     $.each(page.ProjectList(), function(i , val){
-        if(val.State == state){
-            page.ProjectListState().push(val);
-        }
+        $.each(state, function(xi , xval){
+            if(val.State == xval){
+                page.ProjectListState().push(val);
+            }
+        });
     });
     page.selectedProjectList([page.ProjectListState()[0].ProjectId]);
     $("#ProjectList").data("kendoMultiSelect").setDataSource(page.ProjectListState());
@@ -525,6 +527,14 @@ page.showHideLegend = function(idx) {
 $(function() {
 
     app.loading(true);
+    $("#StateList").kendoMultiSelect({
+        dataSource: page.StateList(), 
+        change: function() {
+            page.SetProjectList();
+        }, 
+        suggest: true
+    });
+
     $("#ProjectList").kendoMultiSelect({
         dataSource: page.ProjectListState(), 
         dataValueField: 'ProjectId', 
@@ -543,6 +553,8 @@ $(function() {
         maxHeight: 200,
         dropRight: false
     });
+
+    $('#StateList').data('kendoMultiSelect').value([page.StateList()[0]]);
 
     $('#btnRefresh').on('click', function() {
         page.LoadData();

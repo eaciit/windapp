@@ -858,9 +858,14 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	}
 	tStart = tStart.Add(time.Duration(15) * time.Minute)
 	tEnd = tEnd.Add(time.Duration(15) * time.Minute)
-	timeperiods := get15MinPeriod(tStart, tEnd)
 	project := p.Project
 	timeNowIst := time.Now().UTC().Add(time.Duration(330) * time.Minute)
+
+	if timeNowIst.Hour() >= 23 {
+		tStart = tStart.AddDate(0, 0, 1)
+		tEnd = tEnd.AddDate(0, 0, 1)
+	}
+	timeperiods := get15MinPeriod(tStart, tEnd)
 
 	getscada15minpath := GetConfig("scada15min_path", "")
 	scada15minpath := ""
@@ -1116,22 +1121,25 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			avacap = dtForecast.GetFloat64("avgcapacity")
 			fcvalue = dtForecast.GetFloat64("schcapacity")
 			schval = dtForecast.GetFloat64("schcapacity")
+
 			// calculate sch value from actual power of 15 min data
-			if actual != defaultValue {
-				schval = (actual + fcvalue) / 2
-			}
+			// if actual != defaultValue {
+			// 	schval = (actual + fcvalue) / 2
+			// }
+
 			// calculate sch value from the realtime actual power
-			if powerRtd != defaultValue {
-				if !tsRtd.IsZero() {
-					// check if the data coming within 10 mins in india time
-					if timeNowIst.Sub(tsRtd).Minutes() <= 10 {
-						// put the calculation using actual power from realtime for current cell edit allowed into next 6 time block
-						if tp.TimePeriod.Sub(timeNowIst).Hours() >= 1 && tp.TimePeriod.Sub(timeNowIst).Hours() <= 2.5 {
-							schval = (powerRtd + fcvalue) / 2
-						}
-					}
-				}
-			}
+			// if powerRtd != defaultValue {
+			// 	if !tsRtd.IsZero() {
+			// 		// check if the data coming within 10 mins in india time
+			// 		if timeNowIst.Sub(tsRtd).Minutes() <= 10 {
+			// 			// put the calculation using actual power from realtime for current cell edit allowed into next 6 time block
+			// 			if tp.TimePeriod.Sub(timeNowIst).Hours() >= 1 && tp.TimePeriod.Sub(timeNowIst).Hours() <= 2.5 {
+			// 				schval = (powerRtd + fcvalue) / 2
+			// 			}
+			// 		}
+			// 	}
+			// }
+
 			if dtForecast.Has("schsdlc") {
 				schval = dtForecast.GetFloat64("schsdlc")
 				// isschvalavg = false
@@ -1315,11 +1323,22 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 		tk.Println("Error creating directories:" + err.Error())
 	}
 
-	filename := tk.Sprintf("Forecast_%s_%s_Rev_%s.xlsx", project, date.Format("20060102"), revNo2Digit)
+	// filename := tk.Sprintf("Forecast_%s_%s_Rev_%s.xlsx", project, date.Format("20060102"), revNo2Digit)
+	// filetosave := filepath.Join(pathToSave, filename)
+
+	// newXls := xls.NewFile()
+	// sheet, err := newXls.AddSheet(tk.Sprintf("Forecast Rev %s for %s", revNo, project))
+	// if err != nil {
+	// 	tk.Printf("Error adding new sheet: " + err.Error())
+	// }
+
+	filename := tk.Sprintf("WindPowerSchedule_%s_Ostro_%s_Rev_%s.xlsx", project, date.Format("2006-01-02"), revNo2Digit)
 	filetosave := filepath.Join(pathToSave, filename)
 
 	newXls := xls.NewFile()
-	sheet, err := newXls.AddSheet(tk.Sprintf("Forecast Rev %s for %s", revNo, project))
+	sheetName := tk.Sprintf("Forecast Rev %s for %s", revNo, project)
+	sheetName = "Schedules"
+	sheet, err := newXls.AddSheet(sheetName)
 	if err != nil {
 		tk.Printf("Error adding new sheet: " + err.Error())
 	}
@@ -1462,7 +1481,13 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 	newXls.Save(filetosave)
 
 	mailSubject := tk.Sprintf("%s Schedule Forecast For %s Rev %s", project, date.Format("02/01/2006"), revNo2Digit)
+	mailSubject = tk.Sprintf("Rev %s for Pooling Station %s site - OSTRO Mahawind power Pvt Limited", revNo, project)
 	mailContent := tk.Sprintf("<p>Dear All,</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;<br /></p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
+	mailContent = tk.Sprintf(`<p>Dear Sir,</p>
+	<p>Please find the revised schedule Rev %s for (%s) of 60 MW Capacity connected  to Chikkoppa  (For the Generator- Ostro Mahawind Power Pvt Ltd.Total capacity - 60 MW )</p>
+	<p><b>Thanks & Regards</b></p>
+	<p><b>Forecasting & Scheduling Team</b><br />
+	Ostro Energy Private Ltd</p>`, revNo, date.Format("02/01/2006"))
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())
