@@ -1055,7 +1055,9 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	// get total production from the realtime
 	defaultValue := -999999.0
 	powerRtd := defaultValue
+	_ = powerRtd
 	tsRtd := time.Time{}
+	_ = tsRtd
 	matches = []tk.M{
 		tk.M{"projectname": project},
 		tk.M{"timestamp": tk.M{"$gt": tStart}},
