@@ -177,6 +177,7 @@ func (ev *TurbulenceIntensitySummary) updateLastData(projectname, tipe string, t
 			ev.Log.AddLog(tk.Sprintf("Error on Save at updateLastData due to : %s", e.Error()), sError)
 		}
 	}
+	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s", projectname, tipe), sInfo)
 }
 
 func (ev *TurbulenceIntensitySummary) processDataScada() {
@@ -277,7 +278,7 @@ func (ev *TurbulenceIntensitySummary) turbineWorker(projectname, turbine string,
 		data.Turbine = ids.GetString("turbine")
 		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time)
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
-		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.ToString(data.WindspeedBin), data.Timestamp.Format("20060102"))
+		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
 		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
 		data.WindSpeedStdTotal = val.GetFloat64("windspeedstdtotal")
@@ -361,7 +362,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 		data.Projectname = ids.GetString("projectname")
 		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time)
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
-		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.ToString(data.WindspeedBin), data.Timestamp.Format("20060102"))
+		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
 		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
 		data.WindSpeedStdTotal = val.GetFloat64("windspeedstdtotal")
