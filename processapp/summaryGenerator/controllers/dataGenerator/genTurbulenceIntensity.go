@@ -226,6 +226,8 @@ func (ev *TurbulenceIntensitySummary) projectWorker(projectname string, turbineL
 		}).
 		Set("then", 1).
 		Set("else", 0)}
+
+	ev.Log.AddLog(tk.Sprintf("Update data %s from %s", projectname, lastUpdate[projectname].String()), sInfo)
 	pipe := []tk.M{
 		tk.M{"$match": tk.M{
 			"$and": []tk.M{
