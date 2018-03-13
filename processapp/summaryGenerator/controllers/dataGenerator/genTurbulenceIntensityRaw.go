@@ -249,20 +249,22 @@ func (ev *TurbulenceIntensityGenerator) getLatestData(tipe string) (result map[s
 }
 
 func (ev *TurbulenceIntensityGenerator) updateLastData(projectname, tipe string, maxTimeStamp time.Time) {
-	data := LatestTurbulenceRaw{}
-	data.Projectname = projectname
-	data.ID = tk.Sprintf("%s_%s", data.Projectname, tipe)
-	data.LastUpdate = maxTimeStamp
-	data.Type = tipe
+	if !maxTimeStamp.IsZero() {
+		data := LatestTurbulenceRaw{}
+		data.Projectname = projectname
+		data.ID = tk.Sprintf("%s_%s", data.Projectname, tipe)
+		data.LastUpdate = maxTimeStamp
+		data.Type = tipe
 
-	e := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
-		From(new(LatestTurbulenceRaw).TableName()).Save().Exec(tk.M{"data": data})
+		e := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
+			From(new(LatestTurbulenceRaw).TableName()).Save().Exec(tk.M{"data": data})
 
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on Save at updateLastData due to : %s", e.Error()), sError)
+		if e != nil {
+			ev.Log.AddLog(tk.Sprintf("Error on Save at updateLastData due to : %s", e.Error()), sError)
+		}
 	}
 
-	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s", projectname, tipe), sInfo)
+	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s at %s", projectname, tipe, maxTimeStamp.String()), sInfo)
 }
 
 func (ev *TurbulenceIntensityGenerator) processDataScada(wgScada *sync.WaitGroup) {
