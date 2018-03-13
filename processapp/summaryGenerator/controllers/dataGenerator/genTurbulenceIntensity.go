@@ -211,6 +211,8 @@ func (ev *TurbulenceIntensitySummary) projectWorker(projectname string, turbineL
 
 func (ev *TurbulenceIntensitySummary) turbineWorker(projectname, turbine string, lastupdate time.Time, wgTurbine *sync.WaitGroup) {
 	defer wgTurbine.Done()
+
+	ev.Log.AddLog(tk.Sprintf("Processing %s (%s) from %s", turbine, projectname, lastupdate.String()), sInfo)
 	countWS := tk.M{"$cond": tk.M{}.
 		Set("if", tk.M{
 			"$and": []tk.M{
@@ -393,7 +395,8 @@ func (ev *TurbulenceIntensitySummary) processDataMet(wgMet *sync.WaitGroup) {
 	var wg sync.WaitGroup
 	wg.Add(len(turbinePerProject))
 	for _project := range turbinePerProject {
-		go ev.projectWorkerMet(_project, lastUpdateTurbine[_project], &wg)
+		keys := _project + "_MET"
+		go ev.projectWorkerMet(_project, lastUpdateTurbine[keys], &wg)
 	}
 	wg.Wait()
 
