@@ -51,8 +51,8 @@ func (ev *TurbulenceIntensitySummary) CreateTurbulenceIntensitySummary(base *Bas
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go ev.processDataScada()
-	go ev.processDataMet()
+	go ev.processDataScada(&wg)
+	go ev.processDataMet(&wg)
 
 	wg.Wait()
 
@@ -154,7 +154,7 @@ func (ev *TurbulenceIntensitySummary) updateLastData(projectname, tipe string, t
 	}
 	timestampPerTurbine := map[string]time.Time{}
 	for _, val := range latestData {
-		timestampPerTurbine[val.GetString("_id")] = val.Get("maxDate", time.Time{}).(time.Time)
+		timestampPerTurbine[val.GetString("_id")] = val.Get("maxDate", time.Time{}).(time.Time).UTC()
 	}
 
 	csrSave := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
@@ -180,7 +180,9 @@ func (ev *TurbulenceIntensitySummary) updateLastData(projectname, tipe string, t
 	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s", projectname, tipe), sInfo)
 }
 
-func (ev *TurbulenceIntensitySummary) processDataScada() {
+func (ev *TurbulenceIntensitySummary) processDataScada(wgScada *sync.WaitGroup) {
+	defer wgScada.Done()
+
 	t0 := time.Now()
 	turbinePerProject := ev.getTurbinePerProject()
 	lastUpdateTurbine := ev.getLatestData("SCADA")
@@ -200,7 +202,8 @@ func (ev *TurbulenceIntensitySummary) projectWorker(projectname string, turbineL
 	var wg sync.WaitGroup
 	wg.Add(len(turbineList))
 	for _, _turbine := range turbineList {
-		go ev.turbineWorker(projectname, _turbine, lastUpdate[_turbine], &wg)
+		keys := tk.Sprintf("%s_%s", projectname, _turbine)
+		go ev.turbineWorker(projectname, _turbine, lastUpdate[keys], &wg)
 	}
 	wg.Wait()
 	ev.updateLastData(projectname, "SCADA", turbineList)
@@ -208,6 +211,8 @@ func (ev *TurbulenceIntensitySummary) projectWorker(projectname string, turbineL
 
 func (ev *TurbulenceIntensitySummary) turbineWorker(projectname, turbine string, lastupdate time.Time, wgTurbine *sync.WaitGroup) {
 	defer wgTurbine.Done()
+
+	ev.Log.AddLog(tk.Sprintf("Processing %s (%s) from %s", turbine, projectname, lastupdate.String()), sInfo)
 	countWS := tk.M{"$cond": tk.M{}.
 		Set("if", tk.M{
 			"$and": []tk.M{
@@ -276,7 +281,7 @@ func (ev *TurbulenceIntensitySummary) turbineWorker(projectname, turbine string,
 		ids := val.Get("_id", tk.M{}).(tk.M)
 		data.Projectname = ids.GetString("projectname")
 		data.Turbine = ids.GetString("turbine")
-		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time)
+		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time).UTC()
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
 		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
@@ -360,7 +365,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 		data = TurbulenceIntensity{}
 		ids := val.Get("_id", tk.M{}).(tk.M)
 		data.Projectname = ids.GetString("projectname")
-		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time)
+		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time).UTC()
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
 		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
@@ -379,7 +384,9 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 	ev.updateLastData(projectname, "MET", []string{})
 }
 
-func (ev *TurbulenceIntensitySummary) processDataMet() {
+func (ev *TurbulenceIntensitySummary) processDataMet(wgMet *sync.WaitGroup) {
+	defer wgMet.Done()
+
 	t0 := time.Now()
 
 	turbinePerProject := ev.getTurbinePerProject()
@@ -388,7 +395,8 @@ func (ev *TurbulenceIntensitySummary) processDataMet() {
 	var wg sync.WaitGroup
 	wg.Add(len(turbinePerProject))
 	for _project := range turbinePerProject {
-		go ev.projectWorkerMet(_project, lastUpdateTurbine[_project], &wg)
+		keys := _project + "_MET"
+		go ev.projectWorkerMet(_project, lastUpdateTurbine[keys], &wg)
 	}
 	wg.Wait()
 

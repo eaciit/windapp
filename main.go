@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
 
 	"github.com/eaciit/acl/v1.0"
 	"github.com/eaciit/knot/knot.v1"
@@ -27,7 +26,6 @@ func main() {
 
 	ConfigPath = CONFIG_PATH
 	prefix := web.AppName
-	var mux sync.Mutex
 
 	ServerAddress = toolkit.Sprintf("localhost:%v", toolkit.ToString(port))
 	appConf := knot.AppContainerConfig{Address: ServerAddress}
@@ -57,9 +55,9 @@ func main() {
 					if err := r.GetForms(&payload); err != nil {
 						fmt.Println("payload error", err.Error())
 					}
-					mux.Lock()
+					AppMuxSync.Lock()
 					r.SetSession("keyRealtime", payload.GetString("key"))
-					mux.Unlock()
+					AppMuxSync.Unlock()
 				}
 			}
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" &&
@@ -67,9 +65,9 @@ func main() {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
 				if !active {
 					urlSplit := strings.Split(rURL, "/")
-					mux.Lock()
+					AppMuxSync.Lock()
 					r.SetSession("sessionid", "")
-					mux.Unlock()
+					AppMuxSync.Unlock()
 					if len(urlSplit) > 2 {
 						if urlSplit[2] == "page" {
 							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
