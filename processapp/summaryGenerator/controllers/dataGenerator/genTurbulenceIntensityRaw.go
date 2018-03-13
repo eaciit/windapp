@@ -81,12 +81,20 @@ func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *Bas
 	ev.Log.AddLog("===================== End processing Turbulence 10 Min...", sInfo)
 }
 
+func getstep(count int) int {
+	v := count / 5
+	if v == 0 {
+		return 1
+	}
+	return v
+}
+
 func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.WaitGroup) {
 	defer wgScada.Done()
 
 	t0 := time.Now()
 	turbinePerProject := ev.getTurbinePerProject()
-	lastUpdateTurbine := ev.getLatestData("SCADA")
+	// lastUpdateTurbine := ev.getLatestData("SCADA")
 	lastUpdatePerDay := map[string]time.Time{}
 
 	tStart := time.Date(2018, 3, 1, 0, 0, 0, 0, time.UTC)
@@ -95,8 +103,11 @@ func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.Wa
 		if tStart.After(tNow) {
 			break
 		}
-		for keys := range lastUpdateTurbine {
+		/*for keys := range lastUpdateTurbine {
 			lastUpdatePerDay[keys] = tStart.UTC()
+		}*/
+		for _project := range turbinePerProject {
+			lastUpdatePerDay[_project] = tStart.UTC()
 		}
 		var wg sync.WaitGroup
 		wg.Add(len(turbinePerProject))
@@ -114,13 +125,86 @@ func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.Wa
 
 func (ev *TurbulenceIntensityGenerator) projectInitialWorker(projectname string, turbineList []string, lastUpdate map[string]time.Time, wgProject *sync.WaitGroup) {
 	defer wgProject.Done()
-	var wg sync.WaitGroup
+	/*var wg sync.WaitGroup
 	wg.Add(len(turbineList))
 	for _, _turbine := range turbineList {
 		keys := tk.Sprintf("%s_%s", projectname, _turbine)
 		go ev.turbineInitialWorker(projectname, _turbine, lastUpdate[keys], &wg)
 	}
+	wg.Wait()*/
+	csr, e := ev.Ctx.Connection.NewQuery().
+		From("Scada10MinHFD").
+		Select("projectname", "turbine", "timestamp", "dateinfo", "windspeed_ms", "windspeed_ms_bin", "windspeed_ms_stddev").
+		Where(dbox.And(dbox.Eq("dateinfo.dateid", lastUpdate[projectname]),
+			dbox.Eq("projectname", projectname),
+			dbox.Eq("isnull", false),
+			dbox.Gte("windspeed_ms_bin", 0),
+			dbox.Lte("windspeed_ms_bin", 25))).
+		Cursor(nil)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
+	}
+	defer csr.Close()
+
+	var wg sync.WaitGroup
+	totalData := csr.Count()
+	totalWorker := 10
+	dataChan := make(chan TurbulenceIntensityRaw, totalData)
+
+	wg.Add(totalWorker)
+	for i := 0; i < totalWorker; i++ {
+		go func() {
+			defer wg.Done()
+			ctxWorker, e := PrepareConnection()
+			if e != nil {
+				ev.Log.AddLog(e.Error(), sError)
+			}
+			defer ctxWorker.Close()
+			csrSave := ctxWorker.NewQuery().SetConfig("multiexec", true).
+				From(new(TurbulenceIntensityRaw).TableName()).Save()
+			defer csrSave.Close()
+			for data := range dataChan {
+				e = csrSave.Exec(tk.M{"data": data})
+				if e != nil {
+					ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
+				}
+			}
+		}()
+	}
+
+	data := TurbulenceIntensityRaw{}
+	_data := FetchScada{}
+
+loopFetchScada:
+	for {
+		_data = FetchScada{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break loopFetchScada
+		}
+		data = TurbulenceIntensityRaw{}
+		data.Projectname = _data.Projectname
+		data.Turbine = _data.Turbine
+		data.Timestamp = _data.Timestamp.UTC()
+		data.DateInfo = _data.DateInfo
+		data.WindspeedBin = _data.Windspeed_ms_bin
+		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, data.Turbine, data.Timestamp.Format("20060102150405"))
+
+		data.WindSpeed = _data.Windspeed_ms
+		data.WindSpeedStdDev = _data.Windspeed_ms_stddev
+		data.Type = "SCADA"
+
+		dataChan <- data
+	}
+
+	close(dataChan)
 	wg.Wait()
+	/*for val := range dataChan {
+		e = csrSave.Exec(tk.M{"data": val})
+		if e != nil {
+			ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
+		}
+	}*/
 	ev.updateLastData(projectname, "SCADA", turbineList)
 }
 
@@ -150,7 +234,11 @@ func (ev *TurbulenceIntensityGenerator) turbineInitialWorker(projectname, turbin
 	csr, e := ev.Ctx.Connection.NewQuery().
 		From("Scada10MinHFD").
 		Select("projectname", "turbine", "timestamp", "dateinfo", "windspeed_ms", "windspeed_ms_bin", "windspeed_ms_stddev").
-		Where(dbox.And(dbox.Eq("dateinfo.dateid", lastupdate), dbox.Eq("projectname", projectname), dbox.Eq("turbine", turbine), dbox.Eq("isnull", false), dbox.Gte("windspeed_ms_bin", 0), dbox.Lte("windspeed_ms_bin", 25))).
+		Where(dbox.And(dbox.Eq("dateinfo.dateid", lastupdate),
+			dbox.Eq("projectname", projectname),
+			dbox.Eq("turbine", turbine), dbox.Eq("isnull", false),
+			dbox.Gte("windspeed_ms_bin", 0),
+			dbox.Lte("windspeed_ms_bin", 25))).
 		Cursor(nil)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
