@@ -283,7 +283,7 @@ func (ev *TurbulenceIntensitySummary) turbineWorker(projectname, turbine string,
 		data.Turbine = ids.GetString("turbine")
 		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time).UTC()
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
-		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.UTC().Format("20060102"))
+		data.ID = tk.Sprintf("%s_%s_%s_%s", data.Projectname, data.Turbine, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
 		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
 		data.WindSpeedStdTotal = val.GetFloat64("windspeedstdtotal")
@@ -367,7 +367,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 		data.Projectname = ids.GetString("projectname")
 		data.Timestamp = ids.Get("timestamp", time.Time{}).(time.Time).UTC()
 		data.WindspeedBin = ids.GetFloat64("windspeedbin")
-		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.UTC().Format("20060102"))
+		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, tk.Sprintf("%.1f", data.WindspeedBin), data.Timestamp.Format("20060102"))
 
 		data.WindSpeedTotal = val.GetFloat64("windspeedtotal")
 		data.WindSpeedStdTotal = val.GetFloat64("windspeedstdtotal")
