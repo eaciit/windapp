@@ -71,8 +71,8 @@ func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *Bas
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	// go ev.processDataScada(&wg)
-	go ev.processInitialDataScada(&wg)
+	go ev.processDataScada(&wg)
+	// go ev.processInitialDataScada(&wg)
 	go ev.processDataMet(&wg)
 
 	wg.Wait()
