@@ -1482,14 +1482,19 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 
 	newXls.Save(filetosave)
 
+	reviseContent := "the revised"
+	if tk.ToInt(revNo, tk.RoundingAuto) == 0 {
+		reviseContent = "the DAY AHEAD"
+	}
+
 	mailSubject := tk.Sprintf("%s Schedule Forecast For %s Rev %s", project, date.Format("02/01/2006"), revNo2Digit)
 	mailSubject = tk.Sprintf("Rev %s for Pooling Station %s site - OSTRO Mahawind power Pvt Limited", revNo, project)
 	mailContent := tk.Sprintf("<p>Dear All,</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;<br /></p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
 	mailContent = tk.Sprintf(`<p>Dear Sir,</p>
-	<p>Please find the revised schedule Rev %s for (%s) of 60 MW Capacity connected  to Chikkoppa  (For the Generator- Ostro Mahawind Power Pvt Ltd.Total capacity - 60 MW )</p>
+	<p>Please find %s schedule Rev %s for (%s) of 60 MW Capacity connected to Chikkoppa (For the Generator- Ostro Mahawind Power Pvt Ltd.Total capacity - 60 MW )</p>
 	<p><b>Thanks & Regards</b></p>
 	<p><b>Forecasting & Scheduling Team</b><br />
-	Ostro Energy Private Ltd</p>`, revNo, date.Format("02/01/2006"))
+	Ostro Energy Private Ltd</p>`, reviseContent, revNo, date.Format("02/01/2006"))
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())
