@@ -67,7 +67,7 @@ func (m *LatestTurbulenceRaw) TableName() string {
 func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *BaseController) {
 	ev.BaseController = base
 
-	ev.Log.AddLog("===================== Start processing Simple 10 Min...", sInfo)
+	ev.Log.AddLog("===================== Start processing Turbulence 10 Min...", sInfo)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -78,7 +78,7 @@ func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *Bas
 
 	wg.Wait()
 
-	ev.Log.AddLog("===================== End processing Simple 10 Min...", sInfo)
+	ev.Log.AddLog("===================== End processing Turbulence 10 Min...", sInfo)
 }
 
 func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.WaitGroup) {
@@ -96,10 +96,11 @@ func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.Wa
 			break
 		}
 		for keys := range lastUpdateTurbine {
-			lastUpdatePerDay[keys] = tStart
+			lastUpdatePerDay[keys] = tStart.UTC()
 		}
 		var wg sync.WaitGroup
 		wg.Add(len(turbinePerProject))
+		ev.Log.AddLog(tk.Sprintf("Updating data for %s", tStart.UTC().String()), sInfo)
 		for _project, _turbine := range turbinePerProject {
 			go ev.projectInitialWorker(_project, _turbine, lastUpdatePerDay, &wg)
 		}
@@ -416,7 +417,7 @@ func (ev *TurbulenceIntensityGenerator) projectWorkerMet(projectname string, las
 			"projectname":     1,
 			"timestamp":       1,
 			"dateinfo":        1,
-			"windspeed_ms":    1,
+			"windspeedbin":    1,
 			"vhubws90mavg":    1,
 			"vhubws90mstddev": 1,
 		}},
