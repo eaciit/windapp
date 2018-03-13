@@ -190,7 +190,7 @@ func (ev *TurbulenceIntensitySummary) processDataScada(wgScada *sync.WaitGroup) 
 	lastUpdateProject := map[string]time.Time{}
 	for key, val := range lastUpdateTurbine {
 		split := strings.Split(key, "_")[0]
-		if !val.IsZero() && lastUpdateProject[split].After(val) {
+		if (!val.IsZero() && lastUpdateProject[split].After(val)) || lastUpdateProject[split].IsZero() {
 			lastUpdateProject[split] = val
 		}
 	}
