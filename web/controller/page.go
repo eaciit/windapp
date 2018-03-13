@@ -5,8 +5,6 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	"net/http"
 
-	"sync"
-
 	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 )
@@ -14,7 +12,6 @@ import (
 type PageController struct {
 	App
 	Params toolkit.M
-	mux    sync.Mutex
 }
 
 var (
@@ -80,9 +77,9 @@ func (w *PageController) Login(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-login.html"
 
 	if r.Session("sessionid", "") != "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, false)
@@ -427,9 +424,9 @@ func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"_filter-monitoring.html"}
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -442,9 +439,9 @@ func (w *PageController) MonitoringByProject(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -455,9 +452,9 @@ func (w *PageController) MonitoringAllProject(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/all-project.html"
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -469,9 +466,9 @@ func (w *PageController) MonitoringSummary(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"page-monitoring/all-project.html", "page-monitoring/custom.html", "page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -483,9 +480,9 @@ func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -499,9 +496,9 @@ func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	// w.Params.Set("AllTurbineList", allTurbineList)
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -514,9 +511,9 @@ func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/monitoring-alarm.html"
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -528,9 +525,9 @@ func (w *PageController) MonitoringTemperature(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/temperature.html"
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -543,9 +540,9 @@ func (w *PageController) MonitoringNotification(r *knot.WebContext) interface{} 
 	r.Config.ViewName = "page-monitoring/notification.html"
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -557,9 +554,9 @@ func (w *PageController) MonitoringWeather(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/weather-forecast.html"
 
 	if r.Session("sessionid", "") == "" {
-		w.mux.Lock()
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
-		w.mux.Unlock()
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
