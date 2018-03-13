@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/eaciit/knot/knot.v1"
@@ -23,6 +24,7 @@ var (
 	MenuList      = []string{}
 	ServerAddress = ""
 	NotAvailLimit = map[string]float64{}
+	AppMuxSync    = sync.Mutex{}
 )
 
 func init() {

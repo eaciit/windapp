@@ -55,7 +55,9 @@ func main() {
 					if err := r.GetForms(&payload); err != nil {
 						fmt.Println("payload error", err.Error())
 					}
+					AppMuxSync.Lock()
 					r.SetSession("keyRealtime", payload.GetString("key"))
+					AppMuxSync.Unlock()
 				}
 			}
 			if rURL != "/"+prefix+"/page/login" && rURL != "/"+prefix+"/login/processlogin" &&
@@ -63,7 +65,9 @@ func main() {
 				active := acl.IsSessionIDActive(toolkit.ToString(sessionid))
 				if !active {
 					urlSplit := strings.Split(rURL, "/")
+					AppMuxSync.Lock()
 					r.SetSession("sessionid", "")
+					AppMuxSync.Unlock()
 					if len(urlSplit) > 2 {
 						if urlSplit[2] == "page" {
 							http.Redirect(r.Writer, r.Request, fmt.Sprintf("/%s/page/login", prefix), 301)
