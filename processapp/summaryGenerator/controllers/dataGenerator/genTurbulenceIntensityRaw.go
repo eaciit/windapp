@@ -148,7 +148,7 @@ func (ev *TurbulenceIntensityGenerator) turbineInitialWorker(projectname, turbin
 		}},
 	}
 
-	turbulenceData := []FetchScada{}
+	// turbulenceData := []FetchScada{}
 	csr, e := ev.Ctx.Connection.NewQuery().
 		From("Scada10MinHFD").
 		Command("pipe", pipe).Cursor(nil)
@@ -157,28 +157,30 @@ func (ev *TurbulenceIntensityGenerator) turbineInitialWorker(projectname, turbin
 	}
 	defer csr.Close()
 
-	e = csr.Fetch(&turbulenceData, 0, false)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on Fetch : %s", e.Error()), sError)
-	}
-
 	data := TurbulenceIntensityRaw{}
 
 	csrSave := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
 		From(new(TurbulenceIntensityRaw).TableName()).Save()
 	defer csrSave.Close()
+	_data := FetchScada{}
 
-	for _, val := range turbulenceData {
+loopFetchScada:
+	for {
+		_data = FetchScada{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break loopFetchScada
+		}
 		data = TurbulenceIntensityRaw{}
-		data.Projectname = val.Projectname
-		data.Turbine = val.Turbine
-		data.Timestamp = val.Timestamp.UTC()
-		data.DateInfo = val.DateInfo
-		data.WindspeedBin = val.Windspeed_ms_bin
+		data.Projectname = _data.Projectname
+		data.Turbine = _data.Turbine
+		data.Timestamp = _data.Timestamp.UTC()
+		data.DateInfo = _data.DateInfo
+		data.WindspeedBin = _data.Windspeed_ms_bin
 		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, data.Turbine, data.Timestamp.Format("20060102150405"))
 
-		data.WindSpeed = val.Windspeed_ms
-		data.WindSpeedStdDev = val.Windspeed_ms_stddev
+		data.WindSpeed = _data.Windspeed_ms
+		data.WindSpeedStdDev = _data.Windspeed_ms_stddev
 		data.Type = "SCADA"
 
 		e = csrSave.Exec(tk.M{"data": data})
@@ -186,6 +188,15 @@ func (ev *TurbulenceIntensityGenerator) turbineInitialWorker(projectname, turbin
 			ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
 		}
 	}
+
+	/*e = csr.Fetch(&turbulenceData, 0, false)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Error on Fetch : %s", e.Error()), sError)
+	}*/
+
+	/*for _, val := range turbulenceData {
+
+	}*/
 }
 
 func (ev *TurbulenceIntensityGenerator) getTurbinePerProject() (result map[string][]string) {
