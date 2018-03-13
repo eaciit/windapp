@@ -51,8 +51,8 @@ func (ev *TurbulenceIntensitySummary) CreateTurbulenceIntensitySummary(base *Bas
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go ev.processDataScada()
-	go ev.processDataMet()
+	go ev.processDataScada(&wg)
+	go ev.processDataMet(&wg)
 
 	wg.Wait()
 
@@ -180,7 +180,9 @@ func (ev *TurbulenceIntensitySummary) updateLastData(projectname, tipe string, t
 	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s", projectname, tipe), sInfo)
 }
 
-func (ev *TurbulenceIntensitySummary) processDataScada() {
+func (ev *TurbulenceIntensitySummary) processDataScada(wgScada *sync.WaitGroup) {
+	defer wgScada.Done()
+
 	t0 := time.Now()
 	turbinePerProject := ev.getTurbinePerProject()
 	lastUpdateTurbine := ev.getLatestData("SCADA")
@@ -380,7 +382,9 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 	ev.updateLastData(projectname, "MET", []string{})
 }
 
-func (ev *TurbulenceIntensitySummary) processDataMet() {
+func (ev *TurbulenceIntensitySummary) processDataMet(wgMet *sync.WaitGroup) {
+	defer wgMet.Done()
+
 	t0 := time.Now()
 
 	turbinePerProject := ev.getTurbinePerProject()
