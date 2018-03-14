@@ -80,14 +80,6 @@ func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *Bas
 	ev.Log.AddLog("===================== End processing Turbulence 10 Min...", sInfo)
 }
 
-func getstep(count int) int {
-	v := count / 5
-	if v == 0 {
-		return 1
-	}
-	return v
-}
-
 func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.WaitGroup) {
 	defer wgScada.Done()
 
@@ -198,7 +190,7 @@ loopFetchScada:
 }
 
 func (ev *TurbulenceIntensityGenerator) getProjectList() (result []string) {
-	ev.Log.AddLog("Get Turbine Per Project", sInfo)
+	ev.Log.AddLog("Get Project List", sInfo)
 
 	projectData := []tk.M{}
 	csrt, e := ev.Ctx.Connection.NewQuery().
@@ -217,7 +209,7 @@ func (ev *TurbulenceIntensityGenerator) getProjectList() (result []string) {
 	for _, val := range projectData {
 		result = append(result, val.GetString("projectid"))
 	}
-	ev.Log.AddLog("Finish getting Turbine Per Project", sInfo)
+	ev.Log.AddLog("Finish getting Project List", sInfo)
 
 	return
 }
