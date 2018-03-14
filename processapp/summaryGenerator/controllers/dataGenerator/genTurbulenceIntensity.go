@@ -304,7 +304,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 
 	turbulenceData := []tk.M{}
 	csr, e := ev.Ctx.Connection.NewQuery().
-		From(new(MetTower).TableName()).
+		From("TurbulenceIntensity10Min").
 		Command("pipe", pipe).Cursor(nil)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
