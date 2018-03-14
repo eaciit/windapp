@@ -356,7 +356,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 		data.WindSpeedStdTotal = _data.GetFloat64("windspeedstdtotal")
 		data.WindSpeedCount = _data.GetFloat64("windspeedcount")
 		data.WindSpeedStdCount = _data.GetFloat64("windspeedstdcount")
-		data.Type = "SCADA"
+		data.Type = "MET"
 
 		if data.Timestamp.After(maxTimeStamp) {
 			maxTimeStamp = data.Timestamp
