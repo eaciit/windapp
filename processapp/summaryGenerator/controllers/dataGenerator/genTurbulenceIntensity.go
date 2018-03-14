@@ -34,7 +34,6 @@ func (m *TurbulenceIntensity) TableName() string {
 type LatestTurbulence struct {
 	ID          string ` bson:"_id" , json:"_id" `
 	Projectname string
-	Turbine     string
 	LastUpdate  time.Time
 	Type        string
 }
