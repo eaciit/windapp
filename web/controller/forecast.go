@@ -634,7 +634,6 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	// get forecast config for current project
 	fconfig := new(ForecastConfig)
 	e = DB().GetById(fconfig, p.Project)
-	tk.Printf("%#v\n", fconfig)
 	isauto := fconfig.IsAutoSend
 
 	// get total production from the realtime
@@ -686,11 +685,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		schval := defaultValue
 		expprod := defaultValue
 		actual := defaultValue
+		actualKw := defaultValue
 		fcastws := defaultValue
 		actualws := defaultValue
 		devfcast := defaultValue
 		devsch := defaultValue
-		dsmpenalty := ""
+		dsmpenalty := defaultValue
 		deviation := defaultValue
 		//isschvalavg := true
 		isedited := 0
@@ -698,6 +698,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 
 		if len(dtScada) > 0 {
 			actual = dtScada.GetFloat64("power") / 1000
+			actualKw = dtScada.GetFloat64("power")
 			actualws = dtScada.GetFloat64("windspeed")
 			expprod = dtScada.GetFloat64("pcstd") / 1000
 		}
@@ -740,6 +741,35 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			}
 			if schval > 52 {
 				schval = 52
+			}
+		}
+
+		// calculate dsm penalty
+		if actualKw != defaultValue && schval != defaultValue {
+			if schval > 0 {
+				schvalkwh := schval * 1000 / 4
+				actualKwh := actualKw / 4
+				dsmvalue := ((actualKwh - schvalkwh) / schvalkwh) * 100
+				dsmvalueabs := math.Abs(dsmvalue)
+				if dsmvalueabs > 15 && dsmvalueabs <= 25 {
+					if dsmvalue < 0 {
+						dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
+					} else {
+						dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
+					}
+				} else if dsmvalueabs > 25 && dsmvalueabs <= 35 {
+					if dsmvalue < 0 {
+						dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				} else if dsmvalueabs > 35 {
+					if dsmvalue < 0 {
+						dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				}
 			}
 		}
 
@@ -825,6 +855,9 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("Deviation") == defaultValue {
 			item.Set("Deviation", nil)
+		}
+		if item.GetFloat64("DSMPenalty") == defaultValue {
+			item.Set("DSMPenalty", nil)
 		}
 		dataReturn = append(dataReturn, item)
 	}
@@ -1107,7 +1140,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		actualws := defaultValue
 		devfcast := defaultValue
 		devsch := defaultValue
-		dsmpenalty := ""
+		dsmpenalty := defaultValue
 		deviation := defaultValue
 		isedited := 0
 		// isschvalavg := true
@@ -1241,6 +1274,9 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("Deviation") == defaultValue {
 			item.Set("Deviation", nil)
+		}
+		if item.GetFloat64("DSMPenalty") == defaultValue {
+			item.Set("DSMPenalty", nil)
 		}
 		dataReturn = append(dataReturn, item)
 	}

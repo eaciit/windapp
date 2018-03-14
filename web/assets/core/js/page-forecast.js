@@ -327,13 +327,13 @@ pg.genereateGrid = function(){
                     },
                 },
                 { field: "Actual", title: "Actual Prod<br>(MW)", template : "#: (Actual==null?'-':kendo.toString(Actual, 'n2')) #", format: '{0:n2}' },
-                { title: "Exp. Prod<br>(MW)", width: 120, field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
+                { title: "Exp. Prod<br>(MW)", field: "ExpProd", template : "#: (ExpProd==null?'-':kendo.toString(ExpProd, 'n2')) #", format: '{0:n2}' },
                 { field: "FcastWs", title: "Fcast ws<br>(m/s)", template : "#: (FcastWs==null?'-':kendo.toString(FcastWs, 'n2')) #", format: '{0:n2}' },
                 { field: "ActualWs", title: "Actual ws<br>(m/s)", template : "#: (ActualWs==null?'-':kendo.toString(ActualWs, 'n2')) #", format: '{0:n2}' },
                 { field: "DevFcast", title: "% Error<br>Act / Fcst", template : "#: (DevFcast==null?'-':kendo.toString(DevFcast, 'p2')) #", format: '#,##0.0#%' },
                 { field: "DevSchAct", title: "% Error<br>Act / Schd", template : "#: (DevSchAct==null?'-':kendo.toString(DevSchAct, 'p2')) #", format: '{0:p2}' },
                 { field: "Deviation", title: "Deviation<br>(MW)", template : "#: (Deviation==null?'-':kendo.toString(Deviation, 'n2')) #", format: '{0:n2}' },
-                { field: "DSMPenalty", title: "DSM Penalty"},
+                { field: "DSMPenalty", title: "DSM Penalty", width: 100, template : "#= (DSMPenalty==null?'-':'&\\#8377; ' + inrFormat(DSMPenalty.toFixed(0))) #"},
             ],
             editable: true,
             beforeEdit: function(e) {
@@ -354,6 +354,37 @@ pg.genereateGrid = function(){
         $("#gridForecasting").data("kendoGrid").refresh();
         app.loading(false);
     }, 300);
+}
+
+function inrFormat(nStr) {
+    nStr += '';
+    var x = nStr.split('.');
+    var x1 = x[0];
+    var x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    var z = 0;
+    var len = String(x1).length;
+    var num = parseInt((len/2)-1);
+
+     while (rgx.test(x1))
+     {
+       if(z > 0)
+       {
+         x1 = x1.replace(rgx, '$1' + ',' + '$2');
+       }
+       else
+       {
+         x1 = x1.replace(rgx, '$1' + ',' + '$2');
+         rgx = /(\d+)(\d{2})/;
+       }
+       z++;
+       num--;
+       if(num == 0)
+       {
+         break;
+       }
+     }
+    return x1 + x2;
 }
 
 pg.generateChart = function(){
