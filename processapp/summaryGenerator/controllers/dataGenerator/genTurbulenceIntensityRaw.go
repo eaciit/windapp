@@ -1,6 +1,7 @@
 package generatorControllers
 
 import (
+	. "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"github.com/eaciit/dbox"
@@ -19,11 +20,32 @@ type TurbulenceIntensityRaw struct {
 	Projectname     string
 	Turbine         string
 	Timestamp       time.Time
-	DateID          time.Time
+	DateInfo        DateInfo
 	WindspeedBin    float64
 	WindSpeed       float64
 	WindSpeedStdDev float64
 	Type            string
+}
+
+type FetchScada struct {
+	ID                  string ` bson:"_id" , json:"_id" `
+	Projectname         string
+	Turbine             string
+	Timestamp           time.Time
+	DateInfo            DateInfo
+	Windspeed_ms_bin    float64
+	Windspeed_ms        float64
+	Windspeed_ms_stddev float64
+}
+
+type FetchMet struct {
+	ID              string ` bson:"_id" , json:"_id" `
+	Projectname     string
+	Timestamp       time.Time
+	DateInfo        DateInfo
+	Windspeedbin    float64
+	Vhubws90mavg    float64
+	Vhubws90mstddev float64
 }
 
 func (m *TurbulenceIntensityRaw) TableName() string {
@@ -33,7 +55,6 @@ func (m *TurbulenceIntensityRaw) TableName() string {
 type LatestTurbulenceRaw struct {
 	ID          string ` bson:"_id" , json:"_id" `
 	Projectname string
-	Turbine     string
 	LastUpdate  time.Time
 	Type        string
 }
@@ -45,40 +66,150 @@ func (m *LatestTurbulenceRaw) TableName() string {
 func (ev *TurbulenceIntensityGenerator) CreateTurbulenceIntensity10Min(base *BaseController) {
 	ev.BaseController = base
 
-	ev.Log.AddLog("===================== Start processing Simple 10 Min...", sInfo)
+	ev.Log.AddLog("===================== Start processing Turbulence 10 Min...", sInfo)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go ev.processDataScada()
-	go ev.processDataMet()
+	go ev.processDataScada(&wg)
+	// go ev.processInitialDataScada(&wg)
+	go ev.processDataMet(&wg)
 
 	wg.Wait()
 
-	ev.Log.AddLog("===================== End processing Simple 10 Min...", sInfo)
+	ev.Log.AddLog("===================== End processing Turbulence 10 Min...", sInfo)
 }
 
-func (ev *TurbulenceIntensityGenerator) getTurbinePerProject() (result map[string][]string) {
-	ev.Log.AddLog("Get Turbine Per Project", sInfo)
+func (ev *TurbulenceIntensityGenerator) processInitialDataScada(wgScada *sync.WaitGroup) {
+	defer wgScada.Done()
 
-	turbineData := []tk.M{}
-	csrt, e := ev.Ctx.Connection.NewQuery().
-		From("ref_turbine").Cursor(nil)
+	t0 := time.Now()
+	projectList := ev.getProjectList()
+	lastUpdatePerProject := ev.getLatestData("SCADA")
+
+	tStart := time.Date(2015, 1, 1, 0, 0, 0, 0, time.UTC)
+	tNow := time.Now()
+	for {
+		if tStart.After(tNow) {
+			break
+		}
+		for _project := range lastUpdatePerProject {
+			lastUpdatePerProject[_project] = tStart.UTC()
+		}
+		var wg sync.WaitGroup
+		wg.Add(len(projectList))
+		ev.Log.AddLog(tk.Sprintf("Updating data for %s", tStart.UTC().String()), sInfo)
+		for _, _project := range projectList {
+			go ev.projectInitialWorker(_project, lastUpdatePerProject[_project], &wg)
+		}
+		wg.Wait()
+
+		tStart = tStart.AddDate(0, 0, 1)
+	}
+
+	ev.Log.AddLog(tk.Sprintf("Duration processing scada data %f minutes", time.Since(t0).Minutes()), sInfo)
+}
+
+func (ev *TurbulenceIntensityGenerator) projectInitialWorker(projectname string, lastUpdate time.Time, wgProject *sync.WaitGroup) {
+	defer wgProject.Done()
+
+	csr, e := ev.Ctx.Connection.NewQuery().
+		From("Scada10MinHFD").
+		Select("projectname", "turbine", "timestamp", "dateinfo", "windspeed_ms", "windspeed_ms_bin", "windspeed_ms_stddev").
+		Where(dbox.And(dbox.Eq("dateinfo.dateid", lastUpdate),
+			dbox.Eq("projectname", projectname),
+			dbox.Eq("isnull", false),
+			dbox.Gte("windspeed_ms_bin", 0),
+			dbox.Lte("windspeed_ms_bin", 25))).
+		Cursor(nil)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on cursor at getTurbinePerProjectFunc due to : %s", e.Error()), sError)
+		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
+	}
+	defer csr.Close()
+
+	var wg sync.WaitGroup
+	totalData := csr.Count()
+	totalWorker := 4
+	dataChan := make(chan TurbulenceIntensityRaw, totalData)
+
+	wg.Add(totalWorker)
+	for i := 0; i < totalWorker; i++ {
+		go func() {
+			defer wg.Done()
+			ctxWorker, e := PrepareConnection()
+			if e != nil {
+				ev.Log.AddLog(e.Error(), sError)
+			}
+			defer ctxWorker.Close()
+			csrSave := ctxWorker.NewQuery().SetConfig("multiexec", true).
+				From(new(TurbulenceIntensityRaw).TableName()).Save()
+			defer csrSave.Close()
+			for data := range dataChan {
+				e = csrSave.Exec(tk.M{"data": data})
+				if e != nil {
+					ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
+				}
+			}
+		}()
+	}
+
+	data := TurbulenceIntensityRaw{}
+	_data := FetchScada{}
+	maxTimestamp := time.Time{}
+
+loopFetchScada:
+	for {
+		_data = FetchScada{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break loopFetchScada
+		}
+		data = TurbulenceIntensityRaw{}
+		data.Projectname = _data.Projectname
+		data.Turbine = _data.Turbine
+		data.Timestamp = _data.Timestamp.UTC()
+		data.DateInfo = _data.DateInfo
+		data.WindspeedBin = _data.Windspeed_ms_bin
+		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, data.Turbine, data.Timestamp.Format("20060102150405"))
+
+		if data.Timestamp.After(maxTimestamp) { /* get max timestamp for each project */
+			maxTimestamp = data.Timestamp
+		}
+
+		data.WindSpeed = _data.Windspeed_ms
+		data.WindSpeedStdDev = _data.Windspeed_ms_stddev
+		data.Type = "SCADA"
+
+		dataChan <- data
+	}
+
+	close(dataChan)
+	wg.Wait()
+
+	ev.updateLastData(projectname, "SCADA", maxTimestamp)
+}
+
+func (ev *TurbulenceIntensityGenerator) getProjectList() (result []string) {
+	ev.Log.AddLog("Get Project List", sInfo)
+
+	projectData := []tk.M{}
+	csrt, e := ev.Ctx.Connection.NewQuery().
+		From("ref_project").Where(dbox.Eq("active", true)).Cursor(nil)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Error on cursor at getProjectList due to : %s", e.Error()), sError)
 		return
 	}
 	defer csrt.Close()
-	e = csrt.Fetch(&turbineData, 0, false)
+	e = csrt.Fetch(&projectData, 0, false)
 	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on fetch at getTurbinePerProjectFunc due to : %s", e.Error()), sError)
+		ev.Log.AddLog(tk.Sprintf("Error on fetch at getProjectList due to : %s", e.Error()), sError)
 		return
 	}
-	result = map[string][]string{}
-	for _, val := range turbineData {
-		result[val.GetString("project")] = append(result[val.GetString("project")], val.GetString("turbineid"))
+	result = []string{}
+	for _, val := range projectData {
+		result = append(result, val.GetString("projectid"))
 	}
-	ev.Log.AddLog("Finish getting Turbine Per Project", sInfo)
+	ev.Log.AddLog("Finish getting Project List", sInfo)
 
 	return
 }
@@ -102,230 +233,216 @@ func (ev *TurbulenceIntensityGenerator) getLatestData(tipe string) (result map[s
 	}
 	result = map[string]time.Time{}
 	for _, val := range latestData {
-		result[val.ID] = val.LastUpdate
+		result[val.Projectname] = val.LastUpdate
 	}
 	ev.Log.AddLog("Finish getting latest data for each turbine", sInfo)
 
 	return
 }
 
-func (ev *TurbulenceIntensityGenerator) updateLastData(projectname, tipe string, turbineList []string) {
-	pipes := []tk.M{} /* aggregate for rpt_turbulenceintensity to get max date */
-	if tipe == "SCADA" {
-		pipes = []tk.M{
-			tk.M{"$match": tk.M{"$and": []tk.M{
-				tk.M{"projectname": projectname},
-				tk.M{"turbine": tk.M{"$in": turbineList}},
-				tk.M{"type": tipe},
-			}}},
-			tk.M{"$group": tk.M{
-				"_id":     "$turbine",
-				"maxDate": tk.M{"$max": "$timestamp"},
-			}},
-		}
-	} else {
-		pipes = []tk.M{
-			tk.M{"$match": tk.M{"$and": []tk.M{
-				tk.M{"projectname": projectname},
-				tk.M{"type": tipe},
-			}}},
-			tk.M{"$group": tk.M{
-				"_id":     "$projectname",
-				"maxDate": tk.M{"$max": "$timestamp"},
-			}},
-		}
-		turbineList = []string{projectname}
-	}
-	csrt, e := ev.Ctx.Connection.NewQuery().
-		From(new(TurbulenceIntensityRaw).TableName()).
-		Command("pipe", pipes).Cursor(nil)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on cursor at updateLastData due to : %s", e.Error()), sError)
-		return
-	}
-	defer csrt.Close()
-
-	latestData := []tk.M{}
-	e = csrt.Fetch(&latestData, 0, false)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on fetch at updateLastData due to : %s", e.Error()), sError)
-		return
-	}
-	timestampPerTurbine := map[string]time.Time{}
-	for _, val := range latestData {
-		timestampPerTurbine[val.GetString("_id")] = val.Get("maxDate", time.Time{}).(time.Time)
-	}
-
-	csrSave := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
-		From(new(LatestTurbulenceRaw).TableName()).Save()
-	defer csrSave.Close()
-
-	for _, _turbine := range turbineList {
+func (ev *TurbulenceIntensityGenerator) updateLastData(projectname, tipe string, maxTimeStamp time.Time) {
+	if !maxTimeStamp.IsZero() {
 		data := LatestTurbulenceRaw{}
 		data.Projectname = projectname
-		if tipe == "SCADA" {
-			data.Turbine = _turbine
-			data.ID = tk.Sprintf("%s_%s", data.Projectname, data.Turbine)
-		} else {
-			data.ID = tk.Sprintf("%s_MET", data.Projectname)
-		}
-		data.LastUpdate = timestampPerTurbine[_turbine]
+		data.ID = tk.Sprintf("%s_%s", data.Projectname, tipe)
+		data.LastUpdate = maxTimeStamp
 		data.Type = tipe
-		e = csrSave.Exec(tk.M{"data": data})
+
+		e := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
+			From(new(LatestTurbulenceRaw).TableName()).Save().Exec(tk.M{"data": data})
+
 		if e != nil {
 			ev.Log.AddLog(tk.Sprintf("Error on Save at updateLastData due to : %s", e.Error()), sError)
 		}
 	}
-	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s", projectname, tipe), sInfo)
+
+	ev.Log.AddLog(tk.Sprintf("Finish updating last data for %s on %s at %s", projectname, tipe, maxTimeStamp.String()), sInfo)
 }
 
-func (ev *TurbulenceIntensityGenerator) processDataScada() {
+func (ev *TurbulenceIntensityGenerator) processDataScada(wgScada *sync.WaitGroup) {
+	defer wgScada.Done()
+
 	t0 := time.Now()
-	turbinePerProject := ev.getTurbinePerProject()
-	lastUpdateTurbine := ev.getLatestData("SCADA")
+	projectList := ev.getProjectList()
+	lastUpdatePerProject := ev.getLatestData("SCADA")
 
 	var wg sync.WaitGroup
-	wg.Add(len(turbinePerProject))
-	for _project, _turbine := range turbinePerProject {
-		go ev.projectWorker(_project, _turbine, lastUpdateTurbine, &wg)
+	wg.Add(len(projectList))
+	for _, _project := range projectList {
+		go ev.projectWorker(_project, lastUpdatePerProject[_project], &wg)
 	}
 	wg.Wait()
 
 	ev.Log.AddLog(tk.Sprintf("Duration processing scada data %f minutes", time.Since(t0).Minutes()), sInfo)
 }
 
-func (ev *TurbulenceIntensityGenerator) projectWorker(projectname string, turbineList []string, lastUpdate map[string]time.Time, wgProject *sync.WaitGroup) {
+func (ev *TurbulenceIntensityGenerator) projectWorker(projectname string, lastUpdate time.Time, wgProject *sync.WaitGroup) {
 	defer wgProject.Done()
-	var wg sync.WaitGroup
-	wg.Add(len(turbineList))
-	for _, _turbine := range turbineList {
-		go ev.turbineWorker(projectname, _turbine, lastUpdate[_turbine], &wg)
-	}
-	wg.Wait()
-	ev.updateLastData(projectname, "SCADA", turbineList)
-}
 
-func (ev *TurbulenceIntensityGenerator) turbineWorker(projectname, turbine string, lastupdate time.Time, wgTurbine *sync.WaitGroup) {
-	defer wgTurbine.Done()
-	pipe := []tk.M{
-		tk.M{"$match": tk.M{
-			"$and": []tk.M{
-				tk.M{"timestamp": tk.M{"$gte": lastupdate}},
-				tk.M{"projectname": projectname},
-				tk.M{"turbine": turbine},
-				tk.M{"isnull": false},
-				tk.M{"windspeed_ms_bin": tk.M{"$gte": 0}},
-				tk.M{"windspeed_ms_bin": tk.M{"$lte": 25}},
-			},
-		}},
-	}
-
-	turbulenceData := []tk.M{}
 	csr, e := ev.Ctx.Connection.NewQuery().
 		From("Scada10MinHFD").
-		Command("pipe", pipe).Cursor(nil)
+		Select("projectname", "turbine", "timestamp", "dateinfo", "windspeed_ms", "windspeed_ms_bin", "windspeed_ms_stddev").
+		Where(dbox.And(dbox.Gte("timestamp", lastUpdate),
+			dbox.Eq("projectname", projectname),
+			dbox.Eq("isnull", false),
+			dbox.Gte("windspeed_ms_bin", 0),
+			dbox.Lte("windspeed_ms_bin", 25))).
+		Cursor(nil)
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
 	}
 	defer csr.Close()
-
-	e = csr.Fetch(&turbulenceData, 0, false)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on Fetch : %s", e.Error()), sError)
-	}
-
-	data := TurbulenceIntensityRaw{}
-
-	csrSave := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
-		From(new(TurbulenceIntensityRaw).TableName()).Save()
-	defer csrSave.Close()
-
-	for _, val := range turbulenceData {
-		data = TurbulenceIntensityRaw{}
-		data.Projectname = val.GetString("projectname")
-		data.Turbine = val.GetString("turbine")
-		data.Timestamp = val.Get("timestamp", time.Time{}).(time.Time)
-		data.DateID = val.Get("dateinfo.dateid", time.Time{}).(time.Time)
-		data.WindspeedBin = val.GetFloat64("windspeed_ms_bin")
-		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, data.Turbine, data.Timestamp.Format("20060102150405"))
-
-		data.WindSpeed = val.GetFloat64("windspeed_ms")
-		data.WindSpeedStdDev = val.GetFloat64("windspeed_ms_stddev")
-		data.Type = "SCADA"
-
-		e = csrSave.Exec(tk.M{"data": data})
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
-		}
-	}
-}
-
-func (ev *TurbulenceIntensityGenerator) projectWorkerMet(projectname string, lastupdate time.Time, wgProject *sync.WaitGroup) {
-	defer wgProject.Done()
-
-	pipe := []tk.M{
-		tk.M{"$match": tk.M{
-			"$and": []tk.M{
-				tk.M{"timestamp": tk.M{"$gte": lastupdate}},
-				tk.M{"projectname": projectname},
-				tk.M{"windspeedbin": tk.M{"$gte": 0}},
-				tk.M{"windspeedbin": tk.M{"$lte": 25}},
-			},
-		}},
-	}
-
-	turbulenceData := []tk.M{}
-	csr, e := ev.Ctx.Connection.NewQuery().
-		From(new(MetTower).TableName()).
-		Command("pipe", pipe).Cursor(nil)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
-	}
-	defer csr.Close()
-
-	e = csr.Fetch(&turbulenceData, 0, false)
-	if e != nil {
-		ev.Log.AddLog(tk.Sprintf("Error on Fetch : %s", e.Error()), sError)
-	}
-
-	data := TurbulenceIntensityRaw{}
-
-	csrSave := ev.Ctx.Connection.NewQuery().SetConfig("multiexec", true).
-		From(new(TurbulenceIntensityRaw).TableName()).Save()
-	defer csrSave.Close()
-
-	for _, val := range turbulenceData {
-		data = TurbulenceIntensityRaw{}
-
-		data.Projectname = val.GetString("projectname")
-		data.Timestamp = val.Get("timestamp", time.Time{}).(time.Time)
-		data.DateID = val.Get("dateinfo.dateid", time.Time{}).(time.Time)
-		data.WindspeedBin = val.GetFloat64("windspeedbin")
-		data.ID = tk.Sprintf("%s_%s", data.Projectname, data.Timestamp.Format("20060102"))
-
-		data.WindSpeed = val.GetFloat64("vhubws90mavg")
-		data.WindSpeedStdDev = val.GetFloat64("vhubws90mstddev")
-		data.Type = "MET"
-
-		e = csrSave.Exec(tk.M{"data": data})
-		if e != nil {
-			ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
-		}
-	}
-
-	ev.updateLastData(projectname, "MET", []string{})
-}
-
-func (ev *TurbulenceIntensityGenerator) processDataMet() {
-	t0 := time.Now()
-
-	turbinePerProject := ev.getTurbinePerProject()
-	lastUpdateTurbine := ev.getLatestData("MET")
 
 	var wg sync.WaitGroup
-	wg.Add(len(turbinePerProject))
-	for _project := range turbinePerProject {
-		go ev.projectWorkerMet(_project, lastUpdateTurbine[_project], &wg)
+	totalData := csr.Count()
+	totalWorker := 4
+	dataChan := make(chan TurbulenceIntensityRaw, totalData)
+
+	wg.Add(totalWorker)
+	for i := 0; i < totalWorker; i++ {
+		go func() {
+			defer wg.Done()
+			ctxWorker, e := PrepareConnection()
+			if e != nil {
+				ev.Log.AddLog(e.Error(), sError)
+			}
+			defer ctxWorker.Close()
+			csrSave := ctxWorker.NewQuery().SetConfig("multiexec", true).
+				From(new(TurbulenceIntensityRaw).TableName()).Save()
+			defer csrSave.Close()
+			for data := range dataChan {
+				e = csrSave.Exec(tk.M{"data": data})
+				if e != nil {
+					ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
+				}
+			}
+		}()
+	}
+
+	data := TurbulenceIntensityRaw{}
+	_data := FetchScada{}
+	maxTimestamp := time.Time{}
+
+loopFetchScada:
+	for {
+		_data = FetchScada{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break loopFetchScada
+		}
+		data = TurbulenceIntensityRaw{}
+		data.Projectname = _data.Projectname
+		data.Turbine = _data.Turbine
+		data.Timestamp = _data.Timestamp.UTC()
+		data.DateInfo = _data.DateInfo
+		data.WindspeedBin = _data.Windspeed_ms_bin
+		data.ID = tk.Sprintf("%s_%s_%s", data.Projectname, data.Turbine, data.Timestamp.Format("20060102150405"))
+
+		if data.Timestamp.After(maxTimestamp) { /* get max timestamp for each project */
+			maxTimestamp = data.Timestamp
+		}
+
+		data.WindSpeed = _data.Windspeed_ms
+		data.WindSpeedStdDev = _data.Windspeed_ms_stddev
+		data.Type = "SCADA"
+
+		dataChan <- data
+	}
+
+	close(dataChan)
+	wg.Wait()
+
+	ev.updateLastData(projectname, "SCADA", maxTimestamp)
+}
+
+func (ev *TurbulenceIntensityGenerator) projectWorkerMet(projectname string, lastUpdate time.Time, wgProject *sync.WaitGroup) {
+	defer wgProject.Done()
+
+	csr, e := ev.Ctx.Connection.NewQuery().
+		From(new(MetTower).TableName()).
+		Select("projectname", "timestamp", "dateinfo", "windspeedbin", "vhubws90mavg", "vhubws90mstddev").
+		Where(dbox.And(dbox.Gte("timestamp", lastUpdate),
+			dbox.Eq("projectname", projectname),
+			dbox.Gte("windspeedbin", 0),
+			dbox.Lte("windspeedbin", 25))).
+		Cursor(nil)
+	if e != nil {
+		ev.Log.AddLog(tk.Sprintf("Error on cursor : %s", e.Error()), sError)
+	}
+	defer csr.Close()
+
+	var wg sync.WaitGroup
+	totalData := csr.Count()
+	totalWorker := 4
+	dataChan := make(chan TurbulenceIntensityRaw, totalData)
+
+	wg.Add(totalWorker)
+	for i := 0; i < totalWorker; i++ {
+		go func() {
+			defer wg.Done()
+			ctxWorker, e := PrepareConnection()
+			if e != nil {
+				ev.Log.AddLog(e.Error(), sError)
+			}
+			defer ctxWorker.Close()
+			csrSave := ctxWorker.NewQuery().SetConfig("multiexec", true).
+				From(new(TurbulenceIntensityRaw).TableName()).Save()
+			defer csrSave.Close()
+			for data := range dataChan {
+				e = csrSave.Exec(tk.M{"data": data})
+				if e != nil {
+					ev.Log.AddLog(tk.Sprintf("Error on Save : %s", e.Error()), sError)
+				}
+			}
+		}()
+	}
+
+	data := TurbulenceIntensityRaw{}
+	_data := FetchMet{}
+	maxTimestamp := time.Time{}
+
+loopFetchMet:
+	for {
+		_data = FetchMet{}
+		e = csr.Fetch(&_data, 1, false)
+		if e != nil {
+			break loopFetchMet
+		}
+		data = TurbulenceIntensityRaw{}
+		data.Projectname = _data.Projectname
+		data.Timestamp = _data.Timestamp.UTC()
+		data.DateInfo = _data.DateInfo
+		data.WindspeedBin = _data.Windspeedbin
+		data.ID = tk.Sprintf("%s_%s", data.Projectname, data.Timestamp.Format("20060102"))
+
+		if data.Timestamp.After(maxTimestamp) { /* get max timestamp for each project */
+			maxTimestamp = data.Timestamp
+		}
+
+		data.WindSpeed = _data.Vhubws90mavg
+		data.WindSpeedStdDev = _data.Vhubws90mstddev
+		data.Type = "MET"
+
+		dataChan <- data
+	}
+
+	close(dataChan)
+	wg.Wait()
+
+	ev.updateLastData(projectname, "MET", maxTimestamp)
+}
+
+func (ev *TurbulenceIntensityGenerator) processDataMet(wgMet *sync.WaitGroup) {
+	defer wgMet.Done()
+	t0 := time.Now()
+
+	projectList := ev.getProjectList()
+	lastUpdatePerProject := ev.getLatestData("MET")
+
+	var wg sync.WaitGroup
+	wg.Add(len(projectList))
+	for _, _project := range projectList {
+		go ev.projectWorkerMet(_project, lastUpdatePerProject[_project], &wg)
 	}
 	wg.Wait()
 

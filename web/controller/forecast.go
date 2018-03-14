@@ -634,7 +634,6 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 	// get forecast config for current project
 	fconfig := new(ForecastConfig)
 	e = DB().GetById(fconfig, p.Project)
-	tk.Printf("%#v\n", fconfig)
 	isauto := fconfig.IsAutoSend
 
 	// get total production from the realtime
@@ -686,11 +685,12 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		schval := defaultValue
 		expprod := defaultValue
 		actual := defaultValue
+		actualKw := defaultValue
 		fcastws := defaultValue
 		actualws := defaultValue
 		devfcast := defaultValue
 		devsch := defaultValue
-		dsmpenalty := ""
+		dsmpenalty := defaultValue
 		deviation := defaultValue
 		//isschvalavg := true
 		isedited := 0
@@ -698,6 +698,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 
 		if len(dtScada) > 0 {
 			actual = dtScada.GetFloat64("power") / 1000
+			actualKw = dtScada.GetFloat64("power")
 			actualws = dtScada.GetFloat64("windspeed")
 			expprod = dtScada.GetFloat64("pcstd") / 1000
 		}
@@ -740,6 +741,35 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			}
 			if schval > 52 {
 				schval = 52
+			}
+		}
+
+		// calculate dsm penalty
+		if actualKw != defaultValue && schval != defaultValue {
+			if schval > 0 {
+				schvalkwh := schval * 1000 / 4
+				actualKwh := actualKw / 4
+				dsmvalue := ((actualKwh - schvalkwh) / schvalkwh) * 100
+				dsmvalueabs := math.Abs(dsmvalue)
+				if dsmvalueabs > 15 && dsmvalueabs <= 25 {
+					if dsmvalue < 0 {
+						dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
+					} else {
+						dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
+					}
+				} else if dsmvalueabs > 25 && dsmvalueabs <= 35 {
+					if dsmvalue < 0 {
+						dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				} else if dsmvalueabs > 35 {
+					if dsmvalue < 0 {
+						dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				}
 			}
 		}
 
@@ -825,6 +855,9 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("Deviation") == defaultValue {
 			item.Set("Deviation", nil)
+		}
+		if item.GetFloat64("DSMPenalty") == defaultValue {
+			item.Set("DSMPenalty", nil)
 		}
 		dataReturn = append(dataReturn, item)
 	}
@@ -1107,7 +1140,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		actualws := defaultValue
 		devfcast := defaultValue
 		devsch := defaultValue
-		dsmpenalty := ""
+		dsmpenalty := defaultValue
 		deviation := defaultValue
 		isedited := 0
 		// isschvalavg := true
@@ -1241,6 +1274,9 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		}
 		if item.GetFloat64("Deviation") == defaultValue {
 			item.Set("Deviation", nil)
+		}
+		if item.GetFloat64("DSMPenalty") == defaultValue {
+			item.Set("DSMPenalty", nil)
 		}
 		dataReturn = append(dataReturn, item)
 	}
@@ -1482,14 +1518,19 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 
 	newXls.Save(filetosave)
 
+	reviseContent := "the revised"
+	if tk.ToInt(revNo, tk.RoundingAuto) == 0 {
+		reviseContent = "the DAY AHEAD"
+	}
+
 	mailSubject := tk.Sprintf("%s Schedule Forecast For %s Rev %s", project, date.Format("02/01/2006"), revNo2Digit)
 	mailSubject = tk.Sprintf("Rev %s for Pooling Station %s site - OSTRO Mahawind power Pvt Limited", revNo, project)
 	mailContent := tk.Sprintf("<p>Dear All,</p><p>Please find the attachment for %s scheduler forecast for %s revision number %s.</p><p>&nbsp;<br /></p><p>Thank you.</p>", project, date.Format("02/01/2006"), revNo2Digit)
 	mailContent = tk.Sprintf(`<p>Dear Sir,</p>
-	<p>Please find the revised schedule Rev %s for (%s) of 60 MW Capacity connected  to Chikkoppa  (For the Generator- Ostro Mahawind Power Pvt Ltd.Total capacity - 60 MW )</p>
+	<p>Please find %s schedule Rev %s for (%s) of 60 MW Capacity connected to Chikkoppa (For the Generator- Ostro Mahawind Power Pvt Ltd.Total capacity - 60 MW )</p>
 	<p><b>Thanks & Regards</b></p>
 	<p><b>Forecasting & Scheduling Team</b><br />
-	Ostro Energy Private Ltd</p>`, revNo, date.Format("02/01/2006"))
+	Ostro Energy Private Ltd</p>`, reviseContent, revNo, date.Format("02/01/2006"))
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())

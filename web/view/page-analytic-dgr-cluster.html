@@ -21,17 +21,21 @@
 	    border-bottom: 1px solid #fff !important;
 	    border-top: 1px solid #fff !important;
 	}
-	#cluster >.k-widget{
+	#cluster{
+		margin-top: -25px;
+    	z-index: 10;
+	}
+	#cluster >.pdf-div>.k-widget{
      border-color: #fff !important; 
 	}
-	#cluster > .k-grid tr td:nth-child(1) {
+	#cluster  >.pdf-div > .k-grid tr td:nth-child(1) {
 	    border: 1px solid #fff !important;
 	}
-	#cluster > .k-grid table tbody tr:not(.k-detail-row):hover {
+	#cluster  >.pdf-div > .k-grid table tbody tr:not(.k-detail-row):hover {
 	    background: #ffffff;
 	    color: #585555;
 	}
-	#cluster > #ClusterWiseGrid > table > tbody > tr{
+	#cluster  >.pdf-div > #ClusterWiseGrid > table > tbody > tr{
 		height: 70px;
 		width: 1197px;
 	    margin-top: -25px;
@@ -110,6 +114,29 @@
 		width: 90px;
 	}
 
+	.btn-pdf{
+	    z-index: 11;
+    	position: relative;
+	}
+	.fa.fa-file-pdf-o, .panel-heading {
+		margin-top: 0px !important; 
+	}
+	.template-pdf{
+		display: none;
+	}
+
+	.k-pdf-export .title-pdf{
+	    margin-top: -30px;
+	    font-size: 12px !important;
+	    margin-bottom: 30px;
+	}
+	.k-pdf-export .template-pdf {
+	    display: block;
+	}
+	.k-pdf-export{
+		font-family: 'Source Sans Pro', 'Lato', 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+	}
+
 </style>
 <div>
 	<div class="row">
@@ -122,13 +149,22 @@
 					</div> -->
 					<div class="panel-body">
 						{{template "_dateinfo.html"}}
-						<div class="col-md-9" data-bind="with:page.GenerationDetails" id="cluster">
-							<!-- <a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf"  style="margin-top: -45px;margin-right: 20px;cursor:pointer">
-								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-							</a> -->
-							<div id="ClusterWiseChart" data-bind="visible:!IsLoading()"></div>
-							<div id="ClusterWiseGrid" data-bind="visible:!IsLoading()"></div>
-							<div class="clearfix">&nbsp;</div>
+						<div class="col-md-9">
+							<div class="tools pull-right btn-pdf">
+								<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){page.getPDF('#page-pdf')}">
+							    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+							  	</button>
+							</div>
+							<div class="col-md-12" data-bind="with:page.GenerationDetails" id="cluster">
+								<div class="pdf-div" id="page-pdf">
+									<div class="panel-heading template-pdf">
+										<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+									</div>
+									<div id="ClusterWiseChart" data-bind="visible:!IsLoading()"></div>
+									<div id="ClusterWiseGrid" data-bind="visible:!IsLoading()"></div>
+									<div class="clearfix">&nbsp;</div>
+								</div>
+							</div>
 						</div>
 						<div class="col-md-3 right-filter">
 							<div class="col-md-12">

@@ -37,6 +37,27 @@ function toObject(arr, heads) {
     })
     return tmp;
 }
+
+page.getPDF = function(selector){
+    app.loading(true);
+
+    kendo.drawing.drawDOM($(selector)).then(function(group){
+        group.options.set("pdf", {
+            paperSize: "auto",
+            margin: {
+                left   : "5mm",
+                top    : "5mm",
+                right  : "10mm",
+                bottom : "5mm"
+            },
+        });
+      kendo.drawing.pdf.saveAs(group,"DGR Cluster.pdf");
+        setTimeout(function(){
+            app.loading(false);
+        },2000)
+    });
+}
+
 page.getRandomId = function () {
     return page.randomNumber() + page.randomNumber() + page.randomNumber() + page.randomNumber();
 }
@@ -72,16 +93,11 @@ page.InitGraph = function(){
     var tmp = {
         theme: "flat",
         title: {
-            text: ""
+            text: "",
+            font: '16px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
         },
         legend: {
-            position: "top",
-            visible: true,
-            width : 930,
-            labels: {
-                font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            },
-            spacing : 35,
+          position: "top",
         },
         chartArea: {
             height : 370,
@@ -286,7 +302,6 @@ page.showHidePeriod = function (idx) {
 }
     
 page.RenderGenerationWidget = function(master, isDetail, site){
-    console.log(master);
 
     var conf = page.GenerationDetails;
     conf.IsLoading(true);
