@@ -744,35 +744,6 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			}
 		}
 
-		// calculate dsm penalty
-		if actualKw != defaultValue && schval != defaultValue {
-			if schval > 0 {
-				schvalkwh := schval * 1000 / 4
-				actualKwh := actualKw / 4
-				dsmvalue := ((actualKwh - schvalkwh) / schvalkwh) * 100
-				dsmvalueabs := math.Abs(dsmvalue)
-				if dsmvalueabs > 15 && dsmvalueabs <= 25 {
-					if dsmvalue < 0 {
-						dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
-					} else {
-						dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
-					}
-				} else if dsmvalueabs > 25 && dsmvalueabs <= 35 {
-					if dsmvalue < 0 {
-						dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
-					} else {
-						dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
-					}
-				} else if dsmvalueabs > 35 {
-					if dsmvalue < 0 {
-						dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
-					} else {
-						dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
-					}
-				}
-			}
-		}
-
 		actualsub := 0.0
 		fcvaluesub := 0.0
 		schvalsub := 0.0
@@ -797,6 +768,38 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 			if avacap == 0 {
 				devfcast = 0.0
 				devsch = 0.0
+			}
+		}
+
+		// calculate dsm penalty
+		if actualKw != defaultValue && schval != defaultValue {
+			if schval > 0 {
+				schvalkwh := schval * 1000 / 4
+				actualKwh := actualKw / 4
+				dsmvalue := devsch
+				// if avacap > 0 {
+				// 	dsmvalue = ((actualKwh - schvalkwh) / avacap) * 100
+				// }
+				dsmvalueabs := math.Abs(dsmvalue) * 100
+				if dsmvalueabs > 15.0 && dsmvalueabs <= 25.0 {
+					if dsmvalue < 0.0 {
+						dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
+					} else {
+						dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
+					}
+				} else if dsmvalueabs > 25.0 && dsmvalueabs <= 35.0 {
+					if dsmvalue < 0.0 {
+						dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				} else if dsmvalueabs > 35.0 {
+					if dsmvalue < 0.0 {
+						dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+					} else {
+						dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+					}
+				}
 			}
 		}
 
