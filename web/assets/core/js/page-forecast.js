@@ -72,7 +72,7 @@ pg.getData = function() {
         }
 
         if(pg.CurrentTab()=='grid')
-            pg.genereateGrid();
+            pg.generateGrid();
         else
             pg.generateChart();
 
@@ -165,7 +165,7 @@ kendo.ui.Grid.fn.editCell = (function (editCell) {
     };
 })(kendo.ui.Grid.fn.editCell);
 
-pg.genereateGrid = function(){
+pg.generateGrid = function(){
     app.loading(true);
     setTimeout(function(){ 
         var project = $("#projectList").data("kendoDropDownList").value();
