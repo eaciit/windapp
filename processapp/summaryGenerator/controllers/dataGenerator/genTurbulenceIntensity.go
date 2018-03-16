@@ -267,6 +267,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 			"$and": []tk.M{
 				tk.M{"$ifNull": []interface{}{"$windspeed", false}},
 				tk.M{"$gte": []interface{}{"$windspeed", -200}},
+				tk.M{"$lte": []interface{}{"$windspeed", 100}},
 			},
 		}).
 		Set("then", 1).
@@ -276,6 +277,7 @@ func (ev *TurbulenceIntensitySummary) projectWorkerMet(projectname string, lastu
 			"$and": []tk.M{
 				tk.M{"$ifNull": []interface{}{"$windspeedstddev", false}},
 				tk.M{"$gte": []interface{}{"$windspeedstddev", -200}},
+				tk.M{"$lte": []interface{}{"$windspeedstddev", 100}},
 			},
 		}).
 		Set("then", 1).
