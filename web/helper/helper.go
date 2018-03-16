@@ -356,10 +356,12 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 			panic(message)
 		}
 	}
-	sessionid := WC.Session("sessionid", "")
-	if toolkit.ToString(sessionid) == "" {
-		sessionid = "baypass session"
-	}
+
+	sessionid := "baypass session"
+	// sessionid := WC.Session("sessionid", "")
+	// if toolkit.ToString(sessionid) == "" {
+	// 	sessionid = "baypass session"
+	// }
 
 	// log.Printf(">> %v \n", sessionid)
 
