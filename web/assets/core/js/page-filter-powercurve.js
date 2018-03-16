@@ -104,11 +104,16 @@ fa.populateTurbine = function (selected, engine) {
 };
 
 
-fa.populateEngine = function(selected){
+fa.populateEngine = function(selected, allEngine){
     var list = [];
     $.each(fa.rawproject(), function(i, val){
         if(val.ProjectId == selected){
           if(val.Engine.length > 0){
+            if(allEngine !== undefined) {
+                if(allEngine) {
+                    list.push({text : "All", value : ""})
+                }
+            }
             $.each(val.Engine, function(id, engine){
                 var data = {text : engine, value : engine};
                 list.push(data);
@@ -128,13 +133,21 @@ fa.populateEngine = function(selected){
                 dataTextField: 'text',
                 suggest: true,
                 change: function () { 
-                    fa.populateTurbine(selected,this._old);
+                    var selectedEngine = this._old;
+                    if (selectedEngine === "") {
+                        selectedEngine = undefined;
+                    }
+                    fa.populateTurbine(selected, selectedEngine);
                 }
             });
 
             $("#engineList").data("kendoDropDownList").select(0);               
             fa.engine = $("#engineList").data("kendoDropDownList").value();
-            fa.populateTurbine(selected, fa.engine);
+            var selectedEngine = fa.engine;
+            if (selectedEngine === "") {
+                selectedEngine = undefined;
+            }
+            fa.populateTurbine(selected, selectedEngine);
             
         }else{
             fa.engine = "";

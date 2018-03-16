@@ -187,6 +187,7 @@ func (w *PageController) AnalyticTrendLinePlots(r *knot.WebContext) interface{} 
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "trend-line-plots/trendlineplots.html"
+	r.Config.IncludeFiles = []string{"_filter-powercurve.html"}
 
 	return w.GetParams(r, true)
 }
