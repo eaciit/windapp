@@ -413,7 +413,7 @@ loopFetchMet:
 		data.Timestamp = _data.Timestamp.UTC()
 		data.DateInfo = _data.DateInfo
 		data.WindspeedBin = _data.Windspeedbin
-		data.ID = tk.Sprintf("%s_%s", data.Projectname, data.Timestamp.Format("20060102"))
+		data.ID = tk.Sprintf("%s_%s", data.Projectname, data.Timestamp.Format("20060102150405"))
 
 		if data.Timestamp.After(maxTimestamp) { /* get max timestamp for each project */
 			maxTimestamp = data.Timestamp
