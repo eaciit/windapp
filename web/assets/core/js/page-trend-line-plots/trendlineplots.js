@@ -436,7 +436,8 @@ $(document).ready(function() {
     $('#projectList').kendoDropDownList({
         change: function () {
             var project = $('#projectList').data("kendoDropDownList").value();
-            fa.populateTurbine(project);
+            fa.populateEngine(project, true);
+            // fa.populateTurbine(project);
             fa.project = project;
             tlp.getAvailDate();
             tlp.compTemp(tlp.temperatureList()[project]);

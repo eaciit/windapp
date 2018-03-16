@@ -96,16 +96,6 @@ var ti = {
 
 			var width = $(".main-header").width()
 	        // var cfg = ti.ChartConfig(data.Data, data.ChartSeries);
-	        var tempData = _.sortBy(data.ChartSeries, 'name');
-	        var colorSeries = data.ColorSeries;
-	        tempData.forEach(function(val, idx){
-	        	tempData[idx].idxseries = idx;
-	        	tempData[idx].color = colorSeries[idx];
-	        });
-	        data.ChartSeries = tempData;
-	        if (data.MetSeries.length > 0) {
-	        	data.ChartSeries.unshift(data.MetSeries[0]);
-	        }
 	        pm.ChartSeriesturbulence(data.ChartSeries)
 	        pm.DtTurbulence(data)
 
