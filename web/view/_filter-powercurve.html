@@ -7,9 +7,6 @@
 		color: #d91e18;
 	}
 
-	.filter-content > .control-label , .input-group > .control-label {
-	    width: 55px;
-	}
 </style>
 <div class="row" id="filter-analytic">
 	<div class="col-md-12 col-sm-12 ez panel-content">
@@ -26,12 +23,12 @@
 	            </span>
 				<div class="small-screen">&nbsp;</div>
 				<label class="col-md-1 col-sm-1 control-label label-filter">Turbine</label>
-				<select id="turbineList" multiple="multiple"  class="col-md-1 col-sm-1 turbine-list pull-left" style="width:50px"></select>&nbsp;
+				<select id="turbineList" multiple="multiple"  class="col-md-1 col-sm-1 turbine-list pull-left" style="width:160px"></select>&nbsp;
                 <div class="input-group" style="display: inline-flex;">
 					<div class="new-line">&nbsp;</div>
 					<label class="col-md-1 col-sm-1 control-label label-filter">Period</label>&nbsp;
 					<select class="col-md-1 col-sm-1 period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: fa.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {fa.showHidePeriod();fa.currentFilter().period = this._old;fa.checkFilter();} }"
-						style="width:90px;height: 30px;">
+						style="width:110px;height: 30px;">
 	                </select> &nbsp;
 					<div class="small-screen">&nbsp;</div>
 					<span class="show_hide custom-period">

@@ -26,9 +26,16 @@
 					<div class="panel-body">
 						{{template "_dateinfo.html"}}
 						<div class="col-md-9">
-							<a class="tools pull-right tooltipster tooltipstered" title="Export to Pdf" data-bind="click: km.ExportKeyMetrics" style="margin-top: -45px;margin-right: 20px;cursor:pointer">
-								<h3><i class="fa fa-file-pdf-o " aria-hidden="true"></i></h3>
-							</a>
+			                <div class="tools pull-right btn-pdf">
+			                    <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:km.ExportKeyMetrics">
+                        			<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                   				 </button>
+			                </div>
+			                <div class="tools btn-group pull-right hidden">
+			                  <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			                    <i class="fa fa-search"></i> &nbsp;Filter &nbsp;<span class="caret"></span>
+			                  </button>
+			                </div>
 							<div id="km-chart"></div>
 							<div class="clearfix">&nbsp;</div>
 						</div>
