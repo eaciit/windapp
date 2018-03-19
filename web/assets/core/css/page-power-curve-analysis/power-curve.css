@@ -26,6 +26,9 @@
 .pc-turbine-chk:active, .pc-down-chk:active{
     color: #fff;
 }
+.nav.nav-tabs li {
+    margin-right: 0px;
+}
 .wbtn
 {
     font-size: 10px;

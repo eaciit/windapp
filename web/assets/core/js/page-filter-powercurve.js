@@ -369,7 +369,7 @@ fa.InitDefaultValue = function () {
             enableFiltering: true,
             maxHeight: 200,
             dropRight: false,
-            buttonWidth: '120px',
+            buttonWidth: '160px',
             onDropdownHide: function(event) {
                 fa.checkTurbine();
                 fa.currentFilter().turbine = this.$select.val();

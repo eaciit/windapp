@@ -176,3 +176,7 @@ label.summary-number {
 	width: 125px !important;
 	margin-bottom: 2px !important;
 }
+
+.nav.nav-tabs li {
+    margin-right: 0px;
+}
