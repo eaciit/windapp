@@ -252,7 +252,7 @@ func (ev *TrendLinePlotSummary) projectWorker(projectname string, lastUpdate tim
 		data.Set("projectname", projectname)
 		data.Set("turbine", ids.GetString("turbine"))
 		data.Set("timestamp", timestamp)
-		data.Set("_id", tk.Sprintf("%s_%s_%s", projectname, ids.GetString("turbine"), timestamp.Format("20060102")))
+		_data.Set("_id", tk.Sprintf("%s_%s_%s", projectname, ids.GetString("turbine"), timestamp.Format("20060102")))
 		for _dataKey, _dataVal := range _data {
 			data.Set(_dataKey, _dataVal)
 		}
@@ -345,7 +345,7 @@ func (ev *TrendLinePlotSummary) projectWorkerMet(projectname string, lastupdate 
 		timestamp := ids.Get("timestamp", time.Time{}).(time.Time).UTC()
 		data.Set("projectname", projectname)
 		data.Set("timestamp", timestamp)
-		data.Set("_id", tk.Sprintf("%s_%s", projectname, timestamp.Format("20060102")))
+		_data.Set("_id", tk.Sprintf("%s_%s", projectname, timestamp.Format("20060102")))
 		for _dataKey, _dataVal := range _data {
 			data.Set(_dataKey, _dataVal)
 		}
