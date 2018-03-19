@@ -685,7 +685,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		schval := defaultValue
 		expprod := defaultValue
 		actual := defaultValue
-		actualKw := defaultValue
+		//actualKw := defaultValue
 		fcastws := defaultValue
 		actualws := defaultValue
 		devfcast := defaultValue
@@ -698,7 +698,7 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 
 		if len(dtScada) > 0 {
 			actual = dtScada.GetFloat64("power") / 1000
-			actualKw = dtScada.GetFloat64("power")
+			//actualKw = dtScada.GetFloat64("power")
 			actualws = dtScada.GetFloat64("windspeed")
 			expprod = dtScada.GetFloat64("pcstd") / 1000
 		}
@@ -772,33 +772,45 @@ func (m *ForecastController) GetList(k *knot.WebContext) interface{} {
 		}
 
 		// calculate dsm penalty
-		if actualKw != defaultValue && schval != defaultValue {
-			if schval > 0 {
-				schvalkwh := schval * 1000 / 4
-				actualKwh := actualKw / 4
-				dsmvalue := devsch
-				// if avacap > 0 {
-				// 	dsmvalue = ((actualKwh - schvalkwh) / avacap) * 100
-				// }
-				dsmvalueabs := math.Abs(dsmvalue) * 100
-				if dsmvalueabs > 15.0 && dsmvalueabs <= 25.0 {
-					if dsmvalue < 0.0 {
-						dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
-					} else {
-						dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
-					}
-				} else if dsmvalueabs > 25.0 && dsmvalueabs <= 35.0 {
-					if dsmvalue < 0.0 {
-						dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
-					} else {
-						dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
-					}
-				} else if dsmvalueabs > 35.0 {
-					if dsmvalue < 0.0 {
-						dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
-					} else {
-						dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
-					}
+		// old formula
+		// if actualKw != defaultValue && schval != defaultValue {
+		// 	if schval > 0 {
+		// 		schvalkwh := schval * 1000 / 4
+		// 		actualKwh := actualKw / 4
+		// 		dsmvalue := devsch
+
+		// 		dsmvalueabs := math.Abs(dsmvalue) * 100
+		// 		if dsmvalueabs > 15.0 && dsmvalueabs <= 25.0 {
+		// 			if dsmvalue < 0.0 {
+		// 				dsmpenalty = (schvalkwh*0.85 - actualKwh) * 0.500
+		// 			} else {
+		// 				dsmpenalty = (actualKwh - (schvalkwh * 1.15)) * 0.500
+		// 			}
+		// 		} else if dsmvalueabs > 25.0 && dsmvalueabs <= 35.0 {
+		// 			if dsmvalue < 0.0 {
+		// 				dsmpenalty = (schvalkwh*0.75-actualKwh)*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+		// 			} else {
+		// 				dsmpenalty = (actualKwh-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+		// 			}
+		// 		} else if dsmvalueabs > 35.0 {
+		// 			if dsmvalue < 0.0 {
+		// 				dsmpenalty = ((schvalkwh*0.65)-actualKwh)*1.500 + ((schvalkwh*0.75)-(schvalkwh*0.65))*1.000 + ((schvalkwh*0.85)-(schvalkwh*0.75))*0.500
+		// 			} else {
+		// 				dsmpenalty = (actualKwh-(1.35*schvalkwh))*1.500 + ((schvalkwh*1.35)-(schvalkwh*1.25))*1.000 + ((schvalkwh*1.25)-(schvalkwh*1.15))*0.500
+		// 			}
+		// 		}
+		// 	}
+		// }
+		// new formula
+		if deviation != defaultValue {
+			if avacap > 0 {
+				pcterror := deviation / avacap * 100
+				if pcterror > 15.0 && pcterror <= 25.0 {
+					dsmpenalty = ((deviation - (0.15 * avacap)) * (0.5 * 1000 / 4))
+				} else if pcterror > 25.0 && pcterror <= 35 {
+					dsmpenalty = ((deviation - (0.25 * avacap)) * (1 * 1000 / 4)) + ((0.1 * avacap) * (0.5 * 1000 / 4))
+				} else if pcterror > 35.0 {
+					dsmpenalty = ((deviation - (0.35 * avacap)) * (1.5 * 1000 / 4)) + ((0.1 * avacap) * (1 * 1000 / 4)) + ((0.1 * avacap) * (0.5 * 1000 / 4))
 				}
 			}
 		}
