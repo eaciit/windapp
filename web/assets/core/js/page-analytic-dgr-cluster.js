@@ -642,7 +642,7 @@ page.hideFilter = function(){
     // $("#periodList").closest(".k-widget").hide();
     $("#dateStart").closest(".k-widget").hide();
     $("#dateEnd").closest(".k-widget").hide();
-    $(".control-label:contains('Period')").hide();
+    // $(".control-label:contains('Period')").hide();
     $(".control-label:contains('to')").hide();
 }
 
