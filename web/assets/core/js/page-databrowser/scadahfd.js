@@ -105,6 +105,11 @@ dbsh.InitScadaHFDGrid= function() {
                 value: true,
                 locked: true,
             }
+            if (fa.dateEnd - fa.dateStart < 86400000) {
+                col["filterable"] = {ui: function(element){
+                    element.kendoTimePicker();
+                }};
+            }
         }
         columns.push(col);
     });
