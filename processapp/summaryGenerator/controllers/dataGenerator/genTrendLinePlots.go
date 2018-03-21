@@ -183,7 +183,12 @@ func (ev *TrendLinePlotSummary) projectWorker(projectname string, lastUpdate tim
 		fieldName := "$" + field
 
 		countCondition := tk.M{"$cond": tk.M{}.
-			Set("if", tk.M{"$ifNull": []interface{}{fieldName, false}}).
+			Set("if", tk.M{
+				"$and": []tk.M{
+					tk.M{"$ifNull": []interface{}{fieldName, false}},
+					tk.M{"$lte": []interface{}{fieldName, 200}},
+				},
+			}).
 			Set("then", 1).
 			Set("else", 0)}
 		groups.Set(totalName, tk.M{"$sum": fieldName})
@@ -287,7 +292,12 @@ func (ev *TrendLinePlotSummary) projectWorkerMet(projectname string, lastupdate 
 		fieldName = "$trefhreftemp855mavg"
 	}
 	countCondition := tk.M{"$cond": tk.M{}.
-		Set("if", tk.M{"$ifNull": []interface{}{fieldName, false}}).
+		Set("if", tk.M{
+			"$and": []tk.M{
+				tk.M{"$ifNull": []interface{}{fieldName, false}},
+				tk.M{"$lte": []interface{}{fieldName, 200}},
+			},
+		}).
 		Set("then", 1).
 		Set("else", 0)}
 	pipe = append(pipe, tk.M{"$group": tk.M{
