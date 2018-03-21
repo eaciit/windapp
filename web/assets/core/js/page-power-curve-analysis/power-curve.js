@@ -90,6 +90,7 @@ pc.internalRefresh = function(reloadData) {
         if(pc.chartType()==pc.chartTypeValue.line) {
             this.initLineChart();
         } else {
+            this.HideforScatter();
             this.initScatterChart();
         }
     }
@@ -565,26 +566,21 @@ pc.initScatterChart = function() {
         });
 
         app.loading(false);
-        if (pc.showDownTime()) {
-            $('#downtime-list').show();
-        } else {
-            $('#downtime-list').hide();
-        }
         pc.ShowHideAfterInitChart();
     });
 }
 
 pc.ShowHideAfterInitChart = function() {
-    var len = $('input[id*=chk-][type=checkbox]').length;
+    var len = $('input[id*=pc-chk-][type=checkbox]').length;
     var chart = $("#pc-chart").data("kendoChart");
     for (var i = 0; i < len; i++) {
-        if (!$('#chk-' + i).is(':checked')) {
+        if (!$('#pc-chk-' + i).is(':checked')) {
             // console.log(chart.options);
             chart.options.series[i].visible = false;
         }
     }
     $("#pc-chart").data("kendoChart").redraw();
-    page.getLegendActive();
+    pc.getLegendActive();
 }
 pc.initTurbineList = function() {
     var dtTurbines = JSON.parse(localStorage.getItem("dataTurbine"));
@@ -630,6 +626,18 @@ pc.showHideLegend = function(idx) {
     $('#pc-chk-' + idx).trigger('click');
     var chart = $("#pc-chart").data("kendoChart");
 
+    if (pc.chartType() == "scatter"){
+        var len = $('input[id*=pc-chk-][type=checkbox]:checked').length;
+        if (len > 3) {
+            $('#pc-chk-' + idx).prop('checked', false);
+            swal('Warning', 'You can only select 3 turbines !', 'warning');
+            return
+        }
+        pc.initScatterChart();
+        // var scatterIndex = _.find(datas, function(num){ return num.name == 'Scatter-' + Nama; }).index;
+        // chart._legendItemClick(scatterIndex);
+    }
+
     if ($('input[id*=pc-chk-][type=checkbox]:checked').length == $('input[id*=pc-chk-][type=checkbox]').length) {
         $('#pc-show-hide-all').prop('checked', true);
     } else {
@@ -655,7 +663,7 @@ pc.showHideLegend = function(idx) {
         
         $.each(chks, function(idx, elm){
             var tbName = $(elm).attr('name');
-            var tbAvail = 0;//pc.totalAvailTurbines()[tbName];
+            var tbAvail = pc.totalAvailTurbines()[tbName];
             totalavail += tbAvail.avail;
             totalCount++;
 
@@ -706,6 +714,36 @@ pc.showHideAllLegend = function(e) {
     chart.redraw();
     pc.getLegendActive();
 }
+
+pc.hideAll = function() {
+    // var chart = $("#powerCurve").data("kendoChart");
+    var len = $('input[id*=pc-chk-][type=checkbox]').length;
+    for (var i = 1; i <= len; i++) {
+        $('#pc-icon-' + i).css("visibility", "hidden");
+        $('#pc-chk-' + i).prop('checked', false);
+    }
+}
+
+pc.HideforScatter = function() {
+    var len = $('input[id*=pc-chk-][type=checkbox]:checked').length;
+
+    var sScater = pc.chartType();
+    if (sScater == "scatter") {
+        // $('#showHideChk').hide();
+        $('#showHideAll').attr("disabled", true);
+        $('#showHideAll').prop('checked', false);
+        if (len > 3) {
+            pc.hideAll();
+            $('#pc-icon-1').css("visibility", "visible");
+            $('#pc-chk-1').prop('checked', true);
+        }
+    } else {
+        // $('#showHideChk').show();
+        $('#showHideAll').removeAttr("disabled");
+        $('#showHideAll').prop('checked', false); /*can be hardcoded because max turbine is 3*/
+    }
+}
+
 pc.initElementEvents = function() {
     var getAd = _.find(fa.rawproject(), function(p) {
         return p.ProjectId == fa.project
