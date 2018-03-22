@@ -107,7 +107,23 @@ dbsh.InitScadaHFDGrid= function() {
             }
             if (fa.dateEnd - fa.dateStart < 86400000) {
                 col["filterable"] = {ui: function(element){
-                    element.kendoTimePicker();
+                    element.kendoTimePicker({
+                        interval : 10,
+                        format : "HH:mm",
+                    });
+                    element.data("kendoTimePicker").options.max = fa.dateEnd
+                    element.data("kendoTimePicker").options.min = fa.dateStart
+                    // console.log(element.data("kendoTimePicker").options)
+                    // element.kendoTimePicker["interval"] = 10
+                    // element.kendoTimePicker["format"] = "HH:mm"
+                    // element.data("kendoTimePicker").interval(10)
+                    // element.data("kendoTimePicker").format("HH:mm")
+                }};
+            }else{
+                col["filterable"] = {ui: function(element){
+                    element.kendoDatePicker()
+                    element.data("kendoDatePicker").max(fa.dateEnd)
+                    element.data("kendoDatePicker").min(fa.dateStart)
                 }};
             }
         }
