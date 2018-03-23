@@ -161,18 +161,21 @@ dbsh.InitScadaHFDGrid= function() {
                             $.each(val.filters, function(i, res){
                                 if(res.field == "timestamp"){
                                     if (fa.dateEnd - fa.dateStart < 86400000) {
-                                        if(index == 0){
-                                            res.value = kendo.toString(moment(fa.dateEnd).format('YYYY-MM-DD') +" "+ $("form").find("[data-role='timepicker'][data-bind='value:filters["+index+"].value']").val());
-                                        }else{
-                                            res.value = kendo.toString(moment(fa.dateEnd).format('YYYY-MM-DD') +" "+ $("form").find("[data-role='timepicker'][data-bind='value: filters["+index+"].value']").val());
+                                        var waktu = $("form").find("[data-role='timepicker'][data-bind='value:filters["+index+"].value']").val();
+                                        if(index > 0){
+                                            waktu = $("form").find("[data-role='timepicker'][data-bind='value: filters["+index+"].value']").val();
                                         }
+                                        var splitWaktu = waktu.split(":");
+                                        res.value = new Date(Date.UTC(moment(fa.dateEnd).get('year'), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), parseInt(splitWaktu[0]), parseInt(splitWaktu[1]), 0, 0));
                                     }else{
                                         if(index == 0){
-                                            var date = $("form").find("[data-role='datepicker'][data-bind='value:filters["+index+"].value']").val();
-                                            res.value = moment(date).format("YYYY-MM-DD 00:00:00");
-                                        }else{
-                                            var date = $("form").find("[data-role='datepicker'][data-bind='value: filters["+index+"].value']").val();
-                                            res.value = moment(date).format("YYYY-MM-DD 00:00:00");
+                                            var tanggal = $("form").find("[data-role='datepicker'][data-bind='value:filters["+index+"].value']").val();
+                                            var splitTanggal = tanggal.split("/");
+                                            res.value = new Date(Date.UTC(parseInt(splitTanggal[2]), parseInt(splitTanggal[0]-1), parseInt(splitTanggal[1]), 0, 0, 0, 0));
+                                        } else {
+                                            tanggal = $("form").find("[data-role='datepicker'][data-bind='value: filters["+index+"].value']").val();
+                                            splitTanggal = tanggal.split("/");
+                                            res.value = new Date(Date.UTC(parseInt(splitTanggal[2]), parseInt(splitTanggal[0]-1), parseInt(splitTanggal[1]), 23, 59, 59, 999));
                                         }
                                     }
                                 }
@@ -180,8 +183,6 @@ dbsh.InitScadaHFDGrid= function() {
                             })
                         }
                     });
-                    
-                    console.log(options.filter.filters);
                     return JSON.stringify(options);
                 }
             },
