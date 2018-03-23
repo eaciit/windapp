@@ -123,7 +123,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -145,7 +148,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -168,7 +174,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -191,7 +200,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
