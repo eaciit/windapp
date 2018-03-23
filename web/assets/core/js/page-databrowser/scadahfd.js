@@ -11,6 +11,14 @@ dbsh.AllProjectColumnList = ko.observableArray([]);
 dbsh.ColList = ko.observableArray([]);
 dbsh.defaultSelectedColumn = ko.observableArray();
 
+
+dbsh.getDate = function(date){
+    var newvalue = new Date(date);
+    var dates = moment(newvalue).utc().format("YYYY-MM-DD HH:mm:ss");
+
+    return dates;
+}
+
 dbsh.InitScadaHFDGrid= function() {
     dbr.hfdvis(true);
     // var turbine = [];
@@ -35,11 +43,11 @@ dbsh.InitScadaHFDGrid= function() {
     var filters = [{
         field: "timestamp",
         operator: "gte",
-        value: fa.dateStart
+        value: dbsh.getDate(fa.dateStart)
     }, {
         field: "timestamp",
         operator: "lte",
-        value: fa.dateEnd
+        value: dbsh.getDate(fa.dateEnd)
     }, {
         field: "turbine",
         operator: "in",
@@ -111,13 +119,14 @@ dbsh.InitScadaHFDGrid= function() {
                         interval : 10,
                         format : "HH:mm",
                     });
-                    element.data("kendoTimePicker").options.max = fa.dateEnd
-                    element.data("kendoTimePicker").options.min = fa.dateStart
+                    element.data("kendoTimePicker").options.max = fa.dateEnd;
+                    element.data("kendoTimePicker").options.min = fa.dateStart;
                     // console.log(element.data("kendoTimePicker").options)
                     // element.kendoTimePicker["interval"] = 10
                     // element.kendoTimePicker["format"] = "HH:mm"
                     // element.data("kendoTimePicker").interval(10)
                     // element.data("kendoTimePicker").format("HH:mm")
+                    
                 }};
             }else{
                 col["filterable"] = {ui: function(element){
@@ -146,6 +155,33 @@ dbsh.InitScadaHFDGrid= function() {
                     contentType: "application/json; charset=utf-8"
                 },
                 parameterMap: function(options) {
+                    $.each(options.filter.filters, function(key, val){
+                        if(val.logic !== undefined){
+                            var index = 0;
+                            $.each(val.filters, function(i, res){
+                                if(res.field == "timestamp"){
+                                    if (fa.dateEnd - fa.dateStart < 86400000) {
+                                        if(index == 0){
+                                            res.value = kendo.toString(moment(fa.dateEnd).format('YYYY-MM-DD') +" "+ $("form").find("[data-role='timepicker'][data-bind='value:filters["+index+"].value']").val());
+                                        }else{
+                                            res.value = kendo.toString(moment(fa.dateEnd).format('YYYY-MM-DD') +" "+ $("form").find("[data-role='timepicker'][data-bind='value: filters["+index+"].value']").val());
+                                        }
+                                    }else{
+                                        if(index == 0){
+                                            var date = $("form").find("[data-role='datepicker'][data-bind='value:filters["+index+"].value']").val();
+                                            res.value = moment(date).format("YYYY-MM-DD 00:00:00");
+                                        }else{
+                                            var date = $("form").find("[data-role='datepicker'][data-bind='value: filters["+index+"].value']").val();
+                                            res.value = moment(date).format("YYYY-MM-DD 00:00:00");
+                                        }
+                                    }
+                                }
+                                index++;
+                            })
+                        }
+                    });
+                    
+                    console.log(options.filter.filters);
                     return JSON.stringify(options);
                 }
             },
