@@ -855,6 +855,27 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 	}
 	matches := []tk.M{}
+	_tstart, _tend, _usethis := time.Time{}, time.Time{}, false
+	for _, val := range p.Filter.Filters {
+		for _, xval := range val.Filters {
+			if xval.Field == "timestamp" {
+				_xtime, _e := time.Parse("2006-01-02T15:04:05.000Z", tk.ToString(xval.Value))
+				if _e != nil {
+					_xtime, _ = time.Parse("2006-01-02 15:04:05", tk.ToString(xval.Value))
+				}
+				if xval.Op == "lte" {
+					_tend = _xtime
+				} else {
+					_tstart = _xtime
+				}
+			}
+		}
+	}
+
+	if _sub := _tend.UTC().Sub(_tstart.UTC()).Hours(); !_tstart.IsZero() && !_tend.IsZero() && _sub >= 0 && _sub < 24 {
+		_usethis = true
+	}
+
 	for _, val := range filter {
 		ttkm := tk.M{
 			val.Field: tk.M{val.Op: val.Value},
@@ -862,10 +883,15 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 
 		if val.Field == "timestamp" {
 			ttime := val.Value.(time.Time).UTC()
+			if _usethis && val.Op == "$lte" {
+				ttime = _tend
+			} else if _usethis {
+				ttime = _tstart
+			}
 			ttkm = tk.M{
 				val.Field: tk.M{val.Op: ttime},
 			}
-			// tk.Println(ttkm)
+			// tk.Println(val, ttkm)
 		}
 
 		matches = append(matches, ttkm)
