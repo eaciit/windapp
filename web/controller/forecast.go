@@ -909,9 +909,14 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	project := p.Project
 	timeNowIst := time.Now().UTC().Add(time.Duration(330) * time.Minute)
 
-	if timeNowIst.Hour() >= 23 {
+	dateMail := p.Date
+	subjectMail := p.Subject
+	if timeNowIst.Hour() >= 22 && timeNowIst.Minute() >= 30 {
+		// if timeNowIst.Hour() >= 23 {
 		tStart = tStart.AddDate(0, 0, 1)
 		tEnd = tEnd.AddDate(0, 0, 1)
+		dateMail = dateMail.AddDate(0, 0, 1)
+		subjectMail = tk.Sprintf("Forecast for %s for Date:%s : Rev 01", p.Project, dateMail.Format("02/01/2006"))
 	}
 	timeperiods := get15MinPeriod(tStart, tEnd)
 
@@ -1346,7 +1351,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			// 	tk.M{"email": "shreyas@eaciit.com", "name": "Shreyas Mithare"},
 			// }
 			// bccs = []tk.M{}
-			createXlsAndSend(p.Project, p.Date, p.Subject, from, tos, ccs, bccs, dataReturn)
+			createXlsAndSend(p.Project, dateMail, subjectMail, from, tos, ccs, bccs, dataReturn)
 		} else {
 			sendMail = false
 			msg = "No recipient registered!"
@@ -1356,7 +1361,7 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 		revNo := strings.TrimSpace(tk.Sprintf("%s ", revNos[1])[0:3])
 		revNo2Digit := tk.Sprintf("%02v", revNo)
 		sendMail = false
-		msg = "No forecast data for " + p.Project + " for " + p.Date.Format("02/01/2006") + " rev no " + revNo2Digit
+		msg = "No forecast data for " + p.Project + " for " + dateMail.Format("02/01/2006") + " rev no " + revNo2Digit
 	}
 
 	return helper.CreateResult(sendMail, []tk.M{}, msg)
