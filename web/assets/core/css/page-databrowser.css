@@ -222,3 +222,7 @@ label.summary-number {
 .txt-enddate{
     width:150px;
 }
+.k-animation-container > .k-list-container{
+    height: 200px !important;
+    overflow: scroll;
+}
