@@ -149,6 +149,11 @@ ma.CreateGridAlarm = function(gridType, param) {
                 style: "text-align:center;"
             },
             filterable: {
+                operators: {
+                    string: {
+                        eq: "Is equal to"
+                    }
+                },
                 ui: function(element) {
                     element.closest("form").find(".k-filter-help-text:first").remove();
                     element.closest("form").find("select").remove();
