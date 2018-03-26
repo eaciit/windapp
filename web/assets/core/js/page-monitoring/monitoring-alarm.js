@@ -148,6 +148,11 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: {
+                ui: function(element) {
+                    element.closest("form").find("select").remove();
+                }
+            },
             width: 90,
         },{
             field: "alarmdesc",
