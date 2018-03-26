@@ -155,8 +155,10 @@ ma.CreateGridAlarm = function(gridType, param) {
                     }
                 },
                 ui: function(element) {
-                    element.closest("form").find(".k-filter-help-text:first").remove();
-                    element.closest("form").find("select").remove();
+                    var form = element.closest("form");
+                    form.find(".k-filter-help-text:first").text("Show items equal to:");
+                    form.find("select").remove();
+                    $("form").find("[data-bind='value:filters[0].value']").addClass('k-textbox');
                 }
             },
             width: 90,
