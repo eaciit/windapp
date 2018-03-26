@@ -150,6 +150,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             },
             filterable: {
                 ui: function(element) {
+                    element.closest("form").find(".k-filter-help-text:first").remove();
                     element.closest("form").find("select").remove();
                 }
             },
