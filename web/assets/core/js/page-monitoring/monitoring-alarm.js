@@ -79,6 +79,15 @@ ma.CreateGrid = function(gridType) {
 
     });
 }
+ma.buildParentFilter = function(filters, additionalFilter) {
+    $.each(filters, function(idx, val){
+        if(val.filter !== undefined) {
+            ma.buildParentFilter(val.filter.filters, additionalFilter)
+        }
+        additionalFilter.push(val);
+    });
+}
+
 ma.CreateGridAlarm = function(gridType, param) {
     var gridName = "#alarmGrid"
     var dt = new Date();
@@ -104,11 +113,13 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             width: 90
         }, {
             field: "timestart",
             title: "Time Start",
             width: 170,
+            filterable: false,
             attributes: {
                 style: "text-align:center;"
             },
@@ -117,6 +128,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             field: "timeend",
             title: "Time End",
             width: 170,
+            filterable: false,
             attributes: {
                 style: "text-align:center;"
             },
@@ -128,6 +140,7 @@ ma.CreateGridAlarm = function(gridType, param) {
              attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             template: "#= time(data.duration) #"
         }, {
             field: "alarmcode",
@@ -139,7 +152,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         },{
             field: "alarmdesc",
             title: "Description",
-            width: 330
+            width: 330,
         }];
 
     if(gridType == "alarm"){
@@ -149,6 +162,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             width: 90,
         });
     }
@@ -160,6 +174,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             width: 70
         }, {
             field: "timestamp",
@@ -168,12 +183,14 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             template: "#= moment.utc(data.timestamp).format('DD-MMM-YYYY') # &nbsp; &nbsp; &nbsp; #=moment.utc(data.timestamp).format('HH:mm:ss')#"
         }, {
             field: "tag",
             title: "Tag",
-             width: 120,
-             attributes: {
+            width: 120,
+            filterable: false,
+            attributes: {
                 style: "text-align:center;"
             },
         }, {
@@ -182,6 +199,7 @@ ma.CreateGridAlarm = function(gridType, param) {
             attributes: {
                 style: "text-align:center;"
             },
+            filterable: false,
             width: 70,
             // template: "#= kendo.toString(data.Timestamp,'n2') #"
         }, {
@@ -191,6 +209,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         }, {
             field: "addinfo",
             title: "Note",
+            filterable: false,
             width: 250
         }];
     }
@@ -201,6 +220,7 @@ ma.CreateGridAlarm = function(gridType, param) {
         dataSource: {
             serverPaging: true,
             serverSorting: true,
+            serverFiltering: true,
             transport: {
                 read: {
                     url: url,
@@ -210,6 +230,14 @@ ma.CreateGridAlarm = function(gridType, param) {
                     contentType: "application/json; charset=utf-8",
                 },
                 parameterMap: function(options) {
+                    var additionalFilter = [];
+                    if(options.filter !== undefined) {
+                        ma.buildParentFilter(options.filter.filters, additionalFilter)
+                    }
+                    if (additionalFilter.length > 0) {
+                        options["filter"] = additionalFilter;
+                    }
+
                     return JSON.stringify(options);
                 }
             },
@@ -256,6 +284,15 @@ ma.CreateGridAlarm = function(gridType, param) {
             refresh: true,
             pageSizes: true,
             buttonCount: 5
+        },
+        filterable: {
+            extra: false,
+            operators: {
+                string: {
+                    contains: "Contains",
+                    eq: "Is equal to"
+                },
+            }
         },
         columns: columns
     });
