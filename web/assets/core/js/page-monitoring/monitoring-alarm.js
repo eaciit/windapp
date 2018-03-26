@@ -242,7 +242,7 @@ ma.CreateGridAlarm = function(gridType, param) {
                 },
                 parameterMap: function(options) {
                     var additionalFilter = [];
-                    if(options.filter !== undefined) {
+                    if(options.filter !== undefined && options.filter != null) {
                         ma.buildParentFilter(options.filter.filters, additionalFilter)
                     }
                     if (additionalFilter.length > 0) {
