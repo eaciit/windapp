@@ -7,7 +7,7 @@ ms.dataAvail = ko.observable();
 ms.project = ko.observable();
 ms.dateStart = ko.observable();
 ms.dateEnd = ko.observable();
-ms.isValid = ko.observable(false);
+ms.isValid = ko.observable(true);
 ms.LastFilter;
 ms.TableName;
 ms.FieldList;
@@ -162,7 +162,7 @@ ms.LoadData = function() {
             turbine: fa.turbine(),
             project: fa.project,
             datestart: $('#ms-period').data('kendoDatePicker').value(),
-            isvalid: ms.isValid()
+            isclean: ms.isValid()
         };
         toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getlistpowercurvemonthlyscatter", param, function (res) {
             if (!app.isFine(res)) {

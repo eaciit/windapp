@@ -8,6 +8,7 @@ nd.turbine = ko.observableArray([]);
 nd.project = ko.observable();
 nd.dateStart = ko.observable();
 nd.dateEnd = ko.observable();
+nd.isValid = ko.observable(false);
 
 
 nd.getPDF = function(selector){
@@ -65,6 +66,7 @@ nd.ChartNacelleDistributon =  function () {
         project: fa.project,
         breakdown: "nacelledeviation",
         color: color,
+        isclean:nd.isValid()
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwinddistribution/getlist", param, function (res) {
@@ -234,6 +236,15 @@ nd.NacelleDis = function(){
             nd.project(project);
             nd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             nd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
+            $("input[name=isValid]").on("change", function() {
+                nd.isValid(true);
+                if(this.id == "alldata"){
+                    nd.isValid(false);
+                }
+                app.loading(true);
+                nd.ChartNacelleDistributon();
+            });
         }else{
             app.loading(false);
             setTimeout(function () {
