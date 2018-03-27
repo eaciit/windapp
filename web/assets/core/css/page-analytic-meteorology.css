@@ -391,4 +391,7 @@ label.summary-number {
 .btn-pdf{
 	z-index: 9999;
 }
+.turList{
+  margin-top: -7.5px;
+}
 
