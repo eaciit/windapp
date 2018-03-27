@@ -6,12 +6,16 @@
 </style>
 
 
-<div class="col-md-9">
+<div class="col-md-8" style="text-align: center;">
 	<div class="tools btn-group pull-right btn-pdf">
 		<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){nd.getPDF('.div-nacelle')}">
 	    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 	  	</button>
 	</div>
+    <div class="btn-group" data-toggle="buttons">
+        <label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="isValid" id="validdata" autocomplete="off" value="true" checked>Valid Data</label>
+        <label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="isValid" id="alldata" autocomplete="off" value="false">All Data</label>
+    </div>
 	<div class="div-nacelle">
 		<div class="panel-heading template-pdf">
 			<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
@@ -33,7 +37,7 @@
 	<div class="clearfix">&nbsp;</div>
 	<div class="clearfix">&nbsp;</div>
 </div>
-<div class="col-md-3 turList">
+<div class="col-md-4 turList">
 	<!-- <div class="panel-heading custom-header">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div> -->
 	<div class="clearfix">&nbsp;</div>
 	<div class="checkbox" id="showHideChkNacelle"></div>

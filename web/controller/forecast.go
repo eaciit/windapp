@@ -913,8 +913,11 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	subjectMail := p.Subject
 	if timeNowIst.Hour() >= 22 && timeNowIst.Minute() >= 30 {
 		// if timeNowIst.Hour() >= 23 {
-		tStart = tStart.AddDate(0, 0, 1)
-		tEnd = tEnd.AddDate(0, 0, 1)
+		// tStart = tStart.AddDate(0, 0, 1)
+		// tEnd = tEnd.AddDate(0, 0, 1)
+		tStart, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 1).Format("2006-01-02")+" 00:00:00")
+		tEnd, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 2).Format("2006-01-02")+" 00:00:00")
+		dateMail, _ = time.Parse("2006-01-02", timeNowIst.Format("2006-01-02"))
 		dateMail = dateMail.AddDate(0, 0, 1)
 		subjectMail = tk.Sprintf("Forecast for %s for Date:%s : Rev 01", p.Project, dateMail.Format("02/01/2006"))
 	}

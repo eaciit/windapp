@@ -59,6 +59,20 @@ dbled.InitLEDgrid = function() {
                     contentType: "application/json; charset=utf-8"
                 },
                 parameterMap: function(options) {
+                    if(options.filter.filters !== undefined && options.filter.filters != null) {
+                        $.each(options.filter.filters, function(idx, val){
+                            if (val.operator == "eq") {
+                                val.operator = "$eq"
+                            }
+
+                            if (val.operator == "contains") {
+                                val.operator = "$regex"
+                                val.value = ".*"+val.value+".*"
+                            }                            
+                            options.filter.filters[idx] = val
+                        });
+                    }
+
                     return JSON.stringify(options);
                 }
             },
@@ -100,6 +114,15 @@ dbled.InitLEDgrid = function() {
             pageSize: 10,
             input:true, 
         },
+        filterable: {
+            extra: false,
+            operators: {
+                string: {
+                    contains: "Contains",
+                    eq: "Is equal to"
+                },
+            }
+        },
         columns: [{
                 title: "Turbine",
                 field: "turbinename",
@@ -137,6 +160,7 @@ dbled.InitLEDgrid = function() {
                 title: "Lost Energy (kWh)",
                 field: "detail.powerlost",
                 width: 90,
+                filterable: false,
                 sortable: false,
                 format: "{0:n2}",
                 attributes: {
@@ -147,7 +171,6 @@ dbled.InitLEDgrid = function() {
                 title: "Alarm Description",
                 field: "alertdescription",
                 width: 190,
-                filterable: false,
                 sortable: false,
             },{
                 title: "Reduce Availability",

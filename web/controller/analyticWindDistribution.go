@@ -432,6 +432,9 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 		}
 		category = nacelleCats
 		query = append(query, tk.M{"winddirection": tk.M{"$gte": -180}})
+		if p.IsClean {
+			query = append(query, tk.M{"isvalidstate": true})
+		}
 	case "avgwindspeed":
 		windCats = []float64{}
 		start := minWS
@@ -496,6 +499,7 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	switch p.BreakDown {
 	case "nacelledeviation":
 		queryT = append(queryT, dbox.Gte("winddirection", -180))
+
 	case "avgwindspeed":
 		queryT = append(queryT, dbox.Gt("avgwindspeed", 0.5))
 	}

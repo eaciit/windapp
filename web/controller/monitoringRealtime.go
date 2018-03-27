@@ -97,6 +97,7 @@ type AlarmPayloads struct {
 	Project   string
 	Period    string
 	Tipe      string
+	Filter    []helper.Filter
 }
 
 type AlarmSorting struct {
@@ -2392,6 +2393,24 @@ func (c *MonitoringRealtimeController) GetDataAlarm(k *knot.WebContext) interfac
 	if len(p.Turbine) > 0 {
 		dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
 	}
+
+	if len(p.Filter) > 0 && p.Tipe == "alarm" {
+		for _, _val := range p.Filter {
+			// tk.Println(_val, project)
+			if _val.Op == "eq" && project != "Rajgarh" {
+				if _val.Field == "alarmcode" {
+					_val.Value = tk.ToInt(_val.Value, tk.RoundingAuto)
+				}
+				dfilter = append(dfilter, dbox.Eq(_val.Field, _val.Value))
+			} else {
+				if project == "Rajgarh" {
+					_val.Field = "alarmdesc"
+				}
+				dfilter = append(dfilter, dbox.Contains(_val.Field, tk.ToString(_val.Value)))
+			}
+		}
+	}
+
 	aggr := map[string]interface{}{}
 	aggr["countdata"] = 1
 	switch p.Tipe {

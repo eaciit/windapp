@@ -1196,7 +1196,9 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	//match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
 	//match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
 	match = append(match, tk.M{"projectname": project})
-	match = append(match, tk.M{"isvalidstate": true})
+	if p.IsClean {
+		match = append(match, tk.M{"isvalidstate": true})
+	}
 	match = append(match, tk.M{"available": 1})
 	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
 	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
