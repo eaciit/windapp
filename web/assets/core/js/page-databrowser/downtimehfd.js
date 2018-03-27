@@ -101,6 +101,15 @@ dbdhfd.InitDEHFDgrid = function() {
             pageSize: 10,
             input:true, 
         },
+        filterable: {
+            extra: false,
+            operators: {
+                string: {
+                    contains: "Contains",
+                    eq: "Is equal to"
+                },
+            }
+        },
         columns: [{
                 title: "Turbine",
                 field: "Turbine",
@@ -119,7 +128,8 @@ dbdhfd.InitDEHFDgrid = function() {
                 title: "Time End",
                 field: "TimeEnd",
                 template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
-                width: 100
+                width: 100,
+                filterable: false
             }, {
                 title: "Duration (hh:mm:ss)",
                 field: "Duration",
@@ -134,6 +144,7 @@ dbdhfd.InitDEHFDgrid = function() {
                 field: "BDGroup",
                 width: 90,
                 sortable: false,
+                filterable: false
             }, 
             // {
             //     title: "Turbine State",
@@ -156,7 +167,6 @@ dbdhfd.InitDEHFDgrid = function() {
                 title: "Alarm Description",
                 field: "AlarmDesc",
                 width: 190,
-                filterable: false
             },{
                 title: "Reduce Availability",
                 field: "ReduceAvailability",

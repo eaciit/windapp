@@ -1307,8 +1307,15 @@ func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interfac
 		if val.Field == "projectname" {
 			project = tk.ToString(val.Value)
 		}
-		matches = append(matches, tk.M{val.Field: tk.M{val.Op: val.Value}})
+
+		_match := tk.M{val.Field: tk.M{val.Op: val.Value}}
+		if val.Op == "$regex" {
+			_match = tk.M{val.Field: tk.M{val.Op: val.Value, "$options": "i"}}
+		}
+
+		matches = append(matches, _match)
 	}
+
 	tend = tend.AddDate(0, 0, 1)
 	dates := []tk.M{
 		tk.M{"$and": []tk.M{tk.M{"startdate": tk.M{"$gte": tstart}}, tk.M{"startdate": tk.M{"$lt": tend}}}},

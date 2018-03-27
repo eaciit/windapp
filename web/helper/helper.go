@@ -247,6 +247,9 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 				return
 			}
 			filters = append(filters, dbox.In(field, value.([]interface{})...))
+		case "contains":
+			value := each.Value
+			filters = append(filters, dbox.Contains(strings.ToLower(field), toolkit.ToString(value)))
 		}
 	}
 
