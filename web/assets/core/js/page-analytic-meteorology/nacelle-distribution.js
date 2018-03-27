@@ -8,7 +8,7 @@ nd.turbine = ko.observableArray([]);
 nd.project = ko.observable();
 nd.dateStart = ko.observable();
 nd.dateEnd = ko.observable();
-nd.isValid = ko.observable(false);
+nd.isValid = ko.observable(true);
 
 
 nd.getPDF = function(selector){
