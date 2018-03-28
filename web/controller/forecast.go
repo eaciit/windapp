@@ -908,19 +908,24 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 	tEnd = tEnd.Add(time.Duration(15) * time.Minute)
 	project := p.Project
 	timeNowIst := time.Now().UTC().Add(time.Duration(330) * time.Minute)
+	_ = timeNowIst
 
 	dateMail := p.Date
 	subjectMail := p.Subject
-	if timeNowIst.Hour() >= 22 && timeNowIst.Minute() >= 30 {
-		// if timeNowIst.Hour() >= 23 {
-		// tStart = tStart.AddDate(0, 0, 1)
-		// tEnd = tEnd.AddDate(0, 0, 1)
-		tStart, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 1).Format("2006-01-02")+" 00:00:00")
-		tEnd, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 2).Format("2006-01-02")+" 00:00:00")
-		dateMail, _ = time.Parse("2006-01-02", timeNowIst.Format("2006-01-02"))
-		dateMail = dateMail.AddDate(0, 0, 1)
-		subjectMail = tk.Sprintf("Forecast for %s for Date:%s : Rev 01", p.Project, dateMail.Format("02/01/2006"))
-	}
+
+	/****************** special case *******************/
+	// if timeNowIst.Hour() >= 22 && timeNowIst.Minute() >= 30 {
+	// 	// if timeNowIst.Hour() >= 23 {
+	// 	// tStart = tStart.AddDate(0, 0, 1)
+	// 	// tEnd = tEnd.AddDate(0, 0, 1)
+	// 	tStart, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 1).Format("2006-01-02")+" 00:00:00")
+	// 	tEnd, _ = time.Parse("2006-01-02 15:04:05", timeNowIst.AddDate(0, 0, 2).Format("2006-01-02")+" 00:00:00")
+	// 	dateMail, _ = time.Parse("2006-01-02", timeNowIst.Format("2006-01-02"))
+	// 	dateMail = dateMail.AddDate(0, 0, 1)
+	// 	subjectMail = tk.Sprintf("Forecast for %s for Date:%s : Rev 01", p.Project, dateMail.Format("02/01/2006"))
+	// }
+	/****************** special case *******************/
+
 	timeperiods := get15MinPeriod(tStart, tEnd)
 
 	getscada15minpath := GetConfig("scada15min_path", "")
@@ -1344,16 +1349,21 @@ func (m *ForecastController) SendMail(k *knot.WebContext) interface{} {
 			if len(tos) <= 0 {
 				return helper.CreateResult(false, "NOK", "Mail to address not registered!")
 			}
+
+			/**** for debugging purpose ****/
 			// tos = []tk.M{
-			// 	tk.M{"email": "oms@ostro.in", "name": "OMS"},
-			// 	tk.M{"email": "priyadarshan.b@ostro.in", "name": "Priyadarshan B"},
+			// 	tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika S"},
 			// }
+			// ccs = []tk.M{}
+			// bccs = []tk.M{}
 			// ccs = []tk.M{
 			// 	tk.M{"email": "sandhya@eaciit.com", "name": "Sandhya Jain"},
 			// 	tk.M{"email": "aris.meika@eaciit.com", "name": "Aris Meika"},
 			// 	tk.M{"email": "shreyas@eaciit.com", "name": "Shreyas Mithare"},
 			// }
 			// bccs = []tk.M{}
+			/**** for debugging purpose ****/
+
 			createXlsAndSend(p.Project, dateMail, subjectMail, from, tos, ccs, bccs, dataReturn)
 		} else {
 			sendMail = false
@@ -1554,6 +1564,8 @@ func createXlsAndSend(project string, date time.Time, subject string, addressFro
 	<p><b>Thanks & Regards</b></p>
 	<p><b>Forecasting & Scheduling Team</b><br />
 	Ostro Energy Private Ltd</p>`, reviseContent, revNo, date.Format("02/01/2006"))
+	tk.Println(mailSubject)
+	tk.Println(mailContent)
 	err = sendEmail(mailSubject, addressFrom, addressTo, addressCc, addressBcc, mailContent, filetosave)
 	if err != nil {
 		tk.Printf("Error send email : %s \n", err.Error())
