@@ -1858,3 +1858,144 @@ func (m *AnalyticLossAnalysisController) GetMaxValTempTags(k *knot.WebContext) i
 
 	return helper.CreateResult(true, datamax, "success")
 }
+
+type PayloadEventAnalysis struct {
+	Period           string
+	Project          string
+	Turbine          []interface{}
+	DateStart        time.Time
+	DateEnd          time.Time
+	BreakDown        string
+	AdditionalFilter tk.M
+	RealDesc         tk.M
+}
+
+func (m *AnalyticLossAnalysisController) GetEventAnalysisTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadEventAnalysis)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result, realDesc, e := getEventAnalysis(p.BreakDown, p.AdditionalFilter, p.RealDesc, p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	data := tk.M{
+		"data":     result,
+		"realdesc": realDesc,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEventAnalysis, k *knot.WebContext) ([]tk.M, tk.M, error) {
+	var result []tk.M
+	var e error
+	dfilter := []*dbox.Filter{}
+	var dataSeries []tk.M
+
+	if p != nil {
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return result, realDesc, e
+		}
+		if p.Project != "" {
+			dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
+		}
+		orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
+			dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
+			dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)))
+		if len(p.Turbine) > 0 {
+			dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+		}
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, dbox.Eq("reduceavailability", true))
+		dfilter = append(dfilter, orFilter)
+		/*
+			filter tambahan untuk tiap breakdown
+			jika breakdown = alarmdesc maka dapat filter tambahan bdgroup
+			jika breakdown = turbine maka dapat filter tambahan alarmdesc dan bdgroup
+		*/
+		if len(addFilter) > 0 {
+			for key, val := range addFilter {
+				if breakDown == "turbine" && key == "alarmdesc" { /* jika breakdown turbine menggunakan alarmdesc sesuai DB */
+					dfilter = append(dfilter, dbox.Eq(key, realDesc.GetString(tk.ToString(val))))
+				} else {
+					dfilter = append(dfilter, dbox.Eq(key, val))
+				}
+			}
+		}
+
+		csr, e := DBRealtime().NewQuery().
+			Select("turbine", "timestart", "timeend", "duration", "alarmdesc", "bdgroup").
+			From("AlarmHFD").
+			Where(dbox.And(dfilter...)).
+			Cursor(nil)
+
+		if e != nil {
+			return result, realDesc, e
+		}
+
+		_data := tk.M{}
+		dataPerGroup := map[string]float64{} /* data per breakdown */
+		groupName := ""
+		timestart := time.Time{}
+		timeend := time.Time{}
+		duration := 0.0
+		for {
+			_data = tk.M{}
+			e = csr.Fetch(&_data, 1, false)
+			if e != nil {
+				e = nil
+				break
+			}
+			timestart = _data.Get("timestart", time.Time{}).(time.Time)
+			timeend = _data.Get("timeend", time.Time{}).(time.Time)
+			duration = timeend.Sub(timestart).Hours()
+			groupName = _data.GetString(breakDown)
+			// if breakDown == "bdgroup" {
+			// 	if strings.Contains(strings.ToLower(groupName), "machine") { /* bdgroup yang ada value machine nya */
+			// 		groupName = "Machine"
+			// 	} else if strings.Contains(strings.ToLower(groupName), "grid") { /* bdgroup yang ada value grid nya */
+			// 		groupName = "Grid"
+			// 	} else { /* bdgroup yang valuenya diluar machine dan grid */
+			// 		groupName = "Unknown"
+			// 	}
+			// }
+
+			if !timestart.Before(tStart) && timeend.After(tEnd) { /* jika timeend melebihi tEnd filter */
+				duration = tEnd.Sub(timestart).Hours()
+			} else if !timeend.After(tEnd) && timestart.Before(tStart) { /* jika timestart sebelum tStart */
+				duration = timeend.Sub(tStart).Hours()
+			}
+			dataPerGroup[groupName] += duration
+		}
+
+		csr.Close()
+
+		realDesc = tk.M{} /* untuk alarm desc sesuai value di DB */
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		for key, val := range dataPerGroup {
+			series := tk.M{}
+			id := strings.Title(strings.Replace(key, "_", " ", -69)) /* underscore diganti spasi dan huruf awal besar semua */
+			if breakDown == "turbine" {
+				id = turbineName[key]
+			}
+			realDesc.Set(id, key)
+
+			series.Set("_id", id)
+			series.Set("result", val)
+
+			dataSeries = append(dataSeries, series)
+		}
+
+		if e != nil {
+			return dataSeries, realDesc, e
+		}
+	}
+
+	return dataSeries, realDesc, e
+}
