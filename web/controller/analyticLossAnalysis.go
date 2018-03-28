@@ -1916,8 +1916,8 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 		dfilter = append(dfilter, orFilter)
 		/*
 			filter tambahan untuk tiap breakdown
-			jika breakdown = alarmdesc maka dapat filter tambahan bdgroup
-			jika breakdown = turbine maka dapat filter tambahan alarmdesc dan bdgroup
+			jika breakdown = alarmdesc maka dapat filter tambahan detailgroup
+			jika breakdown = turbine maka dapat filter tambahan alarmdesc dan detailgroup
 		*/
 		if len(addFilter) > 0 {
 			for key, val := range addFilter {
@@ -1930,7 +1930,7 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 		}
 
 		csr, e := DBRealtime().NewQuery().
-			Select("turbine", "timestart", "timeend", "duration", "alarmdesc", "bdgroup").
+			Select("turbine", "timestart", "timeend", "duration", "alarmdesc", "detailgroup").
 			From("AlarmHFD").
 			Where(dbox.And(dfilter...)).
 			Cursor(nil)
@@ -1945,6 +1945,7 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 		timestart := time.Time{}
 		timeend := time.Time{}
 		duration := 0.0
+		timeIndia := getTimeNow()
 		for {
 			_data = tk.M{}
 			e = csr.Fetch(&_data, 1, false)
@@ -1952,24 +1953,21 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 				e = nil
 				break
 			}
-			timestart = _data.Get("timestart", time.Time{}).(time.Time)
-			timeend = _data.Get("timeend", time.Time{}).(time.Time)
+			timestart = _data.Get("timestart", time.Time{}).(time.Time).UTC()
+			timeend = _data.Get("timeend", time.Time{}).(time.Time).UTC()
 			duration = timeend.Sub(timestart).Hours()
 			groupName = _data.GetString(breakDown)
-			// if breakDown == "bdgroup" {
-			// 	if strings.Contains(strings.ToLower(groupName), "machine") { /* bdgroup yang ada value machine nya */
-			// 		groupName = "Machine"
-			// 	} else if strings.Contains(strings.ToLower(groupName), "grid") { /* bdgroup yang ada value grid nya */
-			// 		groupName = "Grid"
-			// 	} else { /* bdgroup yang valuenya diluar machine dan grid */
-			// 		groupName = "Unknown"
-			// 	}
-			// }
 
 			if !timestart.Before(tStart) && timeend.After(tEnd) { /* jika timeend melebihi tEnd filter */
-				duration = tEnd.Sub(timestart).Hours()
+				duration = tEnd.Sub(timestart).Hours() /* tEnd filter - timestart db */
 			} else if !timeend.After(tEnd) && timestart.Before(tStart) { /* jika timestart sebelum tStart */
-				duration = timeend.Sub(tStart).Hours()
+				duration = timeend.Sub(tStart).Hours() /* timeend db - tStart filter */
+			} else if !timestart.Before(tStart) && timeend.IsZero() { /* jika alarm belum selesai */
+				if timeIndia.After(tEnd) { /* jika time now India lebih besar dari tEnd filter maka gunakan tEnd filter */
+					duration = tEnd.Sub(timestart).Hours()
+				} else {
+					duration = timeIndia.Sub(timestart).Hours()
+				}
 			}
 			dataPerGroup[groupName] += duration
 		}
