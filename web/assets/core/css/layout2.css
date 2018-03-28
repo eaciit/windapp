@@ -802,7 +802,7 @@ label.control-label {
 }
 
 .nav.nav-tabs li {
-    margin-right: 10px;
+    margin-right: 0px;
 }
 
 .nav.nav-tabs li.active {}

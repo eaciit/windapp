@@ -104,7 +104,22 @@ pg.getData = function() {
 pg.SendEmail = function(tipe) {
     app.loading(true);
     var url = viewModel.appName + 'forecast/sendmail';
-    var date = new Date(moment().format('YYYY-MM-DD')); 
+    var currdate = new Date(moment().format('YYYY-MM-DD'));
+    var date = currdate;
+    
+    /****************** special case *******************/
+    if(pg.currentRevNo() == '1') {
+        var nextdate = new Date(moment().add(1, 'days').format('YYYY-MM-DD'));
+        var d = new Date();
+        var currHrs = d.getHours();
+        if(currHrs >= 20) {
+            date = nextdate;
+        }
+        var text = 'Send email for current day Rev '+ pg.currentRevNo();
+        pg.TextSendMailToday(text);
+    }
+    /****************** special case *******************/
+
     var subject = pg.TextSendMailToday();
     if(tipe=='nextday') {
         date = new Date(moment(date).add(1, 'days').format("YYYY-MM-DD"));
