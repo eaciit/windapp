@@ -12,7 +12,8 @@ var realDesc = {};
 var categoryLvl1;
 ea.firsLoad = ko.observable(true);
 ea.labelEvent = ko.observable("Event Analysis by Detail Group");
-
+ea.labelEventDetail1 = ko.observable();
+ea.labelEventDetail2 = ko.observable();
 
 ea.LoadData = function(){
     if(pg.isFirstEventAnalysis() === true){
@@ -66,13 +67,12 @@ ea.RefreshData = function(params = {}){
 
                 if(params.level == undefined){
                     chartId = "chartEventAnalysis";
-                    ea.labelEvent("Event Analysis by Detail Group");
                 }else if(params.level == 1){
                     chartId = "chartEventAnalysisLevel1";
-                     ea.labelEvent("Event Analysis by Detail Group > "+ additionalFilter.detailgroup);
+                     ea.labelEventDetail1(additionalFilter.detailgroup);
                 }else{
                     chartId = "chartEventAnalysisLevel2";
-                     ea.labelEvent("Event Analysis by Detail Group > "+ additionalFilter.detailgroup + " > " + additionalFilter.alarmdesc );
+                     ea.labelEventDetail2(additionalFilter.detailgroup + " > " + additionalFilter.alarmdesc );
                 }
                 
 
@@ -94,7 +94,7 @@ ea.RefreshData = function(params = {}){
 ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,format, level) {
 
     var CONTAINER_SIZE = 300;
-    var LEGEND_SIZE = 50;
+    var LEGEND_SIZE = 100;
     var LEGEND_OFFSET = CONTAINER_SIZE - LEGEND_SIZE;
 
     var legend = {
@@ -125,15 +125,19 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             offsetY: LEGEND_OFFSET,
             labels: {              
                 // template: "#: kendo.toString(replaceString(text))#",
+                align: "center",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
         plotArea: plotArea,
         chartArea: {
-            width: 300,
-            height: 300,
+            width: 250,
+            height: 800,
             padding: 0,
-            margin: 0
+            margin: {
+                top: -600,
+            },
+            background:"transparent"
         },
         seriesDefaults: {
             type: "column",
