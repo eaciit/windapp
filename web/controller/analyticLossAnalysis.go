@@ -1982,7 +1982,9 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 			if breakDown == "turbine" {
 				id = turbineName[key]
 			}
-			realDesc.Set(id, key)
+			if breakDown == "alarmdesc" {
+				realDesc.Set(id, key)
+			}
 
 			series.Set("_id", id)
 			series.Set("result", val)
