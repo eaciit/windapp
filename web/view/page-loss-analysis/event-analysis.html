@@ -1,11 +1,32 @@
 <script src="{{BaseUrl}}res/core/js/page-loss-analysis/event-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
-
-<div class="col-md-12">
+<div class="col-md-12 text-center">
 	<div class="col-md-4">
 		<div class="panel ez no-padding hardcore">
 			<div class="panel-heading text-center" data-bind="text:ea.labelEvent()"></div>
 			<div class="panel-body">
-				<div id="chartEventAnalysis"></div>
+				<div id="chartEventAnalysis" style="margin-left: 75px"></div>
+			</div>
+		</div>
+	</div>   
+	<div class="col-md-4">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading text-center">
+				<span  data-bind="text:ea.labelEvent()"></span><br>
+				<span><strong data-bind="text:ea.labelEventDetail1"></strong></span>
+			</div>
+			<div class="panel-body text-center">
+				<div id="chartEventAnalysisLevel1" style="margin-left: 75px"></div>
+			</div>
+		</div>
+	</div>   
+	<div class="col-md-4">
+		<div class="panel ez no-padding hardcore">
+			<div class="panel-heading text-center">
+				<span data-bind="text:ea.labelEvent()"></span><br>
+				<span><strong data-bind="text:ea.labelEventDetail2"></strong></span>
+			</div>
+			<div class="panel-body text-center">
+				<div id="chartEventAnalysisLevel2" style="margin-left: 75px"></div>
 			</div>
 		</div>
 	</div>                      	
