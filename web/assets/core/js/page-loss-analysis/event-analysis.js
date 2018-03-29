@@ -6,57 +6,107 @@ var ea = viewModel.EventAnalysis;
 var dataByGroup;
 var dataByError;
 var dataByTurbine;
-var breakDownEa = "bdgroup";
+var breakDownEa = "detailgroup";
 var additionalFilter = {};
 var realDesc = {};
+var categoryLvl1;
+ea.firsLoad = ko.observable(true);
 ea.labelEvent = ko.observable("Event Analysis by Detail Group");
 
-ea.RefreshData = function(){    
+
+ea.LoadData = function(){
+    if(pg.isFirstEventAnalysis() === true){
+        ea.RefreshData();
+    }else{
+        setTimeout(function(){
+            $("#chartEventAnalysis").data("kendoChart").refresh();
+            app.loading(false);
+        },200); 
+    }
+}
+
+ea.RefreshData = function(params = {}){  
     var valid = fa.LoadData();
     if (valid) {
+        console.log(params);
         app.loading(true);
         pg.setAvailableDate(false);
-        if(pg.isFirstEventAnalysis() === true){
-            var dateStart = $('#dateStart').data('kendoDatePicker').value();
-            var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
+        
+        var dateStart = $('#dateStart').data('kendoDatePicker').value();
+        var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
 
-            var param = {
-                period: fa.period,
-                dateStart: dateStart,
-                dateEnd: dateEnd,
-                turbine: fa.turbine(),
-                project: fa.project,
-                breakdown: breakDownEa,
-                additionalfilter: additionalFilter,
-                realdesc: realDesc
-            }
+        
+        breakDownEa = params.breakDownEa == undefined ? breakDownEa : params.breakDownEa;
 
-            toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/geteventanalysistab", param, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                setTimeout(function(){
-                    dataByGroup = _.sortBy(res.data.data, '_id');
-                    realDesc = res.data.realdesc;
-                    ea.labelEvent("Event Analysis by Detail Group");
+        additionalFilter = params.additionalfilter == undefined ? additionalFilter : params.additionalfilter;
 
-                    ea.GenEventAnalysisChart(dataByGroup, 'chartEventAnalysis', "", "Hours", false, "N1");
-
-                    app.loading(false);
-                    pg.isFirstEventAnalysis(false);
-                },300);
-            }); 
-        }else{
-            setTimeout(function(){
-                $("#chartEventAnalysis").data("kendoChart").refresh();
-                app.loading(false);
-            },200); 
+        var param = {
+            period: fa.period,
+            dateStart: dateStart,
+            dateEnd: dateEnd,
+            turbine: fa.turbine(),
+            project: fa.project,
+            breakdown: breakDownEa, // parent bdgroup , lvl1 => alarmdesc, lvl2 => turbine
+            additionalfilter:  additionalFilter, // lvl 1 => { detailgroup : 'Machine'} , lvl 2 => {bdgroup : 'Machine', alarmdesc : 'Sembaranglah' }
+            realdesc: realDesc
         }
+
+        console.log(param);
+
+
+        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/geteventanalysistab", param, function (res) {
+            if (!app.isFine(res)) {
+                return;
+            }
+            setTimeout(function(){
+                dataByGroup = _.sortBy(res.data.data, '_id');
+                realDesc = res.data.realdesc;
+
+                var chartId;
+
+                if(params.level == undefined){
+                    chartId = "chartEventAnalysis";
+                    ea.labelEvent("Event Analysis by Detail Group");
+                }else if(params.level == 1){
+                    chartId = "chartEventAnalysisLevel1";
+                     ea.labelEvent("Event Analysis by Detail Group > "+ additionalFilter.detailgroup);
+                }else{
+                    chartId = "chartEventAnalysisLevel2";
+                     ea.labelEvent("Event Analysis by Detail Group > "+ additionalFilter.detailgroup + " > " + additionalFilter.alarmdesc );
+                }
+                
+
+                if(ea.firsLoad() == true){
+                    $.when(ea.GenEventAnalysisChart(dataByGroup, chartId, "", "Hours", false, "N1", params.level)).done(function(){
+
+                    }); 
+                }
+
+                app.loading(false);
+                pg.isFirstEventAnalysis(false);
+            },300);
+        }); 
+        
     }
 }
 
 
-ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,format) {
+ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,format, level) {
+
+    var CONTAINER_SIZE = 300;
+    var LEGEND_SIZE = 50;
+    var LEGEND_OFFSET = CONTAINER_SIZE - LEGEND_SIZE;
+
+    var legend = {
+        position: "custom",
+        orientation: "horizontal",
+        offsetY: LEGEND_OFFSET
+    };
+
+    var plotArea = {
+        height: LEGEND_OFFSET
+    };
+
     var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c","#053872","#b1b2ac","#ffcf49","#605c5c","#b1b2ac","#ffcf49","#605c5c"];
     $("#" + id).kendoChart({
         dataSource: {
@@ -70,17 +120,18 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             text: ""
         },
         legend: {
-            position: "top",
-            align: "center",
-            visible: true,
+            position: "custom",
+            orientation: "horizontal",
+            offsetY: LEGEND_OFFSET,
             labels: {              
                 // template: "#: kendo.toString(replaceString(text))#",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
+        plotArea: plotArea,
         chartArea: {
-            // height: heightParam, 
-            // width: wParam, 
+            width: 300,
+            height: 300,
             padding: 0,
             margin: 0
         },
@@ -119,7 +170,6 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             }
         },
         categoryAxis: {
-            // visible: legend,
             field: "_id",
             title: {
                 text: name,
@@ -129,10 +179,31 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
                 visible: false
             },
             labels: {
-                // template: "#: kendo.toString(replaceString(value))#",
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
             majorTickType: "none",
+        },
+        seriesClick : function (e){
+            if(level == undefined){
+                var param = {
+                    level : 1, 
+                    additionalfilter:{ detailgroup : e.category },
+                    breakDownEa:  "alarmdesc"
+                };
+
+                categoryLvl1 = e.category;
+                ea.RefreshData(param);
+
+            }else if(level == 1){
+                var param = {
+                    level : 2, 
+                    additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : e.category},
+                    breakDownEa: "turbine"
+                };
+
+                ea.RefreshData(param);
+            }
+            
         },
         tooltip: {
             visible: true,
@@ -140,7 +211,6 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-            // template: "#: kendo.toString(replaceString(category)) #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             template: "#: category #: #: kendo.toString(value, '" + format + "') # " + axisLabel,
             border: {
                 color: "#eee",
