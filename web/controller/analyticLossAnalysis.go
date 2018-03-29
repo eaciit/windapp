@@ -1974,7 +1974,9 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 
 		csr.Close()
 
-		realDesc = tk.M{} /* untuk alarm desc sesuai value di DB */
+		if breakDown == "alarmdesc" {
+			realDesc = tk.M{} /* untuk alarm desc sesuai value di DB */
+		}
 		turbineName, e := helper.GetTurbineNameList(p.Project)
 		for key, val := range dataPerGroup {
 			series := tk.M{}
