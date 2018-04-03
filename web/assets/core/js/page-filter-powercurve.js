@@ -179,7 +179,7 @@ fa.populateProject = function (selected) {
             }               
             fa.project = $("#projectList").data("kendoDropDownList").value();
             fa.populateEngine(fa.project);
-        }, 500);
+        }, 100);
     }
 };
 
