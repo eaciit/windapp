@@ -277,7 +277,6 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 		"page-loss-analysis/warning-frequency.html",
 		"page-loss-analysis/component-alarm.html",
 		"page-loss-analysis/mtbf.html",
-		// "page-loss-analysis/event-analysis.html",
 	}
 	r.Config.ViewName = "page-loss-analysis.html"
 
