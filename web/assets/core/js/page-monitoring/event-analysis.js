@@ -10,7 +10,7 @@ var breakDownEa = "detailgroup";
 var additionalFilter = {};
 var realDesc = {};
 var categoryLvl1;
-ea.firsLoad = ko.observable(true);
+ea.firstLoad = ko.observable(true);
 ea.labelEventDetail1 = ko.observable();
 ea.labelEventDetail2 = ko.observable();
 
@@ -96,7 +96,7 @@ ea.RefreshData = function(params = {}, type){
             realdesc: realDesc
         }
 
-        toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/geteventanalysistab", param, function (res) {
+        var reqData = toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/geteventanalysistab", param, function (res) {
             if (!app.isFine(res)) {
                 return;
             }
@@ -131,35 +131,35 @@ ea.RefreshData = function(params = {}, type){
                 }
                 
 
-                ea.GenEventAnalysisChart(dataByGroup, chartId, "", labelAxis, false, "N2", params.level)
-                if(ea.firsLoad() == true){
-                    setTimeout(function(){
-                        var category1 = $("#chartEventAnalysis").data("kendoChart").options.categoryAxis.categories[0];
-                        var paramLevel1 = {
-                            level : "level1", 
-                            additionalfilter:{ detailgroup : category1 },
-                            breakDownEa:  "alarmdesc"
-                        };
-
-                        if(ea.RefreshData(paramLevel1, ea.checkType(1))){
-                            var category2 = $("#chartEventAnalysisLevel1").data("kendoChart").options.categoryAxis.categories[0]
-                            var paramLevel2 = {
-                                level : "level2", 
-                                additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
-                                breakDownEa: "turbine"
-                            };
-
-                            ea.RefreshData(paramLevel2, ea.checkType(2));                              
-                        }
-
-                    },500);
-
-                    ea.firsLoad(false);
-                }
-                app.loading(false);
+                ea.GenEventAnalysisChart(dataByGroup, chartId, "", labelAxis, false, "N2", params.level);
             },300);
         }); 
-        
+        $.when(reqData).done(function(){
+            if(ea.firstLoad() && params.level == "level0" ){
+                setTimeout(function(){
+                    var category1 = $("#chartEventAnalysis").data("kendoChart").options.categoryAxis.categories[0];
+                    var paramLevel1 = {
+                        level : "level1", 
+                        additionalfilter:{ detailgroup : category1 },
+                        breakDownEa:  "alarmdesc"
+                    };
+                    ea.RefreshData(paramLevel1, ea.checkType(1));
+                }, 500);
+            } else if (ea.firstLoad() && params.level == "level1" ){
+                setTimeout(function(){
+                    var category2 = $("#chartEventAnalysisLevel1").data("kendoChart").options.categoryAxis.categories[0]
+                    var paramLevel2 = {
+                        level : "level2", 
+                        additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
+                        breakDownEa: "turbine"
+                    };
+
+                    ea.RefreshData(paramLevel2, ea.checkType(2));   
+                }, 500);
+                ea.firstLoad(false);
+            }
+            app.loading(false);
+        })
     }
 }
 
@@ -256,7 +256,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
         },
         seriesClick : function (e){
             if(level == "level0"){
-                is.firsLoad(true);
+                ea.firstLoad(true);
                 var param = {
                     level : "level1", 
                     additionalfilter:{ detailgroup : e.category },
