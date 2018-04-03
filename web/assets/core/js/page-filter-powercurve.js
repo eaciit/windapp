@@ -171,7 +171,6 @@ fa.populateProject = function (selected) {
         fa.projectList(datavalue);
 
         // override to set the value
-        
         setTimeout(function () {
             if (selected != "") {
                 $("#projectList").data("kendoDropDownList").value(selected);
