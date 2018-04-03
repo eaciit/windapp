@@ -11,6 +11,14 @@ dbsh.AllProjectColumnList = ko.observableArray([]);
 dbsh.ColList = ko.observableArray([]);
 dbsh.defaultSelectedColumn = ko.observableArray();
 
+
+dbsh.getDate = function(date){
+    var newvalue = new Date(date);
+    var dates = moment(newvalue).utc().format("YYYY-MM-DD HH:mm:ss");
+
+    return dates;
+}
+
 dbsh.InitScadaHFDGrid= function() {
     dbr.hfdvis(true);
     // var turbine = [];
@@ -35,11 +43,11 @@ dbsh.InitScadaHFDGrid= function() {
     var filters = [{
         field: "timestamp",
         operator: "gte",
-        value: fa.dateStart
+        value: dbsh.getDate(fa.dateStart)
     }, {
         field: "timestamp",
         operator: "lte",
-        value: fa.dateEnd
+        value: dbsh.getDate(fa.dateEnd)
     }, {
         field: "turbine",
         operator: "in",
@@ -105,6 +113,28 @@ dbsh.InitScadaHFDGrid= function() {
                 value: true,
                 locked: true,
             }
+            if (fa.dateEnd - fa.dateStart < 86400000) {
+                col["filterable"] = {ui: function(element){
+                    element.kendoTimePicker({
+                        interval : 10,
+                        format : "HH:mm",
+                    });
+                    element.data("kendoTimePicker").options.max = fa.dateEnd;
+                    element.data("kendoTimePicker").options.min = fa.dateStart;
+                    // console.log(element.data("kendoTimePicker").options)
+                    // element.kendoTimePicker["interval"] = 10
+                    // element.kendoTimePicker["format"] = "HH:mm"
+                    // element.data("kendoTimePicker").interval(10)
+                    // element.data("kendoTimePicker").format("HH:mm")
+                    
+                }};
+            }else{
+                col["filterable"] = {ui: function(element){
+                    element.kendoDatePicker()
+                    element.data("kendoDatePicker").max(fa.dateEnd)
+                    element.data("kendoDatePicker").min(fa.dateStart)
+                }};
+            }
         }
         columns.push(col);
     });
@@ -125,6 +155,34 @@ dbsh.InitScadaHFDGrid= function() {
                     contentType: "application/json; charset=utf-8"
                 },
                 parameterMap: function(options) {
+                    $.each(options.filter.filters, function(key, val){
+                        if(val.logic !== undefined){
+                            var index = 0;
+                            $.each(val.filters, function(i, res){
+                                if(res.field == "timestamp"){
+                                    if (fa.dateEnd - fa.dateStart < 86400000) {
+                                        var waktu = $("form").find("[data-role='timepicker'][data-bind='value:filters["+index+"].value']").val();
+                                        if(index > 0){
+                                            waktu = $("form").find("[data-role='timepicker'][data-bind='value: filters["+index+"].value']").val();
+                                        }
+                                        var splitWaktu = waktu.split(":");
+                                        res.value = new Date(Date.UTC(moment(fa.dateEnd).get('year'), fa.dateEnd.getMonth(), fa.dateEnd.getDate(), parseInt(splitWaktu[0]), parseInt(splitWaktu[1]), 0, 0));
+                                    }else{
+                                        if(index == 0){
+                                            var tanggal = $("form").find("[data-role='datepicker'][data-bind='value:filters["+index+"].value']").val();
+                                            var splitTanggal = tanggal.split("/");
+                                            res.value = new Date(Date.UTC(parseInt(splitTanggal[2]), parseInt(splitTanggal[0]-1), parseInt(splitTanggal[1]), 0, 0, 0, 0));
+                                        } else {
+                                            tanggal = $("form").find("[data-role='datepicker'][data-bind='value: filters["+index+"].value']").val();
+                                            splitTanggal = tanggal.split("/");
+                                            res.value = new Date(Date.UTC(parseInt(splitTanggal[2]), parseInt(splitTanggal[0]-1), parseInt(splitTanggal[1]), 23, 59, 59, 999));
+                                        }
+                                    }
+                                }
+                                index++;
+                            })
+                        }
+                    });
                     return JSON.stringify(options);
                 }
             },
@@ -146,7 +204,7 @@ dbsh.InitScadaHFDGrid= function() {
                     $('#totaldatahfd').html(kendo.toString(res.data.Total, 'n0'));
                     $('#totalactivepowerhfd').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
                     $('#totalprodhfd').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
-                    $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n0') + ' m/s');
+                    $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
                     return res.data.Total;
                 },
             },

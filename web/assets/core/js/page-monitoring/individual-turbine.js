@@ -42,7 +42,7 @@ it.colorStatus = ko.observable();
 // }
 
 it.checkVisible = function(){
-    if(it.project() == 'Amba' || it.project() == 'Sattigeri' || it.project() == 'Nimbagallu' ){
+    if(it.project() == 'Amba' || it.project() == 'Sattigeri' || it.project() == 'Nimbagallu' || it.project() == 'Taralkatti' ){
         return true;
     }else{
         return false;

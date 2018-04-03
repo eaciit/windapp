@@ -3,27 +3,59 @@
 	vm.menu({{.Menus}});
 </script>
 <script src="{{BaseUrl}}res/core/js/page-analytic-power-curve/scatter-operational.js?ANTI_CACHE={{.AntiCache}}"></script>
-<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/scatter.css">
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-analytic-power-curve/comparison.css">
+<style type="text/css">
+	.filter-content > .control-label , .input-group > .control-label {
+		width: 55px;
+	}
+	.btn-export {
+	    position: absolute;
+	    top: -20px;
+	    right: 10px;
+	    z-index: 10001;
+	}
+	.plot-with-part {
+		margin-top: -40px;
+	}
+</style>
 
 <div class="row mt15">
+	<div class="row button-area">
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="nav nav-pills nav-replace-title">
+				<div class="col-md-12 col-sm-12 filter-content">
+					<label class="col-md-1 control-label">Project</label>
+					<div class="col-md-6 no-padding">
+						<select class="project-list no-padding" id="projectList" name="table"></select>
+					</div>
+					<div class="col-md-1 no-padding">
+						<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="col-md-12 col-sm-12 ez panel-content">
 		<div class="col-md-12 col-sm-12 hardcore landing">
 			<div class="panel ez no-padding hardcore">
+				<div class="panel-heading">
+				</div>
 				<div class="panel-body">
 					<div class="date-info">
-						<div class="date-info">
-		                      Data Available from: <strong><span id="availabledatestartscada">-</span></strong> until: <strong><span id="availabledateendscada">-</span></strong>
-						</div>
-                    </div>
+	                      Data Available <span id="availabledatestartscada"></span><span id="availabledateendscada"></span></strong>
+					</div>
 					<div class="clearfix">&nbsp;</div>
 
-					<div class="col-md-8 scatter">
-						<div class="tools btn-group pull-right btn-pdf">
+					<div class="col-md-8 chart-wrapper">
+						<div class="tools pull-right btn-export">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Power Curve Comparison', true, true)}">
+									<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+							</button>
 							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.scatter-chart')}">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
 						</div>
-						<div class="scatter-chart">
+						<div class="div-comparison">
 							<div class="panel-heading template-pdf" style="margin-top: -10px">
 								<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
 								<div class="col-md-12 text-center title-pdf">
@@ -33,96 +65,16 @@
 							<div id="scatterChart"></div>
 						</div>
 					</div>
-					<div class="col-md-4 form-part">
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Scatter Comparison</label>
-							</div>
-							<div class="col-md-10 no-padding">
+					<div class="col-md-4 right-filter">
+						<div class="row">
+							<div class="col-md-12 plot-with-part">
 								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }"></select>
 							</div>
+							<div class="col-md-12 filter-part"></div>
 						</div>
-						<div class="clearfix">&nbsp;</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Project</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="project-list" id="projectList1" name="table" data-bind="kendoDropDownList: { data:  page.projectList, dataValueField: 'value', dataTextField: 'text',  suggest: true }">
-			                	</select>
-							</div>
-						</div>
-
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding" >Turbine 1</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="turbine-list" id="turbineList1" name="table" data-bind="kendoDropDownList: { data: page.turbineList, dataValueField: 'value', dataTextField: 'label', suggest: true }">
-				                </select>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Period</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="period-list" id="periodList" name="table" data-bind="kendoDropDownList: { data: page.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {page.showHidePeriod()} }">
-			               		</select>
-
-			               		<span class="show_hide custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label no-padding label-to">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-
-							</div>
-						</div>
-
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding"> </label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<h5><b> VS </b></h5>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Turbine 2</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class=" turbine-list" id="turbineList2" name="table" data-bind="kendoDropDownList: { data: page.turbineList, dataValueField: 'value', dataTextField: 'label',  suggest: true }">
-				                </select>
-							</div>
-						</div>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding">Period</label>
-							</div>
-							<div class="col-md-10 no-padding">
-								<select class="period-list" id="periodList2" name="table" data-bind="kendoDropDownList: { data: page.periodList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function() {page.showHidePeriod2()} }">
-			               		</select>
-
-			               		<span class="show_hide2 custom-period">
-			                    <input class="filter-date-start" type="text" id="dateStart2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy', min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />
-			                    <label class="control-label no-padding label-to">&nbsp;&nbsp;to</label>
-			                    <div class="period-nwline">&nbsp;</div>
-			                    <input class=" filter-date-end" type="text" id="dateEnd2" data-bind="kendoDatePicker:{value:new Date(),format:'dd-MMM-yyyy',min: new Date(2013, 01, 01),max:new Date()}" style="width:100px" />&nbsp;
-			                    &nbsp;
-			                	</span>
-
-							</div>
-						</div>
-						<br>
-						<div class="row mgb10">
-							<div class="col-md-2 no-padding">
-								<label class="control-label no-padding"></label>
-							</div>
-							<div class="col-md-2 no-padding">
-								<button type="button" id="btnRefresh" class="btn btn-sm btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+						<div class="row">
+							<div class="col-md-12 button-add">
+								<button class="btn btn-sm btn-success" onclick="page.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add Filter</button>				
 							</div>
 						</div>
 					</div>

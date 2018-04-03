@@ -64,66 +64,20 @@ var turbineval = [];
 
 page.getData = function () {
 	$.when(
-		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildate", {}, function (res) {
+		toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function (res) {
 			if (!app.isFine(res)) {
 	            return;
 	        }
-	        var minDatetemp = new Date(res.data.ScadaData[0]);
-	        var maxDatetemp = new Date(res.data.ScadaData[1]);
+	        var minDatetemp = new Date(res.data["Tejuva"].ScadaData[0]);
+	        var maxDatetemp = new Date(res.data["Tejuva"].ScadaData[1]);
 	        $('#availabledatestartscada').html(kendo.toString(moment.utc(minDatetemp).format('DD-MMMM-YYYY')));
 	        $('#availabledateendscada').html(kendo.toString(moment.utc(maxDatetemp).format('DD-MMMM-YYYY')));
-	    }),
-		/*app.ajaxPost(viewModel.appName + "/helper/getturbinelist", {}, function (res) {
-			if (!app.isFine(res)) {
-				return;
-			}
-			if (res.data.length == 0) {
-				res.data = [];;
-				page.turbineList([{ value: "", text: "" }]);
-			} else {
-				var datavalue = [];
-				if (res.data.length > 0) {
-					var allturbine = {}
-					$.each(res.data, function (key, val) {
-						turbineval.push(val);
-					});
-					allturbine.value = "All Turbine";
-					allturbine.text = "All Turbines";
-					datavalue.push(allturbine);
-					$.each(res.data, function (key, val) {
-						var data = {};
-						data.value = val;
-						data.text = val;
-						datavalue.push(data);
-					});
-				}
-				page.turbineList(datavalue);
-			}
-		}),
-		app.ajaxPost(viewModel.appName + "/helper/getprojectlist", {}, function (res) {
-			if (!app.isFine(res)) {
-				return;
-			}
-			if (res.data.length == 0) {
-				res.data = [];;
-				page.projectList([{ value: "", text: "" }]);
-			} else {
-				var datavalue = [];
-				if (res.data.length > 0) {
-					$.each(res.data, function (key, val) {
-						var data = {};
-						data.value = val;
-						data.text = val;
-						datavalue.push(data);
-					});
-				}
-				page.projectList(datavalue);
-			}
-		}),*/
-		page.getViews()).then(function () {
-			page.generateElementFilter(1, "first load", 0);
-			$('.key-list input[type="checkbox"]').change();
-		});
+	    })
+	).done(function () {
+		page.getViews();
+		$('.key-list input[type="checkbox"]').change();
+		page.generateElementFilter(1, "first load", 0, 'getData');
+	});
 }
 
 page.populateTurbine = function (id) {
@@ -423,9 +377,9 @@ page.checkKeyFromSavedView = function (val) {
 		data.Keys = val.Keys;
 
 		if (i == 0) {
-			page.generateElementFilter(1, "views", data);
+			page.generateElementFilter(1, "views", data, 'checkKeySavedView-1');
 		} else {
-			page.generateElementFilter(null, "views", data);
+			page.generateElementFilter(null, "views", data, 'checkKeySavedView-null');
 		}
 	});
 }
@@ -493,12 +447,16 @@ page.populateTurbineX = function (selected, id) {
     // }, 500);
 };
 
-page.generateElementFilter = function (id_element, source, dataViews) {
+page.generateElementFilter = function (id_element, source, dataViews, asalmuasal) {
+	//console.log(asalmuasal);
 	var id = (id_element == null ? page.getRandomId() : id_element);
+	
 	var ids = {};
 	ids = { "filter": "#td-form-filter-" + id, "result": "#td-filter-result-" + id };
 	idList.push(ids);
+	
 	page.defaultId = id;
+
 	var formFilter = '<td class="column-filter-form" id="td-form-filter-' + id + '">' +
 		'<div style="overflow-y:auto; height:100%">' +
 		'<label class="col-md-1 col-sm-1 control-label" style="width:70px;">Project</label>' +
@@ -535,6 +493,7 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 
 
 	setTimeout(function () {
+	
 		var $filterResults = '<td class="column-result" style="border-right: 1.5px solid #ddd;" id="td-filter-result-' + id + '">' +
 			'<div class="result-content-selected-key" style="padding: 5px 5px 5px 10px;"></div>' +
 			'</td>';
@@ -574,12 +533,15 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 				$('#turbineList-'+id).data('kendoMultiSelect').setDataSource(new kendo.data.DataSource({ data: page.turbineList() }));
 			}
 		});
+
 		$("#turbineList-" + id).kendoMultiSelect({
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
 			dataSource: page.turbineList(),
-			change: function () { page.checkTurbine(id) }
+			change: function () { 
+				page.checkTurbine(id) 
+			}
 		});		
 
 		$("#periodList-" + id).kendoDropDownList({
@@ -587,7 +549,9 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 			dataValueField: 'value',
 			dataTextField: 'text',
 			suggest: true,
-			change: function () { page.showHidePeriod(id) }
+			change: function () { 
+				page.showHidePeriod(id) 
+			}
 		});
 
 		$('#dateStart-' + id).kendoDatePicker({
@@ -604,6 +568,8 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 			max:new Date(),
 		});
 
+		//console.log(source);
+
 		if (source != "views") {
 			page.populateTurbine(id);
 			page.populateProject(id);
@@ -614,12 +580,11 @@ page.generateElementFilter = function (id_element, source, dataViews) {
 
 		if(source == "first load"){
 			setTimeout(function () {
-				page.refreshFilter('1');								
-		    }, 100);
+				page.refreshFilter('1');							
+		    }, 500);
 		}
-
-		
-	}, 300);
+	
+	}, 500);
 }
 
 page.removeFilter = function (id) {
@@ -862,12 +827,14 @@ $(document).ready(function () {
 	$('#btnSaveView').on('click', function () {
 		page.modalSaveView();
 	});
+	
 	$('#savedViews').kendoDropDownList({
 		data: [],
 		dataValueField: 'value',
 		dataTextField: 'text',
 		change: function () { page.loadView() },
 	});
+		
 	page.getData();
 
 });

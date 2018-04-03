@@ -190,7 +190,7 @@ fa.LoadData = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    if (fa.dateStart - fa.dateEnd > 25200000) {
+    if (fa.dateStart - fa.dateEnd > 86400000) {
         toolkit.showError("Invalid Date Range Selection");
         return false;
     } else {

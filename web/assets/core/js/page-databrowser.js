@@ -25,6 +25,7 @@ dbr.oemvis = ko.observable(true);
 dbr.hfdvis = ko.observable(true);
 dbr.downeventvis = ko.observable(true);
 dbr.downeventhfdvis = ko.observable(true);
+dbr.lostenergydetail = ko.observable(true);
 dbr.customvis = ko.observable(true);
 dbr.eventrawvis = ko.observable(true);
 
@@ -40,6 +41,7 @@ dbr.isScadaAnomaliesLoaded = ko.observable(false);
 dbr.isAlarmOverlappingLoaded = ko.observable(false);
 dbr.isAlarmAnomaliesLoaded = ko.observable(false);
 dbr.isDowntimeeventhfdLoaded = ko.observable(false);
+dbr.isLostEnergyDetailLoaded = ko.observable(false);
 
 dbr.gridColumnsScada = ko.observableArray([]);
 dbr.gridColumnsScadaException = ko.observableArray([]);
@@ -265,6 +267,9 @@ dbr.setAvailableDate = function(isFirst) {
             case "downtimeeventhfdTab" :
                 tipeTab = "EventDownHFD"
                 break;
+            case "lostenergydetailTab" :
+                tipeTab = "Alarm"
+                break;
             default:
                 tipeTab = "ScadaDataOEM"
                 break;
@@ -400,6 +405,18 @@ dbr.DowntimeHFD = function(id) {
     }
 }
 
+dbr.LostEnergyDetail = function(id) {
+    fa.LoadData();
+    app.loading(true);
+    dbr.setAvailableDate(dbr.isLostEnergyDetailLoaded());
+    if(!dbr.isLostEnergyDetailLoaded()) {
+        dbr.isLostEnergyDetailLoaded(true);
+        dbled.InitLEDgrid();
+    } else {
+        app.loading(false);
+    }
+}
+
 dbr.ScadaException = function() {
     fa.LoadData();
     app.loading(true);
@@ -457,6 +474,7 @@ dbr.ResetFlagLoaded = function() {
     dbr.isAlarmOverlappingLoaded(false);
     dbr.isAlarmAnomaliesLoaded(false);
     dbr.isDowntimeeventhfdLoaded(false);
+    dbr.isLostEnergyDetailLoaded(false);
 }
 
 dbr.selectRow = function() {

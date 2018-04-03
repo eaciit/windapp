@@ -33,24 +33,27 @@ page.periodList = ko.observableArray([
     { "value": "custom", "text": "Custom" },
 ]);
 page.turbineList = ko.observableArray([]);
+page.turbineList2 = ko.observableArray([]);
 page.projectList = ko.observableArray([]);
 page.dateStart = ko.observable();
 page.dateEnd = ko.observable();
-page.turbine = ko.observableArray([]);
 page.project = ko.observable();
 page.sScater = ko.observable(false);
-page.project = ko.observable();
-
 
 page.rawturbine = ko.observableArray([]);
 page.rawproject = ko.observableArray([]);
 
 var lastPeriod = "";
 var turbineval = [];
+page.IDList = [];
+page.countList = 0;
+page.LastFilter;
+page.TableName;
+page.FieldList;
+page.ContentFilter;
 
 page.getPDF = function(selector){
     app.loading(true);
-    var project = $("#projectList1").data("kendoDropDownList").value();
 
     kendo.drawing.drawDOM($(selector)).then(function(group){
         group.options.set("pdf", {
@@ -63,7 +66,7 @@ page.getPDF = function(selector){
                 bottom : "5mm"
             },
         });
-      kendo.drawing.pdf.saveAs(group, project+"OPPowerCurve.pdf");
+      kendo.drawing.pdf.saveAs(group, "Operational Power Curve.pdf");
         setTimeout(function(){
             app.loading(false);
         },2000)
@@ -76,285 +79,270 @@ page.getAvailDate = function(){
             return;
         }
 
-        var availDateAll = res.data;
-        var projectVal = $("#projectList1").data("kendoDropDownList").value();
+        var availDateAll = res.data;        
+        var minDate  = (kendo.toString(moment.utc(availDateAll["Tejuva"]["ScadaData"][0]).format('DD-MMM-YYYY')));
+        var maxDate = (kendo.toString(moment.utc(availDateAll["Tejuva"]["ScadaData"][1]).format('DD-MMM-YYYY')));
 
-        var namaproject = "";
+        $('#availabledatestartscada').html("from: <strong>" + minDate + "</strong> ");
+        $('#availabledateendscada').html("until: <strong>" + maxDate + "</strong>");
 
-        if( projectVal == undefined || projectVal == "") {
-            namaproject = "Tejuva";
-        }else{
-            namaproject= projectVal;
-        }
-
-        
-        var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
-        var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
-
-        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
-        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-
-        $("#periodList").data("kendoDropDownList").value("custom");
-        $("#periodList").data("kendoDropDownList").value("custom");
-
-        $('#dateStart').data('kendoDatePicker').value(startDate);
-        $('#dateEnd').data('kendoDatePicker').value(maxDate);
-        $('#dateStart2').data('kendoDatePicker').value(startDate);
-        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
-
-        $('#availabledatestartscada').html(minDate);
-        $('#availabledateendscada').html(maxDate);
+        page.generateElementFilter(null, "default1");
+        page.generateElementFilter(null, "default2");
     });
 }
-page.populateTurbine = function (selected) {
+
+page.populateTurbine = function () {
     if (page.rawturbine().length == 0) {
         page.turbineList([{ value: "", text: "" }]);
     } else {
         var datavalue = [];
-        var dataturbine = [];
 
-        if (selected==""){
-            selected = page.rawproject()[0].Value;
-        }
-        
-        $.each(page.rawturbine(), function (key, val) {
-            if (selected == val.Project){
-                var data = {};
-                data.value = val.Value;
-                data.label = val.Turbine;
-                datavalue.push(data);
-                dataturbine.push(val);
-            }
+        $.each($("#projectList").data("kendoMultiSelect").value(), function(i, project){
+            $.each(page.rawturbine(), function(key, val){
+                if(project == val.Project){
+                    var data = {};
+                    data.value = val.Value + "<>" + val.Project;
+                    data.label = val.Turbine;
+                    datavalue.push(data);
+                }
+            });
         });
         page.turbineList(datavalue);
-        page.turbine(dataturbine);
     }
-
-    setTimeout(function () {
-        $('#turbineList1').data('kendoDropDownList').select(0);
-        $('#turbineList2').data('kendoDropDownList').select(1);
-    }, 50);
+    page.IDList.forEach(function(id) {
+        $('#turbineList-'+id).data('kendoDropDownList').setDataSource(new kendo.data.DataSource({ data: page.turbineList() }));
+        $('#turbineList-'+id).data('kendoDropDownList').select(0);
+    });
 };
 
-page.populateProject = function (selected) {
+page.populateProject = function () {
     if (page.rawproject().length == 0) {
         page.projectList([{ value: "", text: "" }]);
     } else {
-        var datavalue = [];
+        var datavalue = [];        
         $.each(page.rawproject(), function (key, val) {
             var data = {};
             data.value = val.Value;
-            data.text = val.Name;
+            data.text = val.Value;
             datavalue.push(data);
         });
         page.projectList(datavalue);
-
-        setTimeout(function () {
-            page.populateTurbine(selected);
-        }, 100);
     }
+    $("#projectList").data("kendoMultiSelect").setDataSource(page.projectList());
+    $('#projectList').data('kendoMultiSelect').value([page.projectList()[0].value]);
+    $("#projectList").data("kendoMultiSelect").trigger("change");
 };
 
-
-page.showHidePeriod = function (callback) {
-    var period = $('#periodList').data('kendoDropDownList').value();
-
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
-    var endMonthDate = new Date(app.getDateMax(maxDateData));
-    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
-    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-    
-    if (period == "custom") {
-        $(".show_hide").show();
-        $('#dateStart').data('kendoDatePicker').setOptions({
-            start: "month",
-            depth: "month",
-            format: 'dd-MMM-yyyy'
-        });
-        $('#dateEnd').data('kendoDatePicker').setOptions({
-            start: "month",
-            depth: "month",
-            format: 'dd-MMM-yyyy'
-        });
-
-        $('#dateStart').data('kendoDatePicker').value(startMonthDate);
-        $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
-    } else {
-        var today = new Date();
-        if (period == "monthly") {
-            $('#dateStart').data('kendoDatePicker').setOptions({
-                start: "year",
-                depth: "year",
-                format: "MMM yyyy",
-            });
-            $('#dateEnd').data('kendoDatePicker').setOptions({
-                start: "year",
-                depth: "year",
-                format: "MMM yyyy",
-            });
-
-            $('#dateStart').data('kendoDatePicker').value(startMonthDate);
-            $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
-
-            $(".show_hide").show();
-        } else if (period == "annual") {
-            $('#dateStart').data('kendoDatePicker').setOptions({
-                start: "decade",
-                depth: "decade",
-                format: "yyyy",
-
-            });
-            $('#dateEnd').data('kendoDatePicker').setOptions({
-                start: "decade",
-                depth: "decade",
-                format: "yyyy",
-            });
-
-            $('#dateStart').data('kendoDatePicker').value(startYearDate);
-            $('#dateEnd').data('kendoDatePicker').value(endYearDate);
-
-            $(".show_hide").show();
-        } else {
-            if (period == 'last24hours') {
-                $('#dateStart').data('kendoDatePicker').value(last24hours);
-                $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
-            } else if (period == 'last7days') {
-                $('#dateStart').data('kendoDatePicker').value(lastweek);
-                $('#dateEnd').data('kendoDatePicker').value(endMonthDate);
-            }
-            $(".show_hide").hide();
-        }
-        lastPeriod = period;
-    }
-
-    setTimeout(function () {
-        callback;
-    }, 50);
+page.getRandomId = function () {
+    return page.randomNumber() + page.randomNumber() + page.randomNumber() + page.randomNumber();
 }
 
-page.showHidePeriod2 = function (callback) {
-    var period = $('#periodList2').data('kendoDropDownList').value();
+page.randomNumber = function () {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+}
 
-    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
-    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
-    var endMonthDate = new Date(app.getDateMax(maxDateData));
-    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
-    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
-    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-    if (period == "custom") {
-        $(".show_hide2").show();
-        $('#dateStart2').data('kendoDatePicker').setOptions({
-            start: "month",
-            depth: "month",
-            format: 'dd-MMM-yyyy'
-        });
-        $('#dateEnd2').data('kendoDatePicker').setOptions({
-            start: "month",
-            depth: "month",
-            format: 'dd-MMM-yyyy'
-        });
-
-        $('#dateStart2').data('kendoDatePicker').value(startMonthDate);
-        $('#dateEnd2').data('kendoDatePicker').value(endMonthDate);
-    } else {
-        var today = new Date();
-        if (period == "monthly") {
-            $('#dateStart2').data('kendoDatePicker').setOptions({
-                start: "year",
-                depth: "year",
-                format: "MMM yyyy",
-            });
-            $('#dateEnd2').data('kendoDatePicker').setOptions({
-                start: "year",
-                depth: "year",
-                format: "MMM yyyy",
-            });
-
-            $('#dateStart2').data('kendoDatePicker').value(startMonthDate);
-            $('#dateEnd2').data('kendoDatePicker').value(endMonthDate);
-
-            $(".show_hide2").show();
-        } else if (period == "annual") {
-            $('#dateStart2').data('kendoDatePicker').setOptions({
-                start: "decade",
-                depth: "decade",
-                format: "yyyy",
-
-            });
-            $('#dateEnd2').data('kendoDatePicker').setOptions({
-                start: "decade",
-                depth: "decade",
-                format: "yyyy",
-            });
-
-            $('#dateStart2').data('kendoDatePicker').value(startYearDate);
-            $('#dateEnd2').data('kendoDatePicker').value(endYearDate);
-
-            $(".show_hide2").show();
-        } else {
-            if (period == 'last24hours') {
-                $('#dateStart2').data('kendoDatePicker').value(last24hours);
-                $('#dateEnd2').data('kendoDatePicker').value(endMonthDate);
-            } else if (period == 'last7days') {
-                $('#dateStart2').data('kendoDatePicker').value(lastweek);
-                $('#dateEnd2').data('kendoDatePicker').value(endMonthDate);
-            }
-            $(".show_hide2").hide();
-        }
-        lastPeriod = period;
+page.generateElementFilter = function (id_element, source) {
+    page.countList++;
+    var id = (id_element == null ? page.getRandomId() : id_element);
+    var isDefault = false;
+    if(source.indexOf("default") >= 0) {
+        isDefault = true;
+    }
+    if(page.IDList.length == 5) {
+        swal('Warning', 'You can only add 5 filters', 'warning');
+        return;
+    }
+    page.IDList.push(id);
+    var isLast = false;
+    if(page.IDList.length == 5) {
+        isLast = true;
     }
 
+    var formFilter ='<div class="row dynamic-filter" id="filter-form-'+ id + '" data-count="'+ page.countList +'">' +
+                        '<div class="col-md-3 no-padding">' +
+                            '<select class="turbine-list" id="turbineList-' + id + '" name="table" multiple="multiple"></select>' +
+                        '</div>' +
+                        '<div class="col-md-9 no-padding">' +
+                            '<div class="input-group mb-3">'+
+                                '<select class="period-list" id="periodList-' + id + '" name="table"></select>' +
+                                '<span class="show_hide custom-period">' +
+                                    '<input type="text" id="dateStart-' + id + '"/>' +
+                                    '<label>&nbsp;&nbsp;&nbsp;to&nbsp;&nbsp;&nbsp;</label>' +
+                                    '<input type="text" id="dateEnd-' + id + '"/>' +
+                                '</span>' +
+                            '</div>'+
+                        '</div>' +
+                        '<button class="btn btn-sm btn-danger tooltipster tooltipstered remove-btn" onClick="page.removeFilter(\'' + id + '\')" id="btn-remove-' + id + '" title="Remove Filter" style="display:' + (isDefault ? 'none' : 'inline') + '"><i class="fa fa-times"></i></button>' +
+                    '</div>';
+    var versusFilter = '<div class="versus-wrapper" data-count="'+ page.countList +'"><div class="versus">vs</div></div>';
+
     setTimeout(function () {
-        callback;
-    }, 50);
+        $(".filter-part").append(formFilter);
+        $(".filter-part").append(versusFilter);
+
+        $("#turbineList-" + id).kendoDropDownList({
+            dataValueField: 'value',
+            dataTextField: 'label',
+            suggest: true,
+            dataSource: page.turbineList(),
+        });     
+
+        $("#periodList-" + id).kendoDropDownList({
+            dataSource: page.periodList(),
+            dataValueField: 'value',
+            dataTextField: 'text',
+            suggest: true,
+            change: function () { 
+                page.showHidePeriod(id) 
+            }
+        });
+
+        $('#dateStart-' + id).kendoDatePicker({
+            value: new Date(),
+            format: 'dd-MMM-yyyy',
+            min: new Date("2013-01-01"),
+            max:new Date(),
+        });
+
+        $('#dateEnd-' + id).kendoDatePicker({
+            value: new Date(),
+            format: 'dd-MMM-yyyy',
+            min: new Date("2013-01-01"),
+            max:new Date(),
+        });
+        page.InitDefaultValue(id);
+        page.checkElementLast();
+    }, 500);
 }
-page.getAvailDate = function(){
-    toolkit.ajaxPost(viewModel.appName + "analyticlossanalysis/getavaildateall", {}, function(res) {
-        if (!app.isFine(res)) {
-            return;
+
+page.removeFilter = function (id) {
+    page.countList--;
+    $("#filter-form-" + id).remove();
+    var tempList = [];
+    page.IDList.forEach(function(val){
+        if (val !== id) {
+            tempList.push(val);
         }
-
-        var availDateAll = res.data;
-        var projectVal = $("#projectList1").data("kendoDropDownList").value();
-
-        var namaproject = "";
-
-        if( projectVal == undefined || projectVal == "") {
-            namaproject = "Tejuva";
-        }else{
-            namaproject= projectVal;
-        }
-
-        
-        var minDate  = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][0]).format('DD-MMM-YYYY')));
-        var maxDate = (kendo.toString(moment.utc(availDateAll[namaproject]["ScadaData"][1]).format('DD-MMM-YYYY')));
-
-        var maxDateData = new Date(availDateAll[namaproject]["ScadaData"][1]);
-        var startDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
-
-        $("#periodList").data("kendoDropDownList").value("custom");
-        $("#periodList").data("kendoDropDownList").value("custom");
-
-        $('#dateStart').data('kendoDatePicker').value(startDate);
-        $('#dateEnd').data('kendoDatePicker').value(maxDate);
-        $('#dateStart2').data('kendoDatePicker').value(startDate);
-        $('#dateEnd2').data('kendoDatePicker').value(maxDate);
-
-        $('#availabledatestartscada').html(minDate);
-        $('#availabledateendscada').html(maxDate);
     });
+    page.IDList = tempList;
+    page.checkElementLast();
 }
 
-page.InitDefaultValue = function () {
-    page.getAvailDate();
-    $("#periodList").data("kendoDropDownList").value("custom");
-    $("#periodList").data("kendoDropDownList").trigger("change");
+page.checkElementLast = function(){
+    var elms = $('.dynamic-filter');
+    $.each(elms, function(i, e){
+        if(!$(e).hasClass('dynamic-filter-last')) {
+            $(e).addClass('dynamic-filter-last');
+        }
+        var dataCount = parseInt($(e).attr('data-count'));
+        if(dataCount < page.countList) {
+            $(e).removeClass('dynamic-filter-last');
+        }
+        var turbineElm = $(e).find('select.turbine-list');
+        var turbineElmId = turbineElm.attr('id');
+        setTimeout(function(){
+            $('#'+turbineElmId).data('kendoDropDownList').select(dataCount - 1);
+        }, 100);
+    });
+    var elmvs = $('.versus-wrapper');
+    $.each(elmvs, function(i, e){
+        if(!$(e).hasClass('versus-last')) {
+            $(e).addClass('versus-last');
+        }
+        var dataCount = parseInt($(e).attr('data-count'));
+        if(dataCount < page.countList) {
+            $(e).removeClass('versus-last');
+        }
+    });
+    setTimeout(function () {
+        page.LoadData();                           
+    }, 500);
+}
 
-    $("#periodList2").data("kendoDropDownList").value("custom");
+page.showHidePeriod = function (idx) {
+    var id = (idx == null ? 1 : idx);
+    var period = $('#periodList-' + id).data('kendoDropDownList').value();
+
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var startMonthDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth()-1, 1, 0, 0, 0, 0));
+    var endMonthDate = new Date(app.getDateMax(maxDateData));
+    var startYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var endYearDate = new Date(Date.UTC(moment(maxDateData).get('year'), 0, 1, 0, 0, 0, 0));
+    var last24hours = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 1, 0, 0, 0, 0));
+    var lastweek = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate() - 7, 0, 0, 0, 0));
+
+    if (period == "custom") {
+        $("#show_hide" + id).show();
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "month",
+            depth: "month",
+            format: 'dd-MMM-yyyy'
+        });
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+    } else if (period == "monthly") {
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "year",
+            depth: "year",
+            format: "MMM yyyy"
+        });
+
+        $('#dateStart-' + id).data('kendoDatePicker').value(startMonthDate);
+        $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+
+        $("#show_hide" + id).show();
+    } else if (period == "annual") {
+        $("#show_hide" + id).show();
+
+        $('#dateStart-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+        $('#dateEnd-' + id).data('kendoDatePicker').setOptions({
+            start: "decade",
+            depth: "decade",
+            format: "yyyy"
+        });
+
+       $('#dateStart-' + id).data('kendoDatePicker').value(startYearDate);
+       $('#dateEnd-' + id).data('kendoDatePicker').value(endYearDate);
+
+        $(".show_hide").show();
+    } else {
+        if(period == 'last24hours'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(last24hours);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }else if(period == 'last7days'){
+             $('#dateStart-' + id).data('kendoDatePicker').value(lastweek);
+             $('#dateEnd-' + id).data('kendoDatePicker').value(endMonthDate);
+        }
+        $("#show_hide" + id).hide();
+    }
+}
+
+page.InitDefaultValue = function (id) {
+    $("#periodList-" + id).data("kendoDropDownList").value("custom");
+    $("#periodList-" + id).data("kendoDropDownList").trigger("change");
+
+    var maxDateData = new Date(app.getUTCDate(app.currentDateData));
+    var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(),maxDateData.getDate()-7,0,0,0,0));
+    var lastEndDate = new Date(app.getDateMax(maxDateData));
+
+    $('#dateStart-' + id).data('kendoDatePicker').value(lastStartDate);
+    $('#dateEnd-' + id).data('kendoDatePicker').value(lastEndDate);
 }
 
 page.LoadData = function() {
@@ -369,225 +357,238 @@ page.getPowerCurveScatter = function() {
     app.loading(true);
     page.scatterType = $("#scatterType").data('kendoDropDownList').value();
 
-    var p1DateStart = $('#dateStart').data('kendoDatePicker').value();
-        p1DateStart = new Date(Date.UTC(p1DateStart.getFullYear(), p1DateStart.getMonth(), p1DateStart.getDate(), 0, 0, 0));
+    var mostDateStart;
+    var mostDateEnd;
+    var projectList = $("#projectList").data("kendoMultiSelect").value();
+    var turbineList = [];
+    var details = [];
 
-    var p1DateEnd  = $('#dateEnd').data('kendoDatePicker').value();
-        p1DateEnd = new Date(Date.UTC(p1DateEnd.getFullYear(), p1DateEnd.getMonth(), p1DateEnd.getDate(), 0, 0, 0));
+    page.IDList.forEach(function(id){
+        var dateStart = $('#dateStart-'+id).data('kendoDatePicker').value();
+            dateStart = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateStart.getDate(), 0, 0, 0));
 
-    var p2DateStart = $('#dateStart2').data('kendoDatePicker').value();
-        p2DateStart = new Date(Date.UTC(p2DateStart.getFullYear(), p2DateStart.getMonth(), p2DateStart.getDate(), 0, 0, 0));
+        var dateEnd  = $('#dateEnd-'+id).data('kendoDatePicker').value();
+            dateEnd = new Date(Date.UTC(dateEnd.getFullYear(), dateEnd.getMonth(), dateEnd.getDate(), 0, 0, 0));
+        if (mostDateStart !== undefined) {
+            if (dateStart < mostDateStart) {
+                mostDateStart = dateStart
+            }
+            if (dateEnd > mostDateEnd) {
+                mostDateEnd = dateEnd;
+            }
+        } else {
+            mostDateStart = dateStart;
+            mostDateEnd = dateEnd
+        }
+        var splitTurbineVal = $("#turbineList-"+id).data("kendoDropDownList").value().split("<>");
+        turbineList.push(splitTurbineVal[0]);
 
-    var p2DateEnd  = $('#dateEnd2').data('kendoDatePicker').value();
-        p2DateEnd = new Date(Date.UTC(p2DateEnd.getFullYear(), p2DateEnd.getMonth(), p2DateEnd.getDate(), 0, 0, 0));
-
-    if (p1DateStart - p1DateEnd > 25200000) {
-        toolkit.showError("Invalid Date Range Selection for Filter 1");
-    } else if(p2DateStart - p2DateEnd > 25200000) {
-        toolkit.showError("Invalid Date Range Selection for Filter 2");
-    } else {
-
-        var param1 = {
-            Period       : $('#periodList').data('kendoDropDownList').value(),
-            Project      : $("#projectList1").data("kendoDropDownList").value(),
-            Turbine      : $("#turbineList1").data('kendoDropDownList').value(),
-            DateStart    : p1DateStart,
-            DateEnd      : p1DateEnd,
+        var detail = {
+            Period       : $('#periodList-'+id).data('kendoDropDownList').value(),
+            Project      : splitTurbineVal[1],
+            Turbine      : splitTurbineVal[0],
+            DateStart    : dateStart,
+            DateEnd      : dateEnd,
             ScatterType  : page.scatterType,
         };
-        var param2 = {
-            Period       : $('#periodList2').data('kendoDropDownList').value(),
-            Project      : $("#projectList1").data("kendoDropDownList").value(),
-            Turbine      : $("#turbineList2").data('kendoDropDownList').value(),
-            DateStart    : p2DateStart,
-            DateEnd      : p2DateEnd,
-            ScatterType  : page.scatterType,
-        };
-        var param = [param1, param2];        
 
-        toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteroperational", param, function(res) {
-            if (!app.isFine(res)) {
-                return;
-            }
-            var dtSeries = res.data.Data;
-            
-            var minAxisY = res.data.MinAxisY;
-            var maxAxisY = res.data.MaxAxisY;
-            var minAxisX = res.data.MinAxisX;
-            var maxAxisX = res.data.MaxAxisX;
-            var name = '';
-            var title = '';
-            var xAxis = {};
-            var measurement = '';
-            var format = 'N0'
-            if(maxAxisX - minAxisX < 7) {
-                format = 'N2'
-            }
-            switch(page.scatterType) {
-                case "pitch":
-                    name = 'pitchAxis'
-                    title = 'Angle (Degree)'
-                    measurement = String.fromCharCode(176)
-                    break;
-                case "rotor":
-                    name = "rotorAxis"
-                    title = "Revolutions per Minute (RPM)";
-                    measurement = 'rpm'
-                    break;
-                case "generatorrpm":
-                    name = "generatorAxis"
-                    title = "Generator per Minute (RPM)";
-                    measurement = 'rpm'
-                    break;
-                case "windspeed":
-                    name = "windspeedAxis"
-                    title = "Avg. Wind Speed (m/s)";
-                    measurement = 'm/s'
-                    break;
-            }
-            xAxis = {
-                name: name,
-                title: {
-                    text: title,
-                    visible: true,
-                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                labels: {
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                    format: format
-                },
-                line: {
-                    visible: false
-                },
-                axisCrossingValue: -10,
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                crosshair: {
-                    visible: true,
-                    tooltip: {
-                        visible: true,
-                        format: "N2",
-                        template: "#= kendo.toString(value, 'n2') # " + measurement,
-                        background: "rgb(255,255,255, 0.9)",
-                        color: "#58666e",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        border: {
-                            color: "#eee",
-                            width: "2px",
-                        },
-                    }
-                },
-                // majorUnit: 0.5,
-                min: minAxisX,
-                max: maxAxisX,
-            }
-            var yAxis = {};
-            yAxis = {
-                name: "powerAxis",
-                title: {
-                    text: "Generation (KW)",
-                    visible: true,
-                    font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                labels: {
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                line: {
-                    visible: false
-                },
-                axisCrossingValue: -10,
-                majorGridLines: {
-                    visible: true,
-                    color: "#eee",
-                    width: 0.8,
-                },
-                crosshair: {
-                    visible: true,
-                    tooltip: {
-                        visible: true,
-                        format: "N2",
-                        template: "#= kendo.toString(value, 'n2') # kWh",
-                        background: "rgb(255,255,255, 0.9)",
-                        color: "#58666e",
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
-                        border: {
-                            color: "#eee",
-                            width: "2px",
-                        },
-                    }
-                },
-                // majorUnit: 0.5,
-                min: minAxisY,
-                max: maxAxisY,
-            }
+        details.push(detail);
+    });
+    var param = {
+        ProjectList: projectList,
+        TurbineList: turbineList,
+        Details:     details,
+        MostDateStart: mostDateStart,
+        MostDateEnd: mostDateEnd,
+    }
 
-            $('#scatterChart').html("");
-            $("#scatterChart").kendoChart({
-                theme: "flat",
-                pdf: {
-                  fileName: "DetailPowerCurve.pdf",
-                },
-                chartArea: {
-                    background: "transparent",
-                    padding: 0,
-                },
-                title: {
-                    // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
-                     text: "Scatter Power Curves",
-                    visible: false,
-                    font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
-                },
-                legend: {
-                    position: "bottom",
+    toolkit.ajaxPost(viewModel.appName + "analyticpowercurve/getpcscatteroperational", param, function(res) {
+        if (!app.isFine(res)) {
+            return;
+        }
+        var dtSeries = res.data.Data;
+        page.LastFilter = res.data.LastFilter;
+        page.FieldList = res.data.FieldList;
+        page.TableName = res.data.TableName;
+        page.ContentFilter = res.data.ContentFilter;
+        
+        var minAxisY = res.data.MinAxisY;
+        var maxAxisY = res.data.MaxAxisY;
+        var minAxisX = res.data.MinAxisX;
+        var maxAxisX = res.data.MaxAxisX;
+        var name = '';
+        var title = '';
+        var xAxis = {};
+        var measurement = '';
+        var format = 'N0'
+        if(maxAxisX - minAxisX < 7) {
+            format = 'N2'
+        }
+        switch(page.scatterType) {
+            case "pitch":
+                name = 'pitchAxis'
+                title = 'Angle (Degree)'
+                measurement = String.fromCharCode(176)
+                break;
+            case "rotor":
+                name = "rotorAxis"
+                title = "Revolutions per Minute (RPM)";
+                measurement = 'rpm'
+                break;
+            case "generatorrpm":
+                name = "generatorAxis"
+                title = "Generator per Minute (RPM)";
+                measurement = 'rpm'
+                break;
+            case "windspeed":
+                name = "windspeedAxis"
+                title = "Avg. Wind Speed (m/s)";
+                measurement = 'm/s'
+                break;
+        }
+        xAxis = {
+            name: name,
+            title: {
+                text: title,
+                visible: true,
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                format: format
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            crosshair: {
+                visible: true,
+                tooltip: {
                     visible: true,
-                    align: "center",
-                    offsetX : 50,
-                    labels: {
-                        margin: {
-                            right : 20
-                        },
-                        font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    format: "N2",
+                    template: "#= kendo.toString(value, 'n2') # " + measurement,
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
                     },
-                },
-                seriesDefaults: {
-                    type: "scatterLine",
-                    style: "smooth",
-                },
-                series: dtSeries,
-                categoryAxis: {
-                    labels: {
-                        step: 1
+                }
+            },
+            // majorUnit: 0.5,
+            min: minAxisX,
+            max: maxAxisX,
+        }
+        var yAxis = {};
+        yAxis = {
+            name: "powerAxis",
+            title: {
+                text: "Generation (KW)",
+                visible: true,
+                font: '14px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            labels: {
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            line: {
+                visible: false
+            },
+            axisCrossingValue: -10,
+            majorGridLines: {
+                visible: true,
+                color: "#eee",
+                width: 0.8,
+            },
+            crosshair: {
+                visible: true,
+                tooltip: {
+                    visible: true,
+                    format: "N2",
+                    template: "#= kendo.toString(value, 'n2') # kWh",
+                    background: "rgb(255,255,255, 0.9)",
+                    color: "#58666e",
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                    border: {
+                        color: "#eee",
+                        width: "2px",
                     },
+                }
+            },
+            // majorUnit: 0.5,
+            min: minAxisY,
+            max: maxAxisY,
+        }
+
+        $('#scatterChart').html("");
+        $("#scatterChart").kendoChart({
+            theme: "flat",
+            pdf: {
+              fileName: "DetailPowerCurve.pdf",
+            },
+            chartArea: {
+                background: "transparent",
+                padding: 0,
+            },
+            title: {
+                // text: "Scatter Power Curves | Project : "+fa.project.substring(0,fa.project.indexOf("(")).project+""+$(".date-info").text(),
+                 text: "Scatter Power Curves",
+                visible: false,
+                font: '12px Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif'
+            },
+            legend: {
+                position: "bottom",
+                visible: true,
+                align: "center",
+                offsetX : 50,
+                labels: {
+                    margin: {
+                        right : 20
+                    },
+                    font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
                 },
-                valueAxis: [{
-                    labels: {
-                        format: "N2",
-                    }
-                }],
-                xAxis: xAxis,
-                yAxes: yAxis,
-                pannable: {
+            },
+            seriesDefaults: {
+                type: "scatterLine",
+                style: "smooth",
+            },
+            series: dtSeries,
+            categoryAxis: {
+                labels: {
+                    step: 1
+                },
+            },
+            valueAxis: [{
+                labels: {
+                    format: "N2",
+                }
+            }],
+            xAxis: xAxis,
+            yAxes: yAxis,
+            pannable: {
+                lock: "y"
+            },
+            zoomable: {
+                mousewheel: {
                     lock: "y"
                 },
-                zoomable: {
-                    mousewheel: {
-                        lock: "y"
-                    },
-                    selection: {
-                        lock: "y",
-                        key: "none",
-                    }
+                selection: {
+                    lock: "y",
+                    key: "none",
                 }
-            });
-            app.loading(false);
+            }
         });
-    }
+        app.loading(false);
+    });
+    
 }
 
-page.setProjectTurbine = function(projects, turbines, selected){
+page.setProjectTurbine = function(projects, turbines){
     page.rawproject(projects);
     page.rawturbine(turbines);
     var sortedTurbine = page.rawturbine().sort(function(a, b){
@@ -595,36 +596,80 @@ page.setProjectTurbine = function(projects, turbines, selected){
         if(a1== b1) return 0;
         return a1> b1? 1: -1;
     });
+    var sortedProject = page.rawproject().sort(function(a, b){
+        var a1= a.Value.toLowerCase(), b1= b.Value.toLowerCase();
+        if(a1== b1) return 0;
+        return a1> b1? 1: -1;
+    });
     page.rawturbine(sortedTurbine);
-    page.populateProject(selected);
+    page.rawproject(sortedProject);
 };
+
+page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: page.LastFilter,
+        FieldList: page.FieldList,
+        Tablename: page.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: page.LastFilterDetails,
+            FieldList: page.FieldListDetails,
+            Tablename: page.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: page.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+}
 
 
 $(document).ready(function() {
-    $('#btnRefresh').on('click', function() {
-        setTimeout(function(){
-            var project = $('#projectList1').data("kendoDropDownList").value();
-            page.project(project);
 
+    $('#btnRefresh').on('click', function() {
+        setTimeout(function() {
             page.LoadData();
         }, 300);
     });
 
-    $('#projectList1').kendoDropDownList({
-        change: function () { 
-            var project = $('#projectList1').data("kendoDropDownList").value();
-            page.getAvailDate();
-            page.populateTurbine(project);
-         }
+    $("#projectList").kendoMultiSelect({
+        dataSource: page.projectList(), 
+        dataValueField: 'value', 
+        dataTextField: 'text', 
+        change: function() {
+            if ($("#projectList").data("kendoMultiSelect").value().length > 0) {
+                page.populateTurbine();
+            } else {
+                $('#projectList').data('kendoMultiSelect').value([page.projectList()[0].value]);
+                $("#projectList").data("kendoMultiSelect").trigger("change");
+            }
+        }, 
+        suggest: true
     });
+    page.populateProject();
 
-    $.when(page.InitDefaultValue()).done(function() {
-        setTimeout(function(){
-            var project = $('#projectList1').data("kendoDropDownList").value();
-            page.project(project);
-
-            page.LoadData();
-        },200);
-       
-    });
+    setTimeout(function() {
+        page.getAvailDate();
+    }, 700);
 });

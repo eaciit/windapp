@@ -54,10 +54,10 @@ func (m *DashboardController) GetScadaSummary(k *knot.WebContext) interface{} {
 
 	csr, e := DB().Connection.NewQuery().From("rpt_scadasummary").Cursor(nil)
 
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	data := []tk.M{}
 	e = csr.Fetch(&data, 0, false)
@@ -80,11 +80,11 @@ func (m *DashboardController) GetDashboardSummary(k *knot.WebContext) interface{
 	k.Config.OutputType = knot.OutputJson
 
 	csr, e := DB().Connection.NewQuery().From("rpt_dashboardsummary").Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	data := []tk.M{}
 	e = csr.Fetch(&data, 0, false)
@@ -186,10 +186,10 @@ func (m *DashboardController) GetScadaLastUpdate(k *knot.WebContext) interface{}
 
 	csr, e := DB().Connection.NewQuery().From(new(ScadaLastUpdate).TableName()).Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).Cursor(nil)
 
+	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	data := []ScadaLastUpdate{}
 	e = csr.Fetch(&data, 0, false)
@@ -266,11 +266,11 @@ func GetDataAvailability(datalastmonth []ScadaSummaryByMonth, projectname string
 		From("rpt_scadasummarybymonth").
 		Where(dbox.Eq("projectname", projectname)).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return nil
 	}
-	defer csr.Close()
 
 	data := make([]ScadaSummaryByMonth, 0)
 	e = csr.Fetch(&data, 0, false)
@@ -382,11 +382,11 @@ func (m *DashboardController) GetScadaSummaryByMonth(k *knot.WebContext) interfa
 		From("rpt_scadalastupdate").
 		Where(dbox.And(dbox.Eq("projectname", p.ProjectName))).
 		Cursor(nil)
+	defer csrlastmonth.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrlastmonth.Close()
 
 	datalastmonth := make([]ScadaSummaryByMonth, 0)
 	e = csrlastmonth.Fetch(&datalastmonth, 0, false)
@@ -453,11 +453,11 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
+	defer csrScada.Close()
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrScada.Close()
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
@@ -544,11 +544,11 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			dbox.Eq("dateinfo.monthdesc", p.GetString("date")),
 		)).
 		Cursor(nil)
+	defer csrMonthly.Close()
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrMonthly.Close()
 
 	resultMonthly := []ScadaSummaryByMonth{}
 	e = csrMonthly.Fetch(&resultMonthly, 0, false)
@@ -568,6 +568,7 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 			filterBudget = append(filterBudget, dbox.Eq("projectname", p.GetString("project")))
 		}
 		csrBudget, e := query.Where(dbox.And(filterBudget...)).Cursor(nil)
+		defer csrBudget.Close()
 
 		if tnow := getTimeNow(); int(tnow.Month()) == bulan {
 			maxdate = maxdate.AddDate(0, 0, 1)
@@ -579,7 +580,6 @@ func (m *DashboardController) GetDetailProd(k *knot.WebContext) interface{} {
 		if e != nil {
 			helper.CreateResult(false, nil, e.Error())
 		}
-		defer csrBudget.Close()
 
 		resultBudget := []ExpPValueModel{}
 		e = csrBudget.Fetch(&resultBudget, 0, false)
@@ -665,11 +665,11 @@ func (m *DashboardController) GetDetailProdLevel1(k *knot.WebContext) interface{
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
+	defer csrScada.Close()
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrScada.Close()
 
 	resultScada := []tk.M{}
 	e = csrScada.Fetch(&resultScada, 0, false)
@@ -766,11 +766,11 @@ func (m *DashboardController) GetSummaryData(k *knot.WebContext) interface{} {
 		From(new(ScadaSummaryByProject).TableName()).
 		Command("pipe", pipe).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csr.Close()
 
 	result := []tk.M{}
 	e = csr.Fetch(&result, 0, false)
@@ -869,6 +869,7 @@ func getLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]
 			From(new(ScadaSummaryDaily).TableName()).
 			Command("pipe", pipes).
 			Cursor(nil)
+		defer csr.Close()
 
 		if e != nil {
 			return result, e
@@ -878,7 +879,6 @@ func getLossDuration(topType string, p *PayloadAnalytic, k *knot.WebContext) ([]
 		if e != nil {
 			return result, e
 		}
-		defer csr.Close()
 	}
 
 	return result, e
@@ -1038,18 +1038,18 @@ func (m *DashboardController) GetDetailLossLevel1(k *knot.WebContext) interface{
 
 	// get the top 10 of turbine dan mengambil total
 
-	csr, e := DB().Connection.NewQuery().
+	csrsum, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csrsum.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, results, e.Error())
 	}
 
 	allLossData := []tk.M{}
-	e = csr.Fetch(&allLossData, 0, false)
-	csr.Close()
+	e = csrsum.Fetch(&allLossData, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, results, e.Error())
@@ -1185,6 +1185,7 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, result, e.Error())
@@ -1192,7 +1193,6 @@ func (m *DashboardController) GetDetailLossLevel2(k *knot.WebContext) interface{
 
 	allLossData := []tk.M{}
 	e = csr.Fetch(&allLossData, 0, false)
-	csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, result, e.Error())
@@ -1537,15 +1537,15 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 			Command("pipe", pipes).
 			Cursor(nil)
 
+		// add by ams, 2016-10-07
+		defer csr.Close()
+
 		if e != nil {
 			return
 		}
 
 		tmpResult := []tk.M{}
 		e = csr.Fetch(&tmpResult, 0, false)
-
-		// add by ams, 2016-10-07
-		csr.Close()
 
 		if e != nil {
 			return
@@ -1705,6 +1705,8 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 				From(new(Alarm).TableName()).
 				Command("pipe", pipesX).
 				Cursor(nil)
+			// add by ams, 2016-10-07
+			defer csr.Close()
 
 			if e != nil {
 				return
@@ -1712,8 +1714,6 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 
 			tmpRes := []tk.M{}
 			e = csr.Fetch(&tmpRes, 0, false)
-			// add by ams, 2016-10-07
-			csr.Close()
 
 			if e != nil {
 				return
@@ -1765,6 +1765,9 @@ func getDownTimeLostEnergy(tipe string, p *PayloadDashboard) (result []tk.M) {
 					Cursor(nil)
 
 				if e != nil {
+					if csr != nil {
+						csr.Close()
+					}
 					return
 				}
 
@@ -1877,6 +1880,7 @@ func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val st
 		From(new(Alarm).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
@@ -1886,8 +1890,6 @@ func getLossCategoriesFreq(matchSource tk.M, downCause map[string]string, val st
 	if e != nil {
 		return
 	}
-
-	csr.Close()
 
 	return
 
@@ -2142,6 +2144,9 @@ func getLossCategoriesTop(topType string, p *PayloadDashboard) (result []tk.M) {
 				Cursor(nil)
 
 			if e != nil {
+				if csr != nil {
+					csr.Close()
+				}
 				return
 			}
 
@@ -2232,11 +2237,11 @@ func getAvailability(availType string, p *PayloadDashboard) (result []tk.M) {
 			From(new(ScadaData).TableName()).
 			Command("pipe", pipe).
 			Cursor(nil)
+		defer csr.Close()
 
 		if e != nil {
 			return
 		}
-		defer csr.Close()
 
 		tmpResult := []tk.M{}
 
@@ -2381,11 +2386,11 @@ func getMGAvailability(p *PayloadDashboard) (machineResult []tk.M, gridResult []
 			From(new(ScadaSummaryDaily).TableName()).
 			Command("pipe", pipe).
 			Cursor(nil)
+		defer csr.Close()
 
 		if e != nil {
 			return
 		}
-		defer csr.Close()
 
 		tmpResult := []tk.M{}
 
@@ -2641,10 +2646,13 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 
 	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.id1": 1}})
 
-	csr, e := DB().Connection.NewQuery().
+	csrtbl, e := DB().Connection.NewQuery().
 		From(tableName).
 		Command("pipe", pipes).
 		Cursor(nil)
+
+	// add by ams, 2016-10-07
+	defer csrtbl.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -2652,10 +2660,7 @@ func (m *DashboardController) GetDownTimeTopDetail(k *knot.WebContext) interface
 
 	result := []tk.M{}
 	tmpResult := []tk.M{}
-	e = csr.Fetch(&tmpResult, 0, false)
-
-	// add by ams, 2016-10-07
-	csr.Close()
+	e = csrtbl.Fetch(&tmpResult, 0, false)
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -2772,6 +2777,7 @@ func getDownTurbine(project string, currentDate time.Time, dayDuration int) (res
 		From(new(Alarm).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
@@ -2780,8 +2786,6 @@ func getDownTurbine(project string, currentDate time.Time, dayDuration int) (res
 	tmpResult := []tk.M{}
 
 	e = csr.Fetch(&tmpResult, 0, false)
-	defer csr.Close()
-	csr.Close()
 
 	if e != nil {
 		return
@@ -2822,6 +2826,7 @@ func getTotalDownTurbine(project string, currentDate time.Time, dayDuration int)
 		From(new(TurbineStatus).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
@@ -2830,7 +2835,6 @@ func getTotalDownTurbine(project string, currentDate time.Time, dayDuration int)
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 	result = len(hasil)
 
 	return
@@ -2958,10 +2962,10 @@ func setMapData() (result tk.M) {
 	})
 
 	csrNa, err := rconn.NewQuery().From(new(ScadaRealTimeNew).TableName()).Command("pipe", pipes).Cursor(nil)
+	defer csrNa.Close()
 	if err != nil {
 		tk.Println(err.Error())
 	}
-	defer csrNa.Close()
 	lastUpdateRealtime := []tk.M{}
 	err = csrNa.Fetch(&lastUpdateRealtime, 0, false)
 	if err != nil {
@@ -3324,9 +3328,9 @@ func (m *DashboardController) GetDownTimeLostEnergyDetail(k *knot.WebContext) in
 		From(new(ScadaSummaryDaily).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
-
 	// add by ams, 2016-10-07
 	defer csr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -3379,7 +3383,7 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 		dateStr = strings.Split(p.DateStr, " ")
 		date, e = time.Parse("Jan 2006 02 15:04:05", dateStr[0][0:3]+" "+dateStr[1]+" 01 00:00:00")
 	} else {
-		date2 = helper.GetLastDateData(k)
+		date2 = GetLastDateData()
 		date = date2.AddDate(0, -12, 0)
 
 		/*dateStr = strings.Split("Jul 2015", " ")
@@ -3454,6 +3458,9 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	}
 	csr, e := query.Cursor(nil)
 
+	// add by ams, 2016-10-07
+	defer csr.Close()
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -3461,14 +3468,11 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	resTable := []Alarm{}
 	e = csr.Fetch(&resTable, 0, false)
 
-	// add by ams, 2016-10-07
-	csr.Close()
-
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	csr, e = DB().Connection.NewQuery().
+	csr2, e := DB().Connection.NewQuery().
 		From(new(Alarm).TableName()).Where(filter...).
 		Cursor(nil)
 
@@ -3478,13 +3482,13 @@ func (m *DashboardController) GetDownTimeLostEnergyDetailTable(k *knot.WebContex
 	Cursor(nil)*/
 
 	// add by ams, 2016-10-07
-	defer csr.Close()
+	defer csr2.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	total := csr.Count()
+	total := csr2.Count()
 
 	/*for _, v := range pipes {
 		log.Printf("pipes: %#v \n", v)
@@ -3565,6 +3569,8 @@ func (m *DashboardController) GetDownTimeTopDetailTable(k *knot.WebContext) inte
 		query = query.Order(arrsort...)
 	}
 	csr, e := query.Cursor(nil)
+	// add by ams, 2016-10-07
+	defer csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -3573,8 +3579,6 @@ func (m *DashboardController) GetDownTimeTopDetailTable(k *knot.WebContext) inte
 	result := tk.M{}
 	resTable := []Alarm{}
 	e = csr.Fetch(&resTable, 0, false)
-	// add by ams, 2016-10-07
-	csr.Close()
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
@@ -3607,8 +3611,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	var from, to time.Time
-
+	var _filfrom, _filto time.Time
 	for _, filt := range p.Filter.Filters {
 		if filt.Field == "dateinfo.dateid" && filt.Op == "gte" {
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
@@ -3616,7 +3619,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			if err != nil {
 				log.Println(err.Error())
 			} else {
-				from = t
+				_filfrom = t
 			}
 		} else if filt.Field == "dateinfo.dateid" && filt.Op == "lte" {
 			b, err := time.Parse("2006-01-02T15:04:05.000Z", filt.Value.(string))
@@ -3624,12 +3627,12 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			if err != nil {
 				log.Println(err.Error())
 			} else {
-				to = t
+				_filto = t
 			}
 		}
 	}
 
-	totalHours := tk.ToFloat64(to.Sub(from).Hours(), 0, tk.RoundingUp)
+	totalHours := tk.ToFloat64(_filto.Sub(_filfrom).Hours(), 0, tk.RoundingUp)
 
 	filter, _ := p.ParseFilter()
 	fb := DB().Connection.Fb()
@@ -3733,6 +3736,8 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 
 	}
 
+	// helper.GetDataDateAvailable(collectionName, timestampColumn, where)
+	listavaildate := getAvailDateByCondition("", "ScadaData")
 	listturbine, listcapacity := PopulateTurbines(DB().Connection, projectName), tk.M{}
 
 	listcapacity = PopulateTurbinesCapacity(DB().Connection, projectName)
@@ -3741,6 +3746,23 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 	for _, dres := range result {
 		_proj := dres.Get("_id").(tk.M).GetString("id2")
 		_name := dres.Get("_id").(tk.M).GetString("id1")
+
+		//Handle new case in data availability @asp 20180201
+		_availdate := listavaildate.Get(_proj, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+		daTotalHours := _filto.UTC().Sub(_filfrom.UTC()).Hours()
+		if len(_availdate) > 0 && (_availdate[0].UTC().After(_filfrom.UTC()) || _availdate[1].UTC().Before(_filto.UTC())) {
+			_xfrom, _xto := _filfrom, _filto
+			if _availdate[0].UTC().After(_filfrom.UTC()) {
+				_xfrom = _availdate[0]
+			}
+
+			if _availdate[1].UTC().Before(_filto.UTC()) {
+				_xto = _availdate[1]
+			}
+
+			daTotalHours = _xto.UTC().Sub(_xfrom.UTC()).Hours()
+		}
+		// tk.Println(_proj, " || ", _availdate)
 
 		if _, cond := databyproject[_proj]; !cond {
 			databyproject[_proj] = []tk.M{}
@@ -3779,7 +3801,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 		dres.Set("maxcapacity", maxCapacity)
 		dres.Set("plf", (dres.GetFloat64("production")/1000000)/(maxCapacity/1000))
 		dres.Set("totalavail", tk.Div(dres.GetFloat64("oktime")/3600, totalHours))
-		dres.Set("dataavail", tk.Div(dres.GetFloat64("totalrows")/6, totalHours))
+		dres.Set("dataavail", tk.Div(dres.GetFloat64("totalrows")/6, daTotalHours))
 
 		databyproject[_proj] = append(databyproject[_proj], dres)
 	}
@@ -3793,6 +3815,22 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			ltkm.Set("name", proj)
 			noofwtg := float64(len(databyproject[proj]))
 			ltkm.Set("noofwtg", len(databyproject[proj]))
+
+			//Handle new case in data availability @asp 20180201
+			_availdate := listavaildate.Get(proj, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+			daTotalHours := _filto.UTC().Sub(_filfrom.UTC()).Hours()
+			if len(_availdate) > 0 && (_availdate[0].UTC().After(_filfrom.UTC()) || _availdate[1].UTC().Before(_filto.UTC())) {
+				_xfrom, _xto := _filfrom, _filto
+				if _availdate[0].UTC().After(_filfrom.UTC()) {
+					_xfrom = _availdate[0]
+				}
+
+				if _availdate[1].UTC().Before(_filto.UTC()) {
+					_xto = _availdate[1]
+				}
+
+				daTotalHours = _xto.UTC().Sub(_xfrom.UTC()).Hours()
+			}
 
 			minDate, maxDate := time.Time{}, time.Time{}
 
@@ -3840,7 +3878,7 @@ func (m *DashboardController) GetSummaryDataDaily(k *knot.WebContext) interface{
 			ltkm.Set("maxcapacity", maxCapacity)
 			ltkm.Set("plf", (ltkm.GetFloat64("production")/1000000)/(maxCapacity/1000))
 			ltkm.Set("totalavail", tk.Div(ltkm.GetFloat64("oktime")/3600, totalHours*noofwtg))
-			ltkm.Set("dataavail", tk.Div(ltkm.GetFloat64("totalrows")/6, totalHours*noofwtg))
+			ltkm.Set("dataavail", tk.Div(ltkm.GetFloat64("totalrows")/6, daTotalHours*noofwtg))
 
 			lasresult = append(lasresult, ltkm)
 		}
@@ -3897,13 +3935,13 @@ func (m *DashboardController) GetMonthlyProject(k *knot.WebContext) interface{} 
 	monthIdFilter := tk.ToInt((tk.ToString(startYear) + LeftPad2Len(tk.ToString(startMonth), "0", 2)), "0")
 	csrScada, e := DB().Connection.NewQuery().
 		From(new(ScadaSummaryByMonth).TableName()).
-		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gt("dateinfo.monthid", monthIdFilter))).
+		Where(dbox.And(dbox.Ne("projectname", "Fleet"), dbox.Gte("dateinfo.monthid", monthIdFilter))).
 		Order("projectname", "dateinfo.monthid").Cursor(nil)
 
+	defer csrScada.Close()
 	if e != nil {
 		helper.CreateResult(false, nil, e.Error())
 	}
-	defer csrScada.Close()
 
 	results := []tk.M{}
 	e = csrScada.Fetch(&results, 0, false)

@@ -123,7 +123,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -145,7 +148,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							t, _, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -168,7 +174,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -191,7 +200,10 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 						var t time.Time
 						b, err := time.Parse("2006-01-02T15:04:05.000Z", value.(string))
 						if err != nil {
-							toolkit.Println(err.Error())
+							b, err = time.Parse("2006-01-02 15:04:05", value.(string))
+							if err != nil {
+								toolkit.Println(err.Error())
+							}
 						}
 						if s.Misc.Has("period") {
 							_, t, err = GetStartEndDate(s.Misc["knot_data"].(*knot.WebContext), s.Misc.GetString("period"), b, b)
@@ -235,6 +247,9 @@ func doParseFilter(each *Filter, s *Payloads) (filters []*dbox.Filter, err error
 				return
 			}
 			filters = append(filters, dbox.In(field, value.([]interface{})...))
+		case "contains":
+			value := each.Value
+			filters = append(filters, dbox.Contains(strings.ToLower(field), toolkit.ToString(value)))
 		}
 	}
 
@@ -356,10 +371,12 @@ func CreateResult(success bool, data interface{}, message string) map[string]int
 			panic(message)
 		}
 	}
-	sessionid := WC.Session("sessionid", "")
-	if toolkit.ToString(sessionid) == "" {
-		sessionid = "baypass session"
-	}
+
+	sessionid := "baypass session"
+	// sessionid := WC.Session("sessionid", "")
+	// if toolkit.ToString(sessionid) == "" {
+	// 	sessionid = "baypass session"
+	// }
 
 	// log.Printf(">> %v \n", sessionid)
 
@@ -578,18 +595,6 @@ func GetDurationInMonth(tStart time.Time, tEnd time.Time) (int, []interface{}, t
 	return durationMonths, months, monthDay
 }
 
-// add by ams, 2016-10-04 to handle filter value for predefine period eg. Last Month, Last 3 Months etc.
-func GetLastDateData(r *knot.WebContext) (result time.Time) {
-	iLastDateData := r.Session("lastdate_data")
-	if iLastDateData != nil {
-		result = iLastDateData.(time.Time)
-	} else {
-		result = time.Now().UTC()
-	}
-
-	return
-}
-
 // add by RS, 2016-10-26 to assign start date & end date based on period type
 func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) (startDate, endDate time.Time, err error) {
 	currentDate := time.Now().UTC()
@@ -606,19 +611,6 @@ func GetStartEndDate(r *knot.WebContext, period string, tStart, tEnd time.Time) 
 			err = errors.New("Date Cannot be Less Than 2013")
 		}
 	} else {
-		// iLastDateData := GetLastDateData(r)
-		/*jika memiliki custom date sendiri seperti wind rose yang max date nya 31 Juli 2016*/
-		// customLastDate := r.Session("custom_lastdate")
-
-		// if customLastDate != nil {
-		// 	iLastDateData = customLastDate.(time.Time)
-		// }
-		// endDate = iLastDateData
-		/*jika tidak sama dengan tanggal hari ini maka set jam jadi 23:59:59*/
-		// if !iLastDateData.Truncate(24 * time.Hour).Equal(currentDate.Truncate(24 * time.Hour)) {
-		// 	endDate = time.Date(endDate.Year(), endDate.Month(), endDate.Day(), 23,
-		// 		59, 59, 999999999, time.UTC)
-		// }
 		endDate = currentDate
 
 		switch period {
@@ -691,11 +683,11 @@ func GetTemperatureList() (result toolkit.M, e error) {
 		From("ref_databrowsertag").
 		Order("projectname", "label").
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	_data := toolkit.M{}
 	lastProject := ""
@@ -740,11 +732,11 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 		Where(dbox.Eq("enable", true)).
 		Order("projectname", "tagsdesc").
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	_data := toolkit.M{}
 	lastProject := ""
@@ -791,6 +783,22 @@ func GetAlarmTagsList() (result toolkit.M, e error) {
 	return
 }
 
+func GetStateList(projlist []md.ProjectOut) (result []string, e error) {
+	result = []string{}
+	_tkm := toolkit.M{}
+	for _, proj := range projlist {
+		_tkm.Set(proj.State, 1)
+	}
+
+	for state, _ := range _tkm {
+		result = append(result, state)
+	}
+
+	sort.Strings(result)
+
+	return
+}
+
 func GetProjectList() (result []md.ProjectOut, e error) {
 	pipes := []toolkit.M{
 		toolkit.M{"$match": toolkit.M{"active": true}},
@@ -799,11 +807,11 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 		From(new(md.ProjectMaster).TableName()).
 		Command("pipe", pipes).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.ProjectMaster{}
 	e = csr.Fetch(&data, 0, false)
@@ -821,6 +829,10 @@ func GetProjectList() (result []md.ProjectOut, e error) {
 			SS_AirDensity:     val.SS_AirDensity,
 			STD_AirDensity:    val.STD_AirDensity,
 			Engine:            val.Engine,
+			State:             val.State,
+			ForecastMinCap:    val.Forecast_Min_Cap,
+			ForecastMaxCap:    val.Forecast_Max_Cap,
+			ForecastRevInfos:  val.Forecast_Revision_Info,
 		})
 	}
 
@@ -842,11 +854,10 @@ func GetTurbineList(projects []interface{}) (result []md.TurbineOut, e error) {
 
 	csr, e := query.
 		Cursor(nil)
-
+	defer csr.Close()
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.TurbineMaster{}
 	e = csr.Fetch(&data, 0, false)
@@ -878,10 +889,10 @@ func GetTurbineNameList(project string) (turbineName map[string]string, err erro
 		query = query.Command("pipe", pipes)
 	}
 	csrTurbine, err := query.Cursor(nil)
+	defer csrTurbine.Close()
 	if err != nil {
 		return
 	}
-	defer csrTurbine.Close()
 	turbineList := []toolkit.M{}
 	err = csrTurbine.Fetch(&turbineList, 0, false)
 	if err != nil {
@@ -913,11 +924,11 @@ func GetProjectTurbineList(projects []interface{}) (result map[string]toolkit.M,
 		From(new(md.TurbineMaster).TableName()).
 		Where(filter...).
 		Cursor(nil)
+	defer csr.Close()
 
 	if e != nil {
 		return
 	}
-	defer csr.Close()
 
 	data := []md.TurbineMaster{}
 	e = csr.Fetch(&data, 0, false)

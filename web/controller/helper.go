@@ -124,3 +124,47 @@ func (m *HelperController) GetModelList(k *knot.WebContext) interface{} {
 
 	return helper.CreateResult(true, result, "success")
 }
+
+func getAvailDateByCondition(project, dtype string) toolkit.M {
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	iQuery := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName())
+	_acond := make([]*dbox.Filter, 0)
+
+	if project != "" {
+		_acond = append(_acond, dbox.Eq("projectname", project))
+	}
+
+	if dtype != "" {
+		_acond = append(_acond, dbox.Eq("type", dtype))
+	}
+
+	if len(_acond) == 1 {
+		iQuery.Where(_acond[0])
+	} else if len(_acond) > 1 {
+		iQuery.Where(dbox.And(_acond...))
+	}
+
+	csr, e := iQuery.Cursor(nil)
+	if e != nil {
+		return nil
+	}
+
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	csr.Close()
+
+	result := toolkit.M{}
+	for _, val := range latestDataPeriods {
+		for i, tval := range val.Data {
+			val.Data[i] = tval.UTC()
+		}
+		if result.Has(val.ProjectName) {
+			currData, _ := toolkit.ToM(result[val.ProjectName])
+			currData.Set(val.Type, val.Data)
+			result.Set(val.ProjectName, currData)
+		} else {
+			result.Set(val.ProjectName, toolkit.M{val.Type: val.Data})
+		}
+	}
+
+	return result
+}

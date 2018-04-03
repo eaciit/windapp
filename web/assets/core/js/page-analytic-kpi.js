@@ -92,12 +92,29 @@ var Data = {
     }
 }
 
+page.getPdfGrid = function(){
+    $("#gridKpiAnalysis").getKendoGrid().saveAsExcel();
+     return false;
+}
+
 page.generateGrid = function () {
+
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+    var title = project+"KPITable"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".xlsx";
+
     var config = {
         dataSource: {
             data: page.dataSource(),
             pageSize: 10,
-            sort: ({ field: "Row", dir: "asc" })
+            sort: ({ field: "Row", dir: "asc" }),
+            aggregate : []
+        },
+        excel:{
+            fileName:title,
+            allPages:true, 
+            filterable:true
         },
         pageable: {
             pageSize: 10,
@@ -106,7 +123,7 @@ page.generateGrid = function () {
         scrollable: true,
         sortable: true,
         columns: [
-            { title: "Breakdown", field: "Row", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false },
+            { title: "Breakdown", field: "Row", attributes: { class: "align-center row-custom" }, width: 100, locked: true, filterable: false,footerTemplate: "Total",footerAttributes: {style: "text-align:center;"}},
         ],
     };
 
@@ -121,6 +138,8 @@ page.generateGrid = function () {
             },
             columns: []
         }
+
+        
 
         var a = 0;
         var k = 3;
@@ -138,28 +157,45 @@ page.generateGrid = function () {
             }
 
 
+            var unit = units[a] == "" ? units[a + 1] : units[a];
+
+            if(unit == "%"){
+                config.dataSource.aggregate.push({ field: "Column[" + i + "]." + key, aggregate: "average" },)
+            }else{
+                config.dataSource.aggregate.push({ field: "Column[" + i + "]." + key, aggregate: "sum" },)
+            }
+
             var colChild = {
-                title: key.replace(/([A-Z])/g, ' $1').trim() + "<br>(" + (units[a] == "" ? units[a + 1] : units[a]) + ")",
+                title: key.replace(/([A-Z])/g, ' $1').trim() + "(" + unit + ")",
+                encoded: true,
                 hidden: hidden,
                 field: "Column[" + i + "]." + key,
                 width: 90,
                 headerAttributes: {
-                    style: 'font-weight: bold; text-align: center;',
-                    class: "align-center column-" + key
+                    style: 'font-weight: bold; text-align: center;white-space: normal !important',
+                    class: "align-center column-" + key,
                 },
                 attributes: {
                     class: "align-center column-" + key
                 },
                 format: "{0:n2}",
-                filterable: false
+                filterable: false,
+                footerTemplate: (unit == '%') ? "#=kendo.toString(average, 'n2')#" : "#=kendo.toString(sum, 'n2')#",
+                footerAttributes: {style: "text-align:center;"}
+
             };
             column.columns.push(colChild);
+
+
             a++;
             k++;
+
+
         }
 
 
         config.columns.push(column);
+        
     });
 
 

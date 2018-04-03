@@ -29,7 +29,7 @@ type DataAvailabilitySummary struct {
 
 func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseController) {
 	ev.BaseController = base
-	tk.Println("===================== Start process Data Availability Summary...")
+	ev.Log.AddLog("===================== Start process Data Availability Summary...", sInfo)
 
 	turbineName = map[string]string{}
 	var e error
@@ -51,28 +51,28 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 
 	// OEM
 	go func() {
+		defer wg.Done()
 		availOEM = ev.scadaOEMSummary()
-		wg.Done()
 	}()
 	// HFD
 	go func() {
+		defer wg.Done()
 		availHFD = ev.scadaHFDSummary()
-		wg.Done()
 	}()
 	// Met Tower
 	go func() {
+		defer wg.Done()
 		availMet = ev.metTowerSummary()
-		wg.Done()
 	}()
 	// OEM PROJECT
 	go func() {
+		defer wg.Done()
 		availOEMProject = ev.scadaOEMSummaryProject()
-		wg.Done()
 	}()
 	// HFD PROJECT
 	go func() {
+		defer wg.Done()
 		availHFDProject = ev.scadaHFDSummaryProject()
-		wg.Done()
 	}()
 	// HFD Daily
 	// go func() {
@@ -117,11 +117,11 @@ func (ev *DataAvailabilitySummary) ConvertDataAvailabilitySummary(base *BaseCont
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sError)
 	}
 
-	tk.Println("===================== End process Data Availability Summary...")
+	ev.Log.AddLog("===================== End process Data Availability Summary...", sInfo)
 }
 
 func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
-	tk.Println("===================== SCADA DATA OEM...")
+	ev.Log.AddLog("===================== SCADA DATA OEM...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data OEM"
 	availability.Type = "SCADA_DATA_OEM"
@@ -129,13 +129,11 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-
-	countx := 0
-	maxPar := 5
 
 	details := []DataAvailabilityDetail{}
 
@@ -152,21 +150,16 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 		match := tk.M{}
 		match.Set("projectname", value.GetString("project"))
 		match.Set("turbine", turbine)
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		go workerTurbine(turbine, value.GetString("project"), new(ScadaDataOEM).TableName(), match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -174,7 +167,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD...")
+	ev.Log.AddLog("===================== SCADA DATA HFD...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data HFD"
 	availability.Type = "SCADA_DATA_HFD"
@@ -182,13 +175,11 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-
-	countx := 0
-	maxPar := 5
 
 	details := []DataAvailabilityDetail{}
 
@@ -206,8 +197,8 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	availability.PeriodTo = periodTo
 	match := tk.M{}
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 
 		match.Set("projectname", value.GetString("project"))
@@ -215,13 +206,8 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		match.Set("isnull", false)
 		go workerTurbine(turbine, value.GetString("project"), "Scada10MinHFD", match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -229,7 +215,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
-	tk.Println("===================== MET TOWER...")
+	ev.Log.AddLog("===================== MET TOWER...", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Met Tower"
 	availability.Type = "MET_TOWER"
@@ -237,13 +223,11 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-
-	countx := 0
-	maxPar := 5
 
 	details := []DataAvailabilityDetail{}
 
@@ -260,19 +244,14 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.RefTurbines))
 	for turbine, turbineVal := range ev.BaseController.RefTurbines {
-		wg.Add(1)
 		value, _ := tk.ToM(turbineVal)
 		match := tk.M{}
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
 		go workerTurbine(turbine, value.GetString("project"), new(MetTower).TableName(), match, &details, ev, ctx, &wg)
-
-		countx++
-
-		if countx%maxPar == 0 || (len(ev.BaseController.RefTurbines) == countx) {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -280,7 +259,7 @@ func (ev *DataAvailabilitySummary) metTowerSummary() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA OEM PROJECT LEVEL . . .")
+	ev.Log.AddLog("===================== SCADA DATA OEM PROJECT LEVEL . . .", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data OEM PROJECT"
 	availability.Type = "SCADA_DATA_OEM_PROJECT"
@@ -288,12 +267,11 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-
-	countx := 0
 
 	details := []DataAvailabilityDetail{}
 
@@ -310,20 +288,17 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.ProjectList))
 	for _, projectData := range ev.BaseController.ProjectList {
 		projectID := projectData.ProjectId
 		if projectID != "" {
-			wg.Add(1)
 			match := tk.M{}
 			match.Set("projectname", projectID)
 			match.Set("timestamp", tk.M{"$gte": periodFrom})
 			go workerProject(projectID, new(ScadaDataOEM).TableName(), match, &details, ev, ctx, &wg)
 		}
-		countx++
-		if len(ev.BaseController.ProjectList) == countx {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -331,7 +306,7 @@ func (ev *DataAvailabilitySummary) scadaOEMSummaryProject() *DataAvailability {
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD PROJECT LEVEL . . .")
+	ev.Log.AddLog("===================== SCADA DATA HFD PROJECT LEVEL . . .", sInfo)
 	availability := new(DataAvailability)
 	availability.Name = "Scada Data HFD PROJECT"
 	availability.Type = "SCADA_DATA_HFD_PROJECT"
@@ -339,12 +314,11 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
 	}
-
-	countx := 0
 
 	details := []DataAvailabilityDetail{}
 
@@ -361,21 +335,18 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
 
+	wg.Add(len(ev.BaseController.ProjectList))
 	for _, projectData := range ev.BaseController.ProjectList {
 		projectID := projectData.ProjectId
 		if projectID != "" {
-			wg.Add(1)
 			match := tk.M{}
 			match.Set("projectname", projectID)
 			match.Set("timestamp", tk.M{"$gte": periodFrom})
 			match.Set("isnull", false)
 			go workerProject(projectID, "Scada10MinHFD", match, &details, ev, ctx, &wg)
 		}
-		countx++
-		if len(ev.BaseController.ProjectList) == countx {
-			wg.Wait()
-		}
 	}
+	wg.Wait()
 
 	availability.Details = details
 
@@ -384,6 +355,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryProject() *DataAvailability {
 
 func workerTurbine(t, projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
+	defer wg.Done()
 	now := getTimeNow() /* bulan ini */
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore) /* sampai 6 bulan ke belakang */
@@ -507,12 +479,11 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
-
-	wg.Done()
 }
 
 func workerProject(projectName, tablename string, match tk.M, details *[]DataAvailabilityDetail,
 	ev *DataAvailabilitySummary, ctx dbox.IConnection, wg *sync.WaitGroup) {
+	defer wg.Done()
 	now := getTimeNow()
 	periodTo, _ := time.Parse("20060102_150405", now.Format("20060102_")+"000000")
 	periodFrom := GetNormalAddDateMonth(periodTo.UTC(), monthBefore)
@@ -622,15 +593,14 @@ func workerProject(projectName, tablename string, match tk.M, details *[]DataAva
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", projectName, len(list), time.Now().Sub(start).Seconds()), sInfo)
 	mtx.Unlock()
-
-	wg.Done()
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD DAILY PROJECT LEVEL...")
+	ev.Log.AddLog("===================== SCADA DATA HFD DAILY PROJECT LEVEL...", sInfo)
 	var wg sync.WaitGroup
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -711,7 +681,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyProject() *DataAvailabili
 }
 
 func (ev *DataAvailabilitySummary) scadaHFDSummaryDailyTurbine() *DataAvailability {
-	tk.Println("===================== SCADA DATA HFD DAILY TURBINE LEVEL...")
+	ev.Log.AddLog("===================== SCADA DATA HFD DAILY TURBINE LEVEL...", sInfo)
 	var wg sync.WaitGroup
 
 	now := getTimeNow()
@@ -773,6 +743,7 @@ func (ev *DataAvailabilitySummary) workerRangeTurbine(project, turbine string, d
 	periodTo = now
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -960,6 +931,7 @@ func (ev *DataAvailabilitySummary) workerDailyTurbine(project, turbine string, d
 	periodTo = now
 
 	ctx, e := PrepareConnection()
+	defer ctx.Close()
 	if e != nil {
 		ev.Log.AddLog(tk.Sprintf("Found : %s"+e.Error()), sWarning)
 		os.Exit(0)
@@ -1172,6 +1144,7 @@ func setDataAvailDetail(from time.Time, to time.Time, project string, turbine st
 
 func GetTurbineNameListAll(project string) (turbineNameData map[string]string, err error) {
 	ctx, err := PrepareConnection()
+	defer ctx.Close()
 	if err != nil {
 		return
 	}

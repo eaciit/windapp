@@ -13,9 +13,48 @@ if (pageType == "OEM") {
 
     vm.breadcrumb([{ title: 'Analysis Tool Box', href: '#' }, { title: 'Time Series Plots', href: viewModel.appName + 'page/timeseries' }]);
     pg.tags = ko.observableArray([
-        {text: "Wind Speed" , value:"windspeed"},        
+        {text: "Wind Speed" , value:"windspeed"},
         {text: "Power" , value:"power"},
-        {text: "Production" , value:"production"}, 
+        {text: "Wind Direction" , value:"winddirection"},
+        {text: "Nacelle Direction" , value:"nacellepos"},
+        {text: "Rotor RPM" , value:"rotorrpm"},
+        {text: "Pitch Angle" , value:"pitchangle"},
+        {text: "Pitch Cabinet Temp Blade 1" , value:"PitchCabinetTempBlade1"},
+        {text: "Pitch Cabinet Temp Blade 2" , value:"PitchCabinetTempBlade2"},
+        {text: "Pitch Cabinet Temp Blade 3" , value:"PitchCabinetTempBlade3"},
+        {text: "Pitch Conv Internal Temp Blade 1" , value:"PitchConvInternalTempBlade1"},
+        {text: "Pitch Conv Internal Temp Blade 2" , value:"PitchConvInternalTempBlade2"},
+        {text: "Pitch Conv Internal Temp Blade 3" , value:"PitchConvInternalTempBlade3"},
+        {text: "Temp G1L1" , value:"TempG1L1"},
+        {text: "Temp G1L2" , value:"TempG1L2"},
+        {text: "Temp G1L3" , value:"TempG1L3"},
+        {text: "Temp Generator Bearing DE" , value:"TempGeneratorBearingDE"},
+        {text: "Temp Generator Bearing NDE" , value:"TempGeneratorBearingNDE"},
+        {text: "Temp Gear Box Oil Sump" , value:"TempGearBoxOilSump"},
+        {text: "Temp Hub Bearing" , value:"TempHubBearing"},
+        {text: "Temp Generator Choke" , value:"TempGeneratorChoke"},
+        {text: "Temp Grid Choke" , value:"TempGridChoke"},
+        {text: "Temp Generator Cooling Unit" , value:"TempGeneratorCoolingUnit"},
+        {text: "Temp Conv Cabinet 2" , value:"TempConvCabinet2"},
+        {text: "Temp Outdoor" , value:"TempOutdoor"},
+        {text: "Temp Slip Ring" , value:"TempSlipRing"},
+        {text: "Transformer Winding Temp 1" , value:"TransformerWindingTemp1"},
+        {text: "Transformer Winding Temp 2" , value:"TransformerWindingTemp2"},
+        {text: "Transformer Winding Temp 3" , value:"TransformerWindingTemp3"},
+        {text: "Temp Shaft Bearing 1" , value:"TempShaftBearing1"},
+        {text: "Temp Shaft Bearing 2" , value:"TempShaftBearing2"},
+        {text: "Temp Shaft Bearing 3" , value:"TempShaftBearing3"},
+        {text: "Temp Gear Box IMSDE" , value:"TempGearBoxIMSDE"},
+        {text: "Temp Bottom Control Section" , value:"TempBottomControlSection"},
+        {text: "Temp Bottom Power Section" , value:"TempBottomPowerSection"},
+        {text: "Temp Cabinet Top Box" , value:"TempCabinetTopBox"},
+        {text: "Temp Nacelle" , value:"TempNacelle"},
+        {text: "Voltage L1" , value:"VoltageL1"},
+        {text: "Voltage L2" , value:"VoltageL2"},
+        {text: "Voltage L3" , value:"VoltageL3"},
+        {text: "Blade Voltage V1" , value:"PitchAccuV1"},
+        {text: "Blade Voltage V2" , value:"PitchAccuV2"},
+        {text: "Blade Voltage V3" , value:"PitchAccuV3"},   
     ]);
 } else if (pageType == "HFD"){
     vm.currentMenu('Analysis');
@@ -521,7 +560,6 @@ pg.getDataStockChart = function(param){
     if(fa.LoadData()) {
         // if (param == "refresh") {
         $("#modalDetail").modal("hide");
-        pg.dataType("MIN");
         // }
         app.loading(true);
         clearInterval(interval);
@@ -589,6 +627,16 @@ pg.getDataStockChart = function(param){
         var dateStart = fa.dateStart; 
         var dateEnd = fa.dateEnd;
         
+        var hours = Math.abs(dateEnd - dateStart) / 36e5;
+
+        // console.log("hours: "+hours);
+
+        if (hours <= defaultHour) {
+            pg.dataType("SEC");
+        }else{
+            pg.dataType("MIN");
+        }
+
         var paramX = {
             period: fa.period,
             Turbine: turbine,

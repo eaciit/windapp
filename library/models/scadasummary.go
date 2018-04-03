@@ -138,6 +138,7 @@ type ScadaSummaryDaily struct {
 	TotalMinutes       int
 	DetWindSpeed       DetailWindSpeed
 	TotalRows          float64
+	LoWindTime         float64
 }
 
 func (m *ScadaSummaryDaily) New() *ScadaSummaryDaily {

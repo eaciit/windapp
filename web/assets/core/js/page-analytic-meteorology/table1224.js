@@ -360,21 +360,15 @@ tb.Table = function(){
             });
 
 
-            var req2 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/graph1224", {Turbine: fa.turbine(),Project: fa.project,Data : "turbine"}, function (res) {
+            var req2 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/graph1224", {Turbine: fa.turbine(),Project: fa.project}, function (res) {
                 if (!app.isFine(res)) {
                     return;
                 }
-                tb.dataSourceGraphTurbine(res.data);
+                tb.dataSourceGraphTurbine(res.data.DataTurbine);
+                tb.dataSourceGraphMetTower(res.data.DataMet);
             });
 
-            var req3 = toolkit.ajaxPost(viewModel.appName + "analyticmeteorology/graph1224", {Turbine: fa.turbine(),Project: fa.project,Data : "mettower"}, function (res) {
-                if (!app.isFine(res)) {
-                    return;
-                }
-                tb.dataSourceGraphMetTower(res.data);
-            });
-
-            $.when(req1, req2, req3).done(function(){
+            $.when(req1, req2).done(function(){
                 if($("#gridDineural").is(':checked')) {
                     tb.generateGridTable(datatype);
                 } else {

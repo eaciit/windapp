@@ -14,12 +14,10 @@ import (
 	"github.com/eaciit/toolkit"
 
 	. "eaciit/wfdemo-git/library/core"
-	"sync"
 )
 
 type LoginController struct {
 	App
-	mux sync.RWMutex
 }
 
 type Availdatedata struct {
@@ -54,7 +52,9 @@ func (l *LoginController) CheckCurrentSession(r *knot.WebContext) interface{} {
 
 	if !acl.IsSessionIDActive(toolkit.ToString(sessionid)) {
 		toolkit.Printf(">> CheckCurrentSession - notactive: %#v \v", sessionid)
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "")
+		AppMuxSync.Unlock()
 		return helper.CreateResult(false, false, "inactive")
 	}
 	return helper.CreateResult(true, true, "active")
@@ -157,8 +157,6 @@ func (l *LoginController) GetUserName(r *knot.WebContext) interface{} {
 func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
-
 	if r.Session("keyRealtime", "") == "58e4931965d1041094641f0f" {
 		MenuList = []string{}
 		credentials := toolkit.M{"username": "realtime", "password": "realtime@1234"}
@@ -168,18 +166,12 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 		}
 
 		WriteLog(sessid, "realtime login", r.Request.URL.String())
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", sessid)
 		r.SetSession("menus", menus)
-		l.mux.Lock()
 		helper.WC = r
-		l.mux.Unlock()
+		AppMuxSync.Unlock()
 		MenuList = menus
-
-		datePeriod := getLastAvailDate()
-		r.SetSession("availdate", datePeriod)
-
-		lastDateData = datePeriod.ScadaData[1].UTC()
-		r.SetSession("lastdate_data", lastDateData)
 
 		data := toolkit.M{
 			"status":    true,
@@ -195,8 +187,6 @@ func (l *LoginController) LoginRealtime(r *knot.WebContext) interface{} {
 func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputJson
 
-	lastDateData, _ := time.Parse("2006-01-02 15:04", "2016-10-31 23:59")
-
 	payload := toolkit.M{}
 	if err := r.GetPayload(&payload); err != nil {
 		return helper.CreateResult(false, "", err.Error())
@@ -210,22 +200,12 @@ func (l *LoginController) ProcessLogin(r *knot.WebContext) interface{} {
 	// log.Printf("sessid: %v \n", sessid)
 
 	WriteLog(sessid, "login", r.Request.URL.String())
+	AppMuxSync.Lock()
 	r.SetSession("sessionid", sessid)
 	r.SetSession("menus", menus)
-	l.mux.Lock()
 	helper.WC = r
-	l.mux.Unlock()
+	AppMuxSync.Unlock()
 	MenuList = menus
-
-	// Get Available Date All Collection
-	datePeriod := getLastAvailDate()
-	r.SetSession("availdate", datePeriod)
-	// r.SetSession("availdateall", getLastAvailDateAll())
-
-	// log.Printf("availdate: %v \n", r.Session("availdate", ""))
-
-	lastDateData = datePeriod.ScadaData[1].UTC()
-	r.SetSession("lastdate_data", lastDateData)
 
 	data := toolkit.M{
 		"status":    true,
@@ -243,7 +223,9 @@ func (l *LoginController) Logout(r *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, err.Error())
 	}
 	WriteLog(r.Session("sessionid", ""), "logout", r.Request.URL.String())
+	AppMuxSync.Lock()
 	r.SetSession("sessionid", "")
+	AppMuxSync.Unlock()
 
 	return helper.CreateResult(true, nil, "Logout Success")
 }
@@ -296,6 +278,10 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 	return helper.CreateResult(true, result, "Authenticate Success")
 }
 
+func GetLastDateData() (result time.Time) {
+	return getLastAvailDate().ScadaData[1].UTC()
+}
+
 func getLastAvailDate() *Availdatedata {
 	latestDataPeriods := make([]LatestDataPeriod, 0)
 	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
@@ -313,25 +299,26 @@ func getLastAvailDate() *Availdatedata {
 	datePeriod := new(Availdatedata)
 	xdp := reflect.ValueOf(datePeriod).Elem()
 	for _, d := range latestDataPeriods {
-
 		for i, tval := range d.Data {
 			d.Data[i] = tval.UTC()
 		}
 
-		f := xdp.FieldByName(d.Type)
-		if f.IsValid() {
-			if f.CanSet() {
-				if f.Len() > 0 {
+		f := xdp.FieldByName(d.Type) /* field struct */
+		if f.IsValid() {             /* apakah field tsb ada */
+			if f.CanSet() { /* apakah field tsb bisa di overwrite */
+				if f.Len() > 0 { /* jika sudah ada datanya */
 					if f.Len() == 2 {
+						/* jika start date sekarang lebih kecil dari start date tersimpan maka set dengan start date sekarang */
 						if (d.Data[0].Sub(f.Index(0).Interface().(time.Time)) < 0 && d.Data[0].Year() > 1) ||
 							f.Index(0).Interface().(time.Time).Year() == 1 {
 							f.Index(0).Set(reflect.ValueOf(d.Data[0]))
 						}
+						/* jika end date sekarang lebih besar dari end date tersimpan maka set dengan end date sekarang */
 						if d.Data[1].Sub(f.Index(1).Interface().(time.Time)) > 0 {
 							f.Index(1).Set(reflect.ValueOf(d.Data[1]))
 						}
 					}
-				} else {
+				} else { /* jika belum ada datanya */
 					f.Set(reflect.ValueOf(d.Data))
 				}
 			}

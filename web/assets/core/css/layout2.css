@@ -802,7 +802,7 @@ label.control-label {
 }
 
 .nav.nav-tabs li {
-    margin-right: 10px;
+    margin-right: 0px;
 }
 
 .nav.nav-tabs li.active {}
@@ -1148,4 +1148,8 @@ a:active, a:focus, a:hover {
     box-shadow: 5px 5px 5px -3px rgba(0,0,0,0.15);
     border-color: #eee;
     box-sizing: border-box;
+}
+
+.k-grid-content table tbody tr:last-child td {
+    border-bottom: 1px solid #f1f3f4;
 }

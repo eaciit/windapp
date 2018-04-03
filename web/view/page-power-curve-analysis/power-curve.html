@@ -1,0 +1,124 @@
+<script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/power-curve.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/power-curve.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+
+<script id="legendItemTemplate" type="text/kendo">
+    <span class="legend-item">
+        <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+        <span>#:name#</span>
+    </span>
+</script>
+<div class="pc-wrapper">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="text-center">
+                <div class="btn-group" data-toggle="buttons" style="z-index: 10;">
+                    <label class="btn btn-sm btn-primary active radio-filter"><input type="radio" name="pc-type" id="pc-sitespesific" autocomplete="off" value="Spesific" checked>Site Specific</label>
+                    <label class="btn btn-sm btn-primary radio-filter"><input type="radio" name="pc-type" id="pc-standardpc" autocomplete="off" value="true">Standard Power Curve</label>
+                </div>
+            </div>
+            <div class="filters">
+                <div class="tools pull-right btn-pdf">
+                    <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){pc.PowerCurveExporttoExcel('Power Curve', false, false)}">
+                        <i class="fa fa-file-excel-o" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){pc.getPDF('.div-temp-pc', false)}">
+                        <i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="tools btn-group pull-right hidden">
+                  <button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-search"></i> &nbsp;Filter &nbsp;<span class="caret"></span>
+                  </button>
+                </div>
+            </div>
+            <div class="div-temp-pc">
+                <div class="panel-heading template-pdf">
+                    <img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand" style="margin-top: 15px;"/>&nbsp;<h4>Energy</h4>
+                    <div class="col-md-12 text-center title-pdf">
+                        <span data-bind="text:pc.project()"></span> | <span data-bind="text:pc.dateStart()"></span> until <span data-bind="text:pc.dateEnd()"></span><br>
+                        <span data-bind="text: (pc.chartType() == 'line' ? 'Site Specific' : 'Standard Power Curve')"></span>
+                    </div>
+                </div>
+                <div class="power-curve-chart">
+                    <div id="airdensity_info">
+                        <span data-bind="html: (pc.isSpecific()?'Site ':'Std ') + 'AD : <b>' + (pc.isSpecific()?pc.ss_airdensity():pc.std_airdensity()) + '</b>'"></span>
+                    </div>
+                    <div id="dataavail_info">
+                        <span data-bind="html: 'Sample Data Av : <b>' + kendo.toString(pc.dataAvail(), 'p1') + '</b>'"></span>
+                    </div>
+                    <div id="totaldataavail_info">
+                        <span data-bind="html: 'Total Data Av : <b>' + kendo.toString(pc.totalAvail(), 'p1') + '</b>'"></span>
+                    </div>
+                    <div id="pc-chart"></div>
+                    <script id="legendItemTemplate" type="text/kendo">
+                        <span class="legend-item">
+                            <span class="legend-marker" data-bind="style:{background: markerColor}"></span>
+                            <span>#:name#</span>
+                         </span>
+                    </script>
+                    <div data-bind="source:series" data-template="legendItemTemplate" id="legend"></div>
+                </div>
+            </div>
+            <!-- <div id="pc-chart"></div> -->
+            <div class="pc-selected-filter">
+                <div class="text-center">
+                    <span>Selected Filter : <strong><span id="pc-selected-filter" data-bind="text: pc.selectedFilter"></span></strong></span>
+                </div>
+                <div class="text-center">
+                    <ul class="list-inline" id="filter-power-curve">
+                        <li class="keep-open">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="pc-is-valid" value="Valid" name="filter" checked>
+                                    <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                    <span ><b class="colBlack">Valid</b></span>
+                                </label>
+                            </div>
+                        </li>
+                        <li class="keep-open">
+                            <div class="form-inline form-group deviation-wrapper">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-is-deviation" name="filter" value="Deviation" checked>
+                                        <span class="cr deviation-cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span ><b class="colBlack">For Deviation</b></span>
+                                    </label>
+                                </div>
+                                <select id="pc-deviation-opr" class="form-control input-xs sel-deviation" data-bind="options:pc.deviationOpts,optionsText:'text',optionsValue:'value',value:pc.deviationOpr"></select>
+                                <input type="number" id="pc-deviation-value" class="form-control input-xs txt-deviation" onchange="page.CheckDeviationValue(this); pc.refresh();" data-bind="value:pc.deviationVal">
+                                &nbsp;<span><b class="colBlack">%</b></span>
+                            </div>
+                        </li>
+                        <li class="keep-open">
+                            <div class="form-inline form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-show-scatter" name="pc-shows" value="Scatter" >
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="colRed"><b class="colBlack">Show Scatter</b> *) max 3 turbines can selected</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="keep-open hidden" id="pc-filter-downtime">
+                            <div class="form-inline form-group">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="pc-show-downtime" name="pc-shows" value="Downtime">
+                                        <span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+                                        <span class="colRed"><b class="colBlack">Show Downtime</b></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="checkbox" id="pc-show-hide-check"></div>
+            <div class="col-md-12 col-sm-12 turList" id="pc-right-turbine-list"></div>
+            <div data-bind="source: series" data-template="legendItemTemplate" id="pc-legend"></div>
+        </div>
+    </div>
+</div>

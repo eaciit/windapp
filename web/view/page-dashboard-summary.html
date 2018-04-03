@@ -1,4 +1,4 @@
-<script src="{{BaseUrl}}res/core/js/page-dashboard-summary.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-dashboard-summary.js?ANTI_CACHE={{.AntiCache}}&v=1.0.1"></script>
 <style type="text/css">
 	.drilldown-custom{
 		 margin-bottom: -10px;
@@ -161,7 +161,7 @@
 		<div class="col-md-6 col-sm-6 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-					Cumulative Production (GWh) - Month to Date
+					Cumulative Production (MWh) - Month to Date
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
                           <label class="btn btn-primary btn-xs" onclick="$('#chartCumProduction').kendoChart2Grid('n1','dd-MMM-yyyy')">
@@ -203,7 +203,7 @@
 		<div class="col-md-6 col-sm-6 hardcore landing">
 			<div class="panel ez no-padding hardcore">
 				<div class="panel-heading">
-				Lost Energy (GWh) - Last 12 Months
+				<span data-bind="text: lgd.projectName() == 'Fleet' ? 'Lost Energy (GWh) - Last 12 Months' : 'Lost Energy (MWh) - Last 12 Months'"></span>
 				<span class="tools pull-right">
 					 <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Shows Lost Energy"></i>
                       <div class="btn-group" data-toggle="buttons">
@@ -268,7 +268,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing" data-bind="visible:lgd.projectName() != 'Fleet'">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
-					Controller Generation (GWh) - Last 12 Months
+					Controller Generation (MWh) - Last 12 Months
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
                           <label class="btn btn-primary btn-xs" onclick="$('#chartProdMonth').kendoChart2Grid('n2')">
@@ -396,7 +396,7 @@
 			<div class="col-md-4 col-sm-4 hardcore landing">
 				<div class="panel ez no-padding hardcore prod-div">
 					<div class="panel-heading">
-					Controller Generation (GWh) - Current Year & Last Year
+					Controller Generation (MWh) - Current Year & Last Year
 					<span class="tools pull-right">
                       <div class="btn-group" data-toggle="buttons">
                           <label class="btn btn-primary btn-xs" onclick="$('#chartCurrLast').kendoChart2Grid('n2')">

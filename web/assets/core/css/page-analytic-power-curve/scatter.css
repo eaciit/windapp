@@ -8,6 +8,14 @@
     margin-right: 20px;
     cursor:pointer
 }
+.ExportTo{
+    cursor: pointer;
+    margin-left: 2px !important;
+}
+.btn-pdf{
+    margin-top: -30px !important;
+    margin-right: 20px !important;
+}
 
 @media(max-width: 991px){
     .fa-file-pdf-o{
@@ -15,6 +23,9 @@
     }
     .Epdf {
         margin-right: 10px;
+    }
+    .ExportTo {
+        margin-right: 2px;
     }
 }
 

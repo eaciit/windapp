@@ -33,6 +33,7 @@ func main() {
 	if e != nil {
 		log.AddLog(e.Error(), sError)
 	}
+	defer ctx.Close()
 
 	csrTag, e := ctx.NewQuery().From("ref_databrowsertag").
 		Select("realtimefield").
@@ -121,6 +122,7 @@ func main() {
 					if e != nil {
 						log.AddLog(e.Error(), sError)
 					}
+					defer ctxWorker.Close()
 					csrSave := ctxWorker.NewQuery().From("DatabrowserHFD").SetConfig("multiexec", true).Save()
 					defer csrSave.Close()
 					for data := range chanData {

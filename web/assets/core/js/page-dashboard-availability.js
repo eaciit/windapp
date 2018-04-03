@@ -573,7 +573,7 @@ avail.DTLostEnergy = function (dataSource) {
             visible: true,
             format: "{0:n1}",
             // template : "#: series.name # for #: category # : #:  kendo.toString(value, 'n0') #",
-            // sharedTemplate: kendo.template($("#templateDowntimeLostEnergy").html()),
+            sharedTemplate: kendo.template($("#templateDowntimeLostEnergy").html()),
             background: "rgb(255,255,255, 0.9)",
             shared: true,
             color: "#58666e",

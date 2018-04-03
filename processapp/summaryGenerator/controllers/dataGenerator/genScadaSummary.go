@@ -775,6 +775,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Set("avgwindspeed", tk.M{}.Set("$avg", "$avgwindspeed")).
 					Set("sumwindspeed", tk.M{}.Set("$sum", "$avgwindspeed")).
 					Set("countwindspeed", tk.M{}.Set("$sum", countws)).
+					Set("sumlowindtime", tk.M{}.Set("$sum", "$lowindtime")).
 					Set("totalrows", tk.M{}.Set("$sum", 1))))
 
 				pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
@@ -827,6 +828,9 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					dt.Revenue = power * revenueMultiplier
 					dt.RevenueInLacs = tk.Div(dt.Revenue, revenueDividerInLacs)
 					dt = dt.New()
+
+					//LackOfWind
+					dt.LoWindTime = data.GetFloat64("sumlowindtime")
 
 					//only using valid data
 					dt.PCDeviation = _ValidPCDev.GetFloat64(dt.ID)
@@ -1128,7 +1132,8 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 			os.Exit(0)
 		}
 
-		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
+		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
+		arrScadaSummaryByProject := make([]*ScadaSummaryByProject, 0)
 
 		for _, v := range d.BaseController.ProjectList {
 			var turbineList []TurbineOut
@@ -1236,6 +1241,12 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 			mdl.DataItems = items
 
+			// d.BaseController.Ctx.Insert(mdl)
+			arrScadaSummaryByProject = append(arrScadaSummaryByProject, mdl)
+		}
+
+		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
+		for _, mdl := range arrScadaSummaryByProject {
 			d.BaseController.Ctx.Insert(mdl)
 		}
 	}
@@ -1292,8 +1303,9 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 			reffexpectedws.Set(_tkm.GetString("_id"), _tkm.GetFloat64("value"))
 		}
 
-		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
-
+		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
+		// ScadaSummaryByMonth
+		arrScadaSummaryByMonth := make([]*ScadaSummaryByMonth, 0)
 		for _, v := range d.BaseController.ProjectList {
 			project := v.Value
 
@@ -1417,11 +1429,17 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				mdl.RevenueLoss = (data.GetFloat64("totalenergylost") * revenueTimes)
 
 				if mdl != nil {
-					d.BaseController.Ctx.Insert(mdl)
+					// d.BaseController.Ctx.Insert(mdl)
+					arrScadaSummaryByMonth = append(arrScadaSummaryByMonth, mdl)
 				}
 
 			}
 
+		}
+
+		d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByMonth), dbox.Ne("projectname", ""))
+		for _, mdl := range arrScadaSummaryByMonth {
+			d.BaseController.Ctx.Insert(mdl)
 		}
 
 	}

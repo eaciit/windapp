@@ -1,4 +1,4 @@
-<script src="{{BaseUrl}}res/core/js/page-dashboard-production.js?ANTI_CACHE={{.AntiCache}}"></script>
+<script src="{{BaseUrl}}res/core/js/page-dashboard-production.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
 
 <div data-bind="visible:lgd.isProduction">
 	<div class="col-md-12 col-sm-12">
@@ -25,6 +25,11 @@
 						<br/>
 						<span id="prodDateRangeStr" data-bind="text: prod.prodDateRangeStr"></span>
 					</center>
+				    <div class="col-sm-12">
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Excel" data-bind="click:function(){prod.getExcelGrid();}"><i class="fa fa-file-excel-o" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
 					<div class="clearfix">&nbsp;</div>
 					<div id="productionGrid"></div>
 					<div class="clearfix">&nbsp;</div>

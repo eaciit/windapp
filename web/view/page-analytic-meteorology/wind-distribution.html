@@ -1,5 +1,11 @@
 <script src="{{BaseUrl}}res/core/js/page-analytic-meteorology/wind-distribution.js?ANTI_CACHE={{.AntiCache}}"></script>
-<div class="col-md-9">
+<style type="text/css">
+	.wind-dist-chart circle {
+		r: 4;
+	}
+</style>
+
+<div class="col-md-8">
 	<div class="tools btn-group pull-right btn-pdf">
 		<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){wd.getPDF('.div-windis')}">
 	    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
@@ -12,7 +18,7 @@
 				<span data-bind="text:wd.project()"></span> | Wind Distribution | <span data-bind="text:wd.dateStart()"></span> until <span data-bind="text:wd.dateEnd()"></span><br>
 			</div>
 		</div>
-		<div class="windrose-comp-chart">
+		<div class="wind-dist-chart">
 			<div id="windDistribution" class="windrose-item-comparison"></div>
 			<script id="legendItemTemplate" type="text/kendo">
 		    	<span class="legend-windis">
@@ -26,7 +32,7 @@
 	<div class="clearfix">&nbsp;</div>
 	<div class="clearfix">&nbsp;</div>
 </div>
-<div class="col-md-3 turList">
+<div class="col-md-4 turList">
 	<!-- <div class="panel-heading custom-header">Turbine List &nbsp; <i class="fa fa-question-circle tooltipster tooltipstered" aria-hidden="true" title="Click the button to show detail"></i></div> -->
 	<div class="clearfix">&nbsp;</div>
 	<div class="checkbox" id="showHideChk"></div>

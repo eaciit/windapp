@@ -9,6 +9,10 @@ page.dataAvail = ko.observable();
 page.project = ko.observable();
 page.dateStart = ko.observable();
 page.dateEnd = ko.observable();
+page.LastFilter;
+page.TableName;
+page.FieldList;
+page.ContentFilter;
 
 var listOfChart = [];
 var listOfButton = {};
@@ -92,6 +96,45 @@ page.showHideLegend = function (index) {
     });
 }
 
+page.PowerCurveExporttoExcel = function(tipe, isSplittedSheet, isMultipleProject) {
+    app.loading(true);
+    var namaFile = tipe;
+    if (!isSplittedSheet) {
+        namaFile = fa.project + " " + tipe;
+    }
+
+    var param = {
+        Filters: page.LastFilter,
+        FieldList: page.FieldList,
+        Tablename: page.TableName,
+        TypeExcel: namaFile,
+        ContentFilter: page.ContentFilter,
+        IsSplittedSheet: isSplittedSheet,
+        IsMultipleProject: isMultipleProject,
+    };
+    if (tipe.indexOf("Details") > 0) {
+        var param = {
+            Filters: page.LastFilterDetails,
+            FieldList: page.FieldListDetails,
+            Tablename: page.TableNameDetails,
+            TypeExcel: namaFile,
+            ContentFilter: page.ContentFilterDetails,
+            IsSplittedSheet: isSplittedSheet,
+            IsMultipleProject: isMultipleProject,
+        };
+    }
+
+    var urlName = viewModel.appName + "analyticpowercurve/genexcelpowercurve";
+    app.ajaxPost(urlName, param, function(res) {
+        if (!app.isFine(res)) {
+            app.loading(false);
+            return;
+        }
+        window.location = viewModel.appName + "/".concat(res.data);
+        app.loading(false);
+    });
+}
+
 page.LoadData = function() {
     app.loading(true);
     setTimeout(function () {
@@ -106,6 +149,10 @@ page.LoadData = function() {
                 app.loading(false);
                 return;
             }
+            page.LastFilter = res.data.LastFilter;
+            page.FieldList = res.data.FieldList;
+            page.TableName = res.data.TableName;
+            page.ContentFilter = res.data.ContentFilter;
             if (res.data.Data != null) {
                 page.dataPCEachTurbine(_.sortBy(res.data.Data, 'Name'));
                 page.InitLinePowerCurve();

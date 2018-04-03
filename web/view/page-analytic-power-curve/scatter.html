@@ -24,8 +24,11 @@
 					<div class="clearfix">&nbsp;</div>
 
 					<div class="col-md-9 scatter">
-						<div class="tools btn-group pull-right btn-pdf">
-							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered Epdf" title="Export to Pdf" data-bind="click:function(){page.getPDF('.scatter-chart')}">
+						<div class="tools pull-right btn-pdf">
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){page.PowerCurveExporttoExcel('Scatter', false, false)}">
+						    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+						  	</button>
+							<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){page.getPDF('.scatter-chart')}">
 						    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
 						  	</button>
 						</div>
@@ -44,8 +47,8 @@
 					<div class="col-md-3">
 						<div class="scatter-chart">
 							<div class="scatter-comparison">
-								<span><label class="label-scatter">Scatter Comparison</label></span>
-								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'value', dataTextField: 'text', suggest: true, change: function(){page.refreshChart()} }">
+								<span><label class="label-scatter">Plot With</label></span>
+								<select class="scatter-type" id="scatterType" name="table" data-bind="kendoDropDownList: { data: page.scatterList, dataValueField: 'Name', dataTextField: 'Name', suggest: true, change: function(){page.refreshChart()} }">
 		                </select>
 							</div>
 						</div>

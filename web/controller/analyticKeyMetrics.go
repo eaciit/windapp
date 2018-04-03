@@ -23,6 +23,7 @@ func CreateAnalyticKeyMetricsController() *AnalyticKeyMetrics {
 
 func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
 	tNow := getTimeNow()
+	result := 0.0
 	for yearDay, data := range monthDay {
 		days := data.(tk.M).GetFloat64("days")
 		if tk.ToInt(yearDay[0:4], tk.RoundingAuto) == tNow.Year() &&
@@ -31,11 +32,18 @@ func checkPValue(monthDay tk.M, value float64, monthno int) float64 {
 			days = float64(tNow.Day())
 		}
 		totalInMonth := data.(tk.M).GetFloat64("totalInMonth")
-		if tk.ToInt(yearDay[4:], tk.RoundingAuto) == monthno {
-			return value / totalInMonth * days
+		if tk.ToInt(yearDay[4:], tk.RoundingAuto) == monthno { /* hanya bulan yang dimaksud yang di return */
+			hasil := value / totalInMonth * days
+			/*
+				untuk menghindari jika lintas tahun memiliki bulan yang sama,
+				yang diambil value dari bulan yang paling sedikit harinya
+			*/
+			if hasil < result || result == 0.0 {
+				result = hasil
+			}
 		}
 	}
-	return 0.0
+	return result
 }
 
 func getHourMinute(tStart, tEnd, minDate, maxDate time.Time, minute float64) (hourValue, minutes float64) {
@@ -103,7 +111,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 
 	categories := []string{}
 
-	var maxKey1, maxKey2, minKey2 float64
+	var maxKey1, maxKey2 float64
 	catTitle := ""
 	start, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[0].Value.(string))
 	end, _ := time.Parse("2006-01-02T15:04:05.000Z", p.Filter.Filters[1].Value.(string))
@@ -119,56 +127,113 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 	durationMonths, months, monthDay := helper.GetDurationInMonth(tStart, tEnd)
 	monthList := tk.M{}
 	measurement := ""
+	measurementList := []string{}
 	// totalData := 0
 	listOfYears := []int{}
-	listOfCategories := map[string][]string{}
-	listOfCatTitles := map[string]string{}
+	listOfMonthPVal := []int{}              /* isinya list bulan dengan format [1 2 3 4 5, dst]*/
+	listOfMonths := []int{}                 /* isinya list bulan dengan format [201801 201802 201803 dst] */
+	listMonthPerYearPVal := map[int][]int{} /* isinya list bulan per tahun map[2017][11 12] map[2018][1 2 3] */
+	/* loop ini hanya untuk mengisi variabel listOfYears sampai listMonthPerYearPVal dan categories month */
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
 		listOfYears = append(listOfYears, i)
+
+		if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+			if i == tEnd.Year() {
+				if tStart.Year()-tEnd.Year() == 0 {
+					for j := int(tStart.Month()); j <= int(tEnd.Month()); j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
+				} else {
+					for j := 1; j <= int(tEnd.Month()); j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
+				}
+			} else {
+				if i == tStart.Year() {
+					for j := int(tStart.Month()); j <= 12; j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
+				} else {
+					for j := 1; j <= 12; j++ {
+						listOfMonthPVal = append(listOfMonthPVal, j)
+						listOfMonths = append(listOfMonths, (i*100)+j)
+						listMonthPerYearPVal[i] = append(listMonthPerYearPVal[i], j)
+						categories = append(categories, tk.Sprintf("%s %s", time.Month(j).String()[0:3], tk.ToString(i)[2:]))
+					}
+				}
+			}
+		}
 	}
 	// totalTurbine := 1.0
 	// if !strings.Contains(breakDown, "turbine") {
 	totalTurbine := tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
+	totalTurbinePValue := tk.ToFloat64(len(turbineList), 0, tk.RoundingAuto)
 	// }
 	isExpPValue := false
-	
+	monthAccumulateVal := map[int]float64{}
+	monthAccumPVal := map[int]float64{}
+
 	for i, key := range keys {
+		monthAccumulateVal = map[int]float64{}
+		monthAccumPVal = map[int]float64{}
 		list = []tk.M{}
 		series := tk.M{}
+
+		if !strings.Contains(breakDown, "monthid") {
+			categories = []string{} /* reset categories content for second key */
+		}
 		if tk.HasMember(keyList, key) {
 			csrPValue, e := DB().Connection.NewQuery().
 				From(new(ExpPValueModel).TableName()).
 				Where(dbox.And(dbox.In("monthno", months...), dbox.Eq("projectname", projectName))).
 				Cursor(nil)
+
+			defer csrPValue.Close()
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
+
 			e = csrPValue.Fetch(&list, 0, false)
 			// add by ams, 2016-10-07
-			csrPValue.Close()
 			if e != nil {
 				return helper.CreateResult(false, nil, e.Error())
 			}
 			isExpPValue = true
-		}else if key == "DGR"{
+			/* rawan duplicate makanya taruh sini karena langsung looping all turbine bukan satu per satu */
+			if strings.Contains(breakDown, "turbine") {
+				temp := p.Filter.Filters[2].Value.([]interface{})
+				for _, turbine := range temp {
+					categories = append(categories, turbine.(string))
+				}
+			}
+		} else if key == "DGR" {
 			dateClause := tk.M{
-				"$gte" : tStart,
-				"$lte" : tEnd,
+				"$gte": tStart,
+				"$lte": tEnd,
 			}
 			matchClause := tk.M{}
 			matchClause.Set("dateinfo.dateid", dateClause)
-			matchClause.Set("turbine", tk.M{"$in" : turbines})
+			matchClause.Set("turbine", tk.M{"$in": turbines})
 			matchClause.Set("chosensite", projectName)
 			groupClause := tk.M{}
-			groupClause.Set("_id",  p.Misc.GetString("breakdown"))
+			groupClause.Set("_id", p.Misc.GetString("breakdown"))
 			groupClause.Set("total", tk.M{"$sum": "$genkwhday"})
 			sortClause := tk.M{
-				"_id" : 1,
+				"_id": 1,
 			}
 			pipes := []tk.M{}
-			pipes = append(pipes, tk.M{"$match" : matchClause})
-			pipes = append(pipes, tk.M{"$group" : groupClause})
-			pipes = append(pipes, tk.M{"$sort" : sortClause})
+			pipes = append(pipes, tk.M{"$match": matchClause})
+			pipes = append(pipes, tk.M{"$group": groupClause})
+			pipes = append(pipes, tk.M{"$sort": sortClause})
 
 			csr, e := DB().Connection.NewQuery().
 				From(new(DGRModel).TableName()).
@@ -189,7 +254,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			// 	tmp = append(tmp, tk.Div(res.GetFloat64("total"), 1000))
 			// }
 			// series.Set("data", tmp)
-			isExpPValue = true		
+			isExpPValue = true
 		} else {
 			p.Misc.Set("knot_data", k)
 			filter, e := p.ParseFilter()
@@ -245,7 +310,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			isExpPValue = false
 			// tk.Printf("breakDown : %s \n", breakDown)
 		}
-		
+
 		measurement = "%"
 		if i == 0 {
 			series.Set("name", key)
@@ -256,6 +321,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 				measurement = "MWh"
 			}
 			series.Set("satuan", measurement)
+			measurementList = append(measurementList, measurement)
 		} else {
 			series.Set("name", key)
 			series.Set("type", "line")
@@ -263,17 +329,15 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			series.Set("markers", tk.M{"visible": false})
 			series.Set("width", 2)
 			series.Set("axis", "Key2")
-			minKey2 = 100.00
 			if key == "Actual Production" || strings.Contains(key, "Generation") || key == "DGR" {
-				minKey2 = 99999999.99
 				measurement = "MWh"
 			}
 			series.Set("satuan", measurement)
+			measurementList = append(measurementList, measurement)
 		}
 
 		var datas []float64
 		var values float64
-		categories = []string{}
 		for listCount, val := range list {
 			var hourValue float64
 			if !isExpPValue {
@@ -296,6 +360,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			val.Set("noofturbine", totalTurbine)
 			val.Set("energy", val.GetFloat64("powerkw")/6/1000)
 			val.Set("totalcapacity", plfDivider)
+			val.Set("oktime", tk.Div(val.GetFloat64("oktime"), 3600.0))
 
 			// machineAvail, gridAvail, dataAvail, trueAvail, plf := helper.GetAvailAndPLF(totalTurbine, oktime, energy, mDownTime, gDownTime, sumTimeStamp, hourValue, minutes, plfDivider)
 			availPLF := helper.CalcAvailabilityAndPLF(val)
@@ -305,28 +370,108 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			switch key {
 			case "Machine Availability":
 				values = availPLF.GetFloat64("machineavailability") //tk.Div((minutes-(val.GetFloat64("machinedowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "Grid Availability":
 				values = availPLF.GetFloat64("gridavailability") //tk.Div((minutes-(val.GetFloat64("griddowntime")/3600.0)), (totalTurbine*hourValue)) * 100 /*percentage*/
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "Total Availability":
 				values = availPLF.GetFloat64("totalavailability") //tk.Div((val.GetFloat64("oktime")/3600), (totalTurbine*hourValue)) * 100
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "Data Availability":
 				values = availPLF.GetFloat64("dataavailability") //tk.Div((tk.ToFloat64((val.GetInt("countdata")*10/60), 6, tk.RoundingAuto)), (hourValue*totalTurbine)) * 100
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "Actual PLF":
 				values = availPLF.GetFloat64("plf") //tk.Div((val.GetFloat64("energy")/1000), (hourValue*2.1*totalTurbine)) * 100
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "Actual Production":
 				values = val.GetFloat64("powerkw") / 6 / 1000 /*MWh*/
+				if strings.Contains(breakDown, "monthid") {
+					ids := val.Get("_id", tk.M{}).(tk.M)
+					monthAccumulateVal[ids.GetInt("id1")] = values
+				}
 			case "P50 Generation":
-				values += checkPValue(monthDay, val.GetFloat64("p50netgenmwh"), val.GetInt("monthno"))
+				value := checkPValue(monthDay, val.GetFloat64("p50netgenmwh"), val.GetInt("monthno"))
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p50netgenmwh")
+				}
 			case "P50 PLF":
-				values += val.GetFloat64("p50plf")
+				// values += val.GetFloat64("p50plf") * 100
+				value := val.GetFloat64("p50plf") * 100
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+				}
 			case "P75 Generation":
-				values += checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
+				// values += checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
+				value := checkPValue(monthDay, val.GetFloat64("p75netgenmwh"), val.GetInt("monthno"))
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p75netgenmwh")
+				}
 			case "P75 PLF":
-				values += val.GetFloat64("p75plf")
+				// values += val.GetFloat64("p75plf") * 100
+				value := val.GetFloat64("p75plf") * 100
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+				}
 			case "P90 Generation":
-				values += checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
+				// values += checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
+				value := checkPValue(monthDay, val.GetFloat64("p90netgenmwh"), val.GetInt("monthno"))
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+					monthAccumPVal[val.GetInt("monthno")] = val.GetFloat64("p90netgenmwh")
+				}
 			case "P90 PLF":
-				values += val.GetFloat64("p90plf")
+				// values += val.GetFloat64("p90plf") * 100
+				value := val.GetFloat64("p90plf") * 100
+				if strings.Contains(breakDown, "dateid") || strings.Contains(breakDown, "monthid") { /* jika per hari maka akan berbeda nilai jika lintas bulan */
+					values = value
+				} else { /* jika selain per hari nilainya bisa di rata2 jika lintas bulan */
+					values += value
+				}
+				if strings.Contains(breakDown, "monthid") || strings.Contains(breakDown, "year") {
+					monthAccumulateVal[val.GetInt("monthno")] = value
+				}
 			case "DGR":
 				values = tk.Div(val.GetFloat64("total"), 1000)
 			}
@@ -338,33 +483,33 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 			/*p50netgen per day = (p50netgenmwh / jumlah hari dalam bulan tersebut) * jumlah hari periode
 			plf e => p50netgen per hari ne / ( 2.1 x jumlah hari periode x 24 x 24 )*/
 
-			datas = append(datas, tk.ToFloat64(values, 2, tk.RoundingAuto))
-			if i == 0 {
-				if values > maxKey1 {
-					maxKey1 = values
-				}
-			} else {
-				if values > maxKey2 {
-					maxKey2 = values
-				}
-				if values < minKey2 {
-					minKey2 = values
+			if !isExpPValue {
+				datas = append(datas, tk.ToFloat64(values, 2, tk.RoundingAuto))
+				if !strings.Contains(breakDown, "monthid") {
+					if i == 0 {
+						if values > maxKey1 {
+							maxKey1 = values
+						}
+					} else {
+						if values > maxKey2 {
+							maxKey2 = values
+						}
+					}
 				}
 			}
 			if key == "DGR" {
-				continue	
+				continue
 			}
-				
 
 			if isExpPValue {
 				if strings.Contains(breakDown, "dateid") {
-					datas = []float64{}
-
+					jumCat := 0.0
 					if listCount == 0 { /*bulan pertama*/
 						catTitle = tStart.Month().String()
 						if len(list) == 1 { /*jika hanya 1 bulan*/
 							for iDate := startdate; iDate <= enddate; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
+								jumCat++
 							}
 							catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
 						} else { /*jika lebih dari 1 bulan*/
@@ -372,6 +517,7 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 							maxDays := monthDay.Get(tk.ToString(tStart.Year())+tk.ToString(month), tk.M{}).(tk.M).GetInt("totalInMonth")
 							for iDate := startdate; iDate <= maxDays; iDate++ {
 								categories = append(categories, tk.ToString(iDate))
+								jumCat++
 							}
 							if len(listOfYears) > 1 { /*jika cuma 1 tahun, lanjut ke berikutnya*/
 								catTitle += " " + tk.ToString(listOfYears[0]) /* Dec 2015*/
@@ -386,36 +532,65 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						}
 						for iDate := 1; iDate <= enddate; iDate++ {
 							categories = append(categories, tk.ToString(iDate))
+							jumCat++
 						}
-
 					}
-					jumCat := tk.ToFloat64(len(categories), 6, tk.RoundingAuto)
 					// tk.Printf("key : %s \n", key)
-					for iCat := range categories {
-						_ = iCat
+					for jc := 1.0; jc <= jumCat; jc++ {
 						if strings.Contains(key, "PLF") {
-							values = tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
 							datas = append(datas, values)
 
 							if i == 0 {
-								maxKey1 = values
+								if values > maxKey1 {
+									maxKey1 = values
+								}
 							} else {
-								maxKey2 = values
-								minKey2 = values
+								if values > maxKey2 {
+									maxKey2 = values
+								}
 							}
 						} else {
-							datas = append(datas, tk.Div(values, jumCat))
+							newData := tk.Div(values, jumCat)
+							datas = append(datas, newData)
 							if i == 0 {
-								maxKey1 = tk.Div(values, jumCat)
+								if newData > maxKey1 {
+									maxKey1 = newData
+								}
 							} else {
-								maxKey2 = tk.Div(values, jumCat)
-								minKey2 = tk.Div(values, jumCat)
+								if newData > maxKey2 {
+									maxKey2 = newData
+								}
 							}
 						}
 					}
 				} else if strings.Contains(breakDown, "monthid") {
-					categories = append(categories, time.Month(val.GetInt("monthno")).String())
+					if i == 0 { /* jika menjadi Key 1 saja */
+						categories = append(categories, time.Month(val.GetInt("monthno")).String())
+					}
 					catTitle = "Month"
+
+					if listCount == len(list)-1 {
+						for idx, monthSec := range listOfMonthPVal {
+							values = monthAccumulateVal[monthSec]
+							if strings.Contains(key, "Generation") {
+								diffYear := tEnd.Year() - ((listOfMonths[idx] - monthSec) / 100)
+								if diffYear > 0 {
+									values = monthAccumPVal[monthSec]
+								}
+							}
+
+							datas = append(datas, values)
+							if i == 0 {
+								if values > maxKey1 {
+									maxKey1 = values
+								}
+							} else {
+								if values > maxKey2 {
+									maxKey2 = values
+								}
+							}
+						}
+					}
 				} else if strings.Contains(breakDown, "year") {
 					if listCount == 0 {
 						for _, year := range listOfYears {
@@ -423,18 +598,78 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						}
 						catTitle = "Year"
 					}
+					if listCount == len(list)-1 { /* append hanya jika akumulasi terakhir saja */
+						for _, year := range listOfYears {
+							monthCumm := 0.0
+							listBulan := listMonthPerYearPVal[year] /* bulan apa aja untuk tahun ini */
+							for _, bulan := range listBulan {
+								monthCumm += monthAccumulateVal[bulan] /* total data per bulan selama 1 tahun */
+							}
+							if strings.Contains(key, "PLF") {
+								monthCumm = tk.Div(monthCumm, tk.ToFloat64(len(listBulan), 0, tk.RoundingAuto))
+							}
+
+							datas = append(datas, monthCumm)
+
+							if i == 0 {
+								if monthCumm > maxKey1 {
+									maxKey1 = monthCumm
+								}
+							} else {
+								if monthCumm > maxKey2 {
+									maxKey2 = monthCumm
+								}
+							}
+						}
+					}
 				} else if strings.Contains(breakDown, "project") {
 					categories = append(categories, projectName)
 					catTitle = "Project"
-				} else if strings.Contains(breakDown, "turbine") {
-					temp := p.Filter.Filters[2].Value.([]interface{})
-					for _, turbine := range temp {
-						categories = append(categories, turbine.(string))
+					if i == 0 {
+						if values > maxKey1 {
+							maxKey1 = values
+						}
+					} else {
+						if values > maxKey2 {
+							maxKey2 = values
+						}
 					}
+				} else if strings.Contains(breakDown, "turbine") {
 					catTitle = "Turbine"
+
+					jumCat := tk.ToFloat64(turbineCount, 0, tk.RoundingAuto)
+					turbineDiv := tk.ToFloat64(totalTurbinePValue, 0, tk.RoundingAuto)
+					if listCount == len(list)-1 {
+						for jc := 1.0; jc <= jumCat; jc++ {
+							if strings.Contains(key, "PLF") {
+								newValues := tk.Div(values, tk.ToFloat64(durationMonths, 0, tk.RoundingAuto))
+								datas = append(datas, newValues)
+								if i == 0 {
+									if newValues > maxKey1 {
+										maxKey1 = newValues
+									}
+								} else {
+									if newValues > maxKey2 {
+										maxKey2 = newValues
+									}
+								}
+							} else {
+								/* menggunakan values hasil akumulasi PER HARI */
+								newData := tk.Div(values, turbineDiv)
+								datas = append(datas, newData)
+								if i == 0 {
+									if newData > maxKey1 {
+										maxKey1 = newData
+									}
+								} else {
+									if newData > maxKey2 {
+										maxKey2 = newData
+									}
+								}
+							}
+						}
+					}
 				}
-				listOfCategories["pvalue"] = categories
-				listOfCatTitles["pvalue"] = catTitle
 			} else {
 				id := val.Get("_id")
 				id1 := id.(tk.M).Get("id1")
@@ -458,9 +693,34 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 						catTitle += " (" + tk.ToString(dt.Year()) + ")"
 					}
 				} else if strings.Contains(breakDown, "monthid") {
-					id2 := id.(tk.M).GetString("id2")
-					if id2 != "" {
-						categories = append(categories, id2)
+					if listCount == len(list)-1 {
+						datas = []float64{}
+						for _, monthSec := range listOfMonths {
+							values = monthAccumulateVal[monthSec]
+							if strings.Contains(key, "PLF") {
+								datas = append(datas, values)
+								if i == 0 {
+									if values > maxKey1 {
+										maxKey1 = values
+									}
+								} else {
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+								}
+							} else {
+								datas = append(datas, values)
+								if i == 0 {
+									if values > maxKey1 {
+										maxKey1 = values
+									}
+								} else {
+									if values > maxKey2 {
+										maxKey2 = values
+									}
+								}
+							}
+						}
 					}
 					catTitle = "Month"
 				} else if strings.Contains(breakDown, "year") {
@@ -473,23 +733,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 					categories = append(categories, tk.ToString(id1))
 					catTitle = "Turbine"
 				}
-				listOfCategories["biasa"] = categories
-				listOfCatTitles["biasa"] = catTitle
 			}
-		}
 
-
-		if i > 0 {
-			if measurement == "MWh" {
-				penambah := maxMinValue(maxKey2, 1.0)
-				pengurang := maxMinValue(minKey2, 2.0)
-
-				maxKey2 += penambah
-				minKey2 -= pengurang
-			} else {
-				maxKey2 += 1
-				minKey2 -= 5
-			}
 		}
 
 		if len(datas) > 0 {
@@ -497,22 +742,37 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		}
 		dataSeries = append(dataSeries, series)
 	}
-	categories = []string{}
-	catTitle = ""
-	for key, value := range listOfCategories {
-		if key == "pvalue" {
-			categories = value
-			break
+
+	if measurementList[0] == measurementList[1] {
+		if maxKey1 > maxKey2 {
+			if measurement == "MWh" { /* generation */
+				penambah := maxMinValue(maxKey1, 0.1)
+				maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+			} else { /* plf which is selalu percentage */
+				maxKey1 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
+			}
+			maxKey2 = maxKey1
 		} else {
-			categories = value
+			if measurement == "MWh" { /* generation */
+				penambah := maxMinValue(maxKey2, 0.1)
+				maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+			} else { /* plf which is selalu percentage */
+				maxKey2 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
+			}
+			maxKey1 = maxKey2
 		}
-	}
-	for key, value := range listOfCatTitles {
-		if key == "pvalue" {
-			catTitle = value
-			break
-		} else {
-			catTitle = value
+	} else {
+		if measurementList[0] == "MWh" { /* generation */
+			penambah := maxMinValue(maxKey1, 0.1)
+			maxKey1 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+		} else { /* plf which is selalu percentage */
+			maxKey1 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
+		}
+		if measurementList[1] == "MWh" { /* generation */
+			penambah := maxMinValue(maxKey2, 0.1)
+			maxKey2 += penambah /* biar gak terlalu mentok ujung chart plotting nya */
+		} else { /* plf which is selalu percentage */
+			maxKey2 += 2 /* hanya ditambah 2 persen biar gak mentok chart */
 		}
 	}
 
@@ -528,8 +788,8 @@ func (m *AnalyticKeyMetrics) GetKeyMetrics(k *knot.WebContext) interface{} {
 		Series:     dataSeries,
 		Categories: categories,
 		MinKey1:    0,
-		MaxKey1:    tk.ToInt((maxKey1*2 - (maxKey1 / 4)), tk.RoundingAuto),
-		MinKey2:    tk.ToInt(minKey2, tk.RoundingAuto),
+		MaxKey1:    tk.ToInt(maxKey1, tk.RoundingAuto), //tk.ToInt((maxKey1*2 - (maxKey1 / 4)), tk.RoundingAuto),
+		MinKey2:    0,
 		MaxKey2:    tk.ToInt(maxKey2, tk.RoundingAuto),
 		CatTitle:   catTitle,
 	}

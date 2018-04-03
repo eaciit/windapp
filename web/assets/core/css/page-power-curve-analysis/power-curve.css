@@ -1,0 +1,159 @@
+.pc-wrapper {
+    padding: 0 20px;
+}
+.pc-wrapper .radio-filter {
+    min-width: 160px;
+}
+.pc-turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.pc-turbine-chk, .down-chk{
+	width: 20px;
+    height: 20px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.pc-turbine-chk:hover, .pc-down-chk:hover{
+    color: #fff;
+}
+.pc-turbine-chk:active, .pc-down-chk:active{
+    color: #fff;
+}
+.nav.nav-tabs li {
+    margin-right: 0px;
+}
+.wbtn
+{
+    font-size: 10px;
+    width: 95px;
+    font-weight: 600;
+    text-align: left;
+    padding-left: 2px;
+    padding-top: 2px;
+    max-height: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border-radius: 0;
+}
+.wbtn label {
+    height: 100%;
+    font-size: 11px;
+    margin-right: -9px;
+    padding-top: 2px;
+    padding-right: 1px;
+    padding-left: 3px;
+    background: #e0e0e0;
+}
+#pc-show-hide-check {
+    margin-top: 7.5px;
+    margin-left: -15px;
+}
+
+.pc-selected-filter {
+    margin-top: 30px;
+}
+.pc-selected-filter .deviation-wrapper .form-control {
+    padding: 2px 5px;
+    font-size: 12px;
+    max-height: 28px;
+}
+.pc-selected-filter .deviation-wrapper select {
+    border-radius: none;
+    margin-top: -2px;
+}
+.pc-selected-filter .deviation-wrapper input[type=number] {
+    max-width: 50px;
+    text-align: right;
+    margin-top: -4px;
+}
+.filters{
+    margin-top: -25px;
+    position: relative;
+    z-index: 11;
+}
+
+#airdensity_info {
+    position: absolute;
+    top: 36px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+#dataavail_info {
+    position: absolute;
+    top: 62px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+#totaldataavail_info {
+    position: absolute;
+    top: 88px;
+    right: 14px;
+    z-index: 1001;
+    border: 1px solid #E0E0DF;
+    background: rgba(255,255,255,0.7);
+    padding: 4px 10px;
+    width: 148px;
+}
+
+.template-pdf{
+    display: none;
+}
+.legend-item
+{
+    font: 12px 'Source Sans Pro',Lato,'Open Sans','Helvetica Neue',Arial,sans-serif;  
+    margin: 2px;
+    cursor:pointer;  
+    }
+.legend-item .legend-marker
+{
+    display:inline-block;
+    width:8px;
+    height:8px;
+}
+.template-pdf{
+    display: none;
+}
+#legend{
+    margin-top: 20px;
+    padding-left: 20px;
+    display: none;
+}
+
+.k-pdf-export .title-pdf{
+    margin-top: -30px;
+    font-size: 12px !important;
+    margin-bottom: 30px;
+}
+
+.k-pdf-export #airdensity_info{
+    top: 80px;
+}
+.k-pdf-export #dataavail_info{
+    top: 105px;
+}
+.k-pdf-export #totaldataavail_info{
+    top: 130px;
+}
+
+.k-pdf-export .template-pdf {
+    display: block;
+}
+
+.k-pdf-export #legend {
+    display: block; 
+}

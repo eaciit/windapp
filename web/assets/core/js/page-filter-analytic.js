@@ -368,7 +368,7 @@ fa.LoadData = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    if (fa.dateStart - fa.dateEnd > 25200000) {
+    if (fa.dateStart - fa.dateEnd > 86400000) {
         toolkit.showError("Invalid Date Range Selection");
         return false;
     } else {
@@ -749,9 +749,12 @@ fa.changeEndDate = function(){
             dateStartPicker.value(date);
         }
         if(moment(dateStart).format('MMM-Y') == moment(new Date()).format('MMM-Y')){
-            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateEndMax.getDate(), 0, 0, 0)));
+            var newvalue = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth(), dateEndMax.getDate(), 0, 0, 0));
+            dateEndPicker.value(moment(newvalue).utc().format("YYYY-MM-DD HH:mm:ss"));
+            return;
         }else{
-            dateEndPicker.value(new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth()+1, 0, 0, 0, 0)));
+            var newvalue = new Date(Date.UTC(dateStart.getFullYear(), dateStart.getMonth()+1, 0, 0, 0, 0));
+            dateEndPicker.value(moment(newvalue).utc().format("YYYY-MM-DD HH:mm:ss"));
         }
 
 

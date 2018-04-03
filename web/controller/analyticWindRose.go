@@ -228,7 +228,7 @@ func setDataWS(dataDirNoDesc map[string]float64, tkMaxVal *toolkit.M,
 	results = []DataItemsResult{}
 	wsCategoryList := []string{}
 	for dirNoDesc, sumFreq := range dataDirNoDesc {
-		splitDirNoDesc = strings.Split(dirNoDesc, "_")
+		splitDirNoDesc = strings.Split(dirNoDesc, "<>")
 		diRes = DataItemsResult{}
 		diRes.DirectionNo = toolkit.ToInt(splitDirNoDesc[1], toolkit.RoundingAuto)
 		diRes.DirectionDesc = toolkit.ToInt(splitDirNoDesc[2], toolkit.RoundingAuto)
@@ -243,7 +243,10 @@ func setDataWS(dataDirNoDesc map[string]float64, tkMaxVal *toolkit.M,
 		if !tkMaxVal.Has(maxValKey) {
 			tkMaxVal.Set(maxValKey, diRes.Contribution)
 		} else {
-			tkMaxVal.Set(maxValKey, tkMaxVal.GetFloat64(maxValKey)+diRes.Contribution)
+			if diRes.Contribution > tkMaxVal.GetFloat64(maxValKey) {
+				tkMaxVal.Set(maxValKey, diRes.Contribution)
+			}
+			// tkMaxVal.Set(maxValKey, tkMaxVal.GetFloat64(maxValKey)+diRes.Contribution)
 		}
 
 		wsCategoryList = append(wsCategoryList, splitDirNoDesc[1]+
@@ -408,8 +411,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 			calibratedWindDir = 0
 			dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
 			wsNo, wsDesc := getWsCategory(_data.GetFloat64("avgwindspeed"))
-			groupKey = _turbine + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
-				"_" + toolkit.ToString(wsNo) + "_" + wsDesc
+			groupKey = _turbine + "<>" + toolkit.ToString(dirNo) + "<>" + toolkit.ToString(dirDesc) +
+				"<>" + toolkit.ToString(wsNo) + "<>" + wsDesc
 			dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 		}
 	}
@@ -521,7 +524,7 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 	}
 
 	switch {
-	case maxValue >= 90 && maxValue <= 100:
+	case maxValue >= 90:
 		maxValue = 100
 	case maxValue >= 80 && maxValue < 90:
 		maxValue = 90

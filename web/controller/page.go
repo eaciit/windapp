@@ -26,7 +26,7 @@ func CreatePageController(AppName string) *PageController {
 
 func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M {
 	w.Params.Set("AntiCache", toolkit.RandomString(20))
-	w.Params.Set("CurrentDateData", helper.GetLastDateData(r))
+	w.Params.Set("CurrentDateData", GetLastDateData())
 	menus, _ := GetListOfMenu(toolkit.ToString(r.Session("sessionid", "")))
 	w.Params.Set("Menus", menus)
 
@@ -36,6 +36,9 @@ func (w *PageController) GetParams(r *knot.WebContext, isAnalyst bool) toolkit.M
 		temperatureList, _ := helper.GetTemperatureList()
 		alarmTagList, _ := helper.GetAlarmTagsList()
 
+		stateList, _ := helper.GetStateList(projectList)
+
+		w.Params.Set("StateList", stateList)
 		w.Params.Set("ProjectList", projectList)
 		w.Params.Set("TurbineList", turbineList)
 		w.Params.Set("TemperatureList", temperatureList)
@@ -74,7 +77,9 @@ func (w *PageController) Login(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-login.html"
 
 	if r.Session("sessionid", "") != "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, false)
@@ -182,6 +187,7 @@ func (w *PageController) AnalyticTrendLinePlots(r *knot.WebContext) interface{} 
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "trend-line-plots/trendlineplots.html"
+	r.Config.IncludeFiles = []string{"_filter-powercurve.html"}
 
 	return w.GetParams(r, true)
 }
@@ -224,6 +230,13 @@ func (w *PageController) ClusterWiseGeneration(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-cluster-wise-generation.html"
+
+	return w.GetParams(r, true)
+}
+func (w *PageController) AnalyticDgrCluster(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-analytic-dgr-cluster.html"
 
 	return w.GetParams(r, true)
 }
@@ -332,6 +345,13 @@ func (w *PageController) DataEntryThreshold(r *knot.WebContext) interface{} {
 
 	return w.GetParams(r, true)
 }
+func (w *PageController) DgrReport(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-dgr-report.html"
+
+	return w.GetParams(r, true)
+}
 func (w *PageController) Access(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
@@ -405,7 +425,9 @@ func (w *PageController) Monitoring(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"_filter-monitoring.html"}
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -418,7 +440,9 @@ func (w *PageController) MonitoringByProject(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -429,7 +453,9 @@ func (w *PageController) MonitoringAllProject(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/all-project.html"
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -441,7 +467,9 @@ func (w *PageController) MonitoringSummary(r *knot.WebContext) interface{} {
 	r.Config.IncludeFiles = []string{"page-monitoring/all-project.html", "page-monitoring/custom.html", "page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -453,7 +481,9 @@ func (w *PageController) MonitoringByProjectCustom(r *knot.WebContext) interface
 	r.Config.IncludeFiles = []string{"page-monitoring/turbine-collaboration.html"}
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -467,7 +497,9 @@ func (w *PageController) MonitoringByTurbine(r *knot.WebContext) interface{} {
 	// w.Params.Set("AllTurbineList", allTurbineList)
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -480,7 +512,38 @@ func (w *PageController) MonitoringAlarm(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/monitoring-alarm.html"
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
+	}
+
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) MonitoringTemperature(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-monitoring/temperature.html"
+
+	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
+		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
+	}
+
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) MonitoringEvent(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = []string{"_filter-analytic.html"}
+	r.Config.ViewName = "page-monitoring/event-analysis.html"
+
+	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
+		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -493,7 +556,9 @@ func (w *PageController) MonitoringNotification(r *knot.WebContext) interface{} 
 	r.Config.ViewName = "page-monitoring/notification.html"
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -505,7 +570,9 @@ func (w *PageController) MonitoringWeather(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "page-monitoring/weather-forecast.html"
 
 	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
 		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
 	}
 
 	return w.GetParams(r, true)
@@ -549,7 +616,14 @@ func (w *PageController) Forecasting(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-forecast.html"
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) ThreeDAnalytic(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-threedanalytic.html"
+	return w.GetParams(r, true)
 }
 
 func (w *PageController) DataSensorGovernance(r *knot.WebContext) interface{} {
@@ -575,11 +649,18 @@ func (w *PageController) TimeSeriesHFD(r *knot.WebContext) interface{} {
 	return w.GetParams(r, true).Set("PageType", "HFD")
 }
 
-func (w *PageController) DIYView(r *knot.WebContext) interface{} {
+func (w *PageController) XYAnalysis(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-diy-view.html"
-	return w.GetParams(r, false)
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) XYAnalysis3D(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-xy-analysis3d.html"
+	return w.GetParams(r, true)
 }
 
 func (w *PageController) SCMManagement(r *knot.WebContext) interface{} {
@@ -612,7 +693,6 @@ func (w *PageController) WindFarmAnalysis(r *knot.WebContext) interface{} {
 		"page-windfarm-analysis/turbine2.html"}
 
 	params := w.GetParams(r, true)
-	params.Set("AvailableDate", r.Session("availdate"))
 
 	return params
 }
@@ -621,12 +701,27 @@ func (w *PageController) DataAvailability(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-data-availability.html"
-	// r.Config.IncludeFiles = []string{"page-windfarm-analysis/project.html",
-	// 	"page-windfarm-analysis/turbine1.html",
-	// 	"page-windfarm-analysis/turbine2.html"}
 
 	params := w.GetParams(r, true)
-	// params.Set("AvailableDate", r.Session("availdate"))
 
 	return params
+}
+
+func (w *PageController) PowerCurveAnalysis(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.ViewName = "page-power-curve-analysis.html"
+	r.Config.IncludeFiles = []string{
+		"_filter-analytic.html",
+		"_filter-powercurve.html",
+		"page-power-curve-analysis/power-curve.html",
+		"page-power-curve-analysis/monthly-scatter.html",
+		"page-power-curve-analysis/individual-month.html",
+		"page-power-curve-analysis/comparison.html",
+		"page-power-curve-analysis/scatter.html",
+		"page-power-curve-analysis/scatter-with-filter.html",
+		"page-power-curve-analysis/operational.html",
+	}
+
+	return w.GetParams(r, true)
 }

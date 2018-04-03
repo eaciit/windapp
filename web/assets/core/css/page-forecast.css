@@ -16,3 +16,178 @@
 .nav.nav-tabs li {
      margin-right: 0px; 
 }
+
+.fc-wrapper {
+    position: relative;
+    margin-top: -30px;
+}
+.fc-wrapper .nav.nav-tabs {
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    z-index: 1000;
+}
+.fc-wrapper .k-chart {
+    margin-top: 25px;
+}
+.fc-wrapper .k-content {
+    background:none;
+}
+.fc-wrapper .btn-excel{
+    position: absolute;
+    top: 10px;
+    /* right: 90px; */
+    right: 17.25%;
+}
+.fc-top-info {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    text-align: center;
+}
+.fc-top-info span.highlight {
+    color: #ff0000;
+    font-weight: 600;
+}
+.fc-wrapper .k-header.k-grid-toolbar {
+    height: 0px;
+    border: none;
+    padding: 0;
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes {
+    position: absolute;
+    top: -69px;
+    right: 33px;
+    max-height: 30px;
+    border-radius: 3px;
+    color: #fff;
+    background-color: #00a65a;
+    border-color: #4cae4c;
+
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes span.k-icon {
+    color: #ffffff;
+}
+.fc-wrapper .k-header.k-grid-toolbar .k-button.k-grid-save-changes:hover {  
+    background: #008d4c;
+}
+.fc-wrapper .alert {
+    margin-bottom: 5px;
+    padding: 5px 10px;
+}
+.modal-backdrop.in {
+    opacity: 0.1;
+}
+td[role=gridcell].cell-editable-no, td[role=gridcell] {
+    cursor: default;
+}
+td[role=gridcell].cell-editable {
+    background: #fff1d2;
+    cursor: text;
+}
+tr:hover .cell-editable {
+    background: #ffe7d2;
+    color: #333;
+}
+.top-nav-input {
+    max-width: 520px;
+    position: absolute;
+    top: 11px;
+    right: 100px;
+    z-index: 10001;
+}
+.top-nav-input label {
+    padding-top: 5px;
+    text-align: right;
+}
+.top-nav-input .form-control {
+    padding: 2px 3px;
+    height: 28px;
+    border-radius: 2px;
+    font-size: 12px;
+}
+.top-nav-input input[type=number].form-control, .top-nav-input input[type=text].form-control {
+    text-align: right;
+}
+.top-nav-input select.form-control {
+    border-radius: 2px!important;
+}
+.grid-send-mail {
+    margin-top: 35px;
+}
+.grid-send-mail button {
+    min-width: 100%;
+    margin-bottom: 5px;
+}
+#clock-wrapper {
+    font-size: 13px;
+    text-align: center;
+}
+#clock-wrapper label {
+    font-weight: 500;
+}
+#clock-wrapper span {
+    font-size: 14px;
+    font-weight: 600;
+}
+.mail-auto-wrapper {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border: 1px solid lightgray;
+    border-left: none;
+    border-right: none;
+    padding: 15px 0;
+}
+.material-switch {
+    width: 170px;
+    padding: 0;
+    margin: 0 auto;
+}
+.material-switch > label::after {
+    background: rgb(255, 255, 255);
+    border-radius: 16px;
+    border: 1px solid lightgrey;
+    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.1);
+    content: '';
+    height: 24px;
+    left: -4px;
+    margin-top: -8px;
+    position: absolute;
+    top: -4px;
+    transition: all 0.3s ease-in-out;
+    width: 24px;
+}
+.auto-mail-title {
+    font-size: 13px;
+    padding-right: 7px;
+}
+.auto-mail-status {
+    font-size: 13px;
+    padding-left: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.auto-mail-on {
+    color: #008d4c;
+}
+.auto-mail-off {
+    color: #ff0000;
+}
+.mail-recipient h4 {
+    margin: 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+#gridRecipient {
+    margin-bottom: 5px;
+}
+#gridRecipient tr td i {
+    font-size: 14px;
+}
+#gridRecipient tr:hover td i {
+    color: white;
+}
+#gridRecipient tr td a.text-warning {
+    color: #e99e3c;
+}

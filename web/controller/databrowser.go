@@ -10,6 +10,7 @@ import (
 
 	// "fmt"
 	"os"
+	"sort"
 	// "strconv"
 	"time"
 
@@ -597,6 +598,211 @@ func (m *DataBrowserController) GetJMRDetails(k *knot.WebContext) interface{} {
 
 	return helper.CreateResult(true, result, "success")
 }
+func (m *DataBrowserController) GetCustomList_DRAFT(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
+	tipe := p.Misc.GetString("tipe")
+
+	tablename := "Scada10MinHFD"
+	scadaFieldList := []string{"_id"}
+	aggrFieldList := []string{"turbine", "power", "powerlost", "energy", "ai_intern_activpower", "ai_intern_windspeed"}
+	source := "ScadaDataHFD"
+	var val1 reflect.Value
+	switch tipe {
+	case "ScadaOEM":
+		tablename = new(ScadaDataOEM).TableName()
+		scadaFieldList = append(scadaFieldList, "timestamputc")
+		source = "ScadaDataOEM"
+		obj1 := ScadaDataOEM{}
+		val1 = reflect.Indirect(reflect.ValueOf(obj1))
+	case "ScadaHFD":
+		filter = append(filter, dbox.Eq("isnull", false))
+		aggrFieldList = []string{"turbine", "activepower_kw", "windspeed_ms"}
+	}
+
+	ids := ""
+	projection := map[string]int{}
+	if p.Custom.Has("ColumnList") {
+		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
+			_tkm, _ := tk.ToM(_val)
+			ids = strings.ToLower(_tkm.GetString("_id"))
+			if _tkm.GetString("source") == source {
+				projection[ids] = 1
+				scadaFieldList = append(scadaFieldList, ids)
+			}
+		}
+	}
+	for _, val := range aggrFieldList {
+		projection[val] = 1
+	}
+	sort.Float64s([]float64{})
+	matches := []tk.M{}
+	tStart := time.Time{}
+	tEnd := time.Time{}
+	for _, val := range filter {
+		matches = append(matches, tk.M{
+			val.Field: tk.M{val.Op: val.Value},
+		})
+		if val.Field == "timestamp" {
+			if val.Op == "$gte" {
+				tStart = val.Value.(time.Time).UTC()
+			} else {
+				tEnd = val.Value.(time.Time).UTC()
+			}
+		}
+	}
+	pipes := []tk.M{}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": projection})
+
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	countAll := 0.0
+	totalPower := 0.0
+	totalPowerLost := 0.0
+	totalActivePower := 0.0
+	avgWindSpeed := 0.0
+	totalTurbine := 0
+	totalEnergy := 0.0
+	AvgWS := 0.0
+	startIdx := tk.ToFloat64(p.Skip-1, 2, tk.RoundingAuto)
+	endIdx := startIdx + tk.ToFloat64(p.Take, 2, tk.RoundingAuto)
+
+	turbineList := map[string]int{}
+	results := []tk.M{}
+	_result := tk.M{}
+	timestampCount := tStart
+	timestampSorted := []time.Time{}
+	dataPerTimestamp := map[time.Time][]tk.M{}
+	for {
+		timestampCount = timestampCount.Add(time.Duration(time.Minute * 10))
+		if timestampCount.After(tEnd.UTC()) {
+			break
+		}
+		timestampSorted = append(timestampSorted, timestampCount)
+	}
+
+	t0 := time.Now()
+	for {
+		_result = tk.M{}
+		e = csr.Fetch(&_result, 1, false)
+		if e != nil {
+			break
+		}
+		switch tipe {
+		case "ScadaOEM":
+			totalPower += _result.GetFloat64("power")
+			totalPowerLost += _result.GetFloat64("powerlost")
+			totalActivePower += _result.GetFloat64("ai_intern_activpower")
+			avgWindSpeed += _result.GetFloat64("ai_intern_windspeed")
+			totalEnergy += _result.GetFloat64("energy")
+		case "ScadaHFD":
+			totalActivePower += _result.GetFloat64("activepower_kw")
+			avgWindSpeed += _result.GetFloat64("windspeed_ms")
+		}
+		turbineList[_result.GetString("turbine")] = 1
+		timestamp := _result.Get("timestamp", time.Time{}).(time.Time)
+		dataPerTimestamp[timestamp] = append(dataPerTimestamp[timestamp], _result)
+
+		countAll++
+	}
+	tk.Println("durasi", time.Since(t0).Seconds())
+	counterIdx := 0.0
+	counterTake := 0
+	for _, _timestamp := range timestampSorted {
+		_data, hasData := dataPerTimestamp[_timestamp]
+		if hasData {
+			for _, val := range _data {
+				if counterIdx > startIdx && counterIdx <= endIdx {
+					results = append(results, val)
+					counterTake++
+				}
+				if counterTake == p.Take {
+					break
+				}
+				counterIdx++
+			}
+		}
+	}
+
+	if countAll > 0.0 {
+		AvgWS = avgWindSpeed / countAll
+	}
+	totalTurbine = len(turbineList)
+
+	allFieldRequested := scadaFieldList
+	allHeader := map[string]string{}
+	header := map[string]string{}
+	fieldName := ""
+	switch tipe {
+	case "ScadaOEM":
+		for i := 0; i < val1.Type().NumField(); i++ {
+			fieldName = strings.ToLower(val1.Type().Field(i).Name)
+			allHeader[fieldName] = val1.Field(i).Type().Name()
+		}
+		for _, val := range allFieldRequested {
+			header[val] = allHeader[val]
+		}
+	case "ScadaHFD":
+		hfdexlist := []string{"timestamp", "projectname", "turbine", "turbinestate", "statedescription"}
+		for _, val := range allFieldRequested {
+			if tk.HasMember(hfdexlist, val) {
+				if val == "timestamp" {
+					header[val] = "time.Time"
+				} else if val == "turbinestate" {
+					header[val] = "int"
+				} else {
+					header[val] = "string"
+				}
+			} else {
+				header[val] = "float64"
+			}
+		}
+	}
+
+	result, e := CheckData(results, filter, header, "custom")
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	data := struct {
+		Data             []tk.M
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalEnergy      float64
+		LastFilter       *helper.FilterJS
+		LastSort         []helper.Sorting
+	}{
+		Data:             result,
+		Total:            tk.ToInt(countAll, tk.RoundingAuto),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalEnergy:      totalActivePower / 6,
+		LastFilter:       p.Filter,
+		LastSort:         p.Sort,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
 
 func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
@@ -628,7 +834,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		filter = append(filter, dbox.Eq("isnull", false))
 	}
 
-	istimestamp := false
+	// istimestamp := false
 	// arrmettower := []string{}
 	ids := ""
 	projection := map[string]int{}
@@ -639,9 +845,9 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			if _tkm.GetString("source") == source {
 				projection[ids] = 1
 				arrscadaoem = append(arrscadaoem, ids)
-				if ids == "timestamp" {
+				/*if ids == "timestamp" {
 					istimestamp = true
-				}
+				}*/
 			}
 			/*else if _tkm.GetString("source") == "MetTower" {
 				arrmettower = append(arrmettower, ids)
@@ -649,11 +855,59 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		}
 	}
 	matches := []tk.M{}
+	_tstart, _tend, _usethis := time.Time{}, time.Time{}, false
+	for _, val := range p.Filter.Filters {
+		for _, xval := range val.Filters {
+			if xval.Field == "timestamp" {
+				_xtime, _e := time.Parse("2006-01-02T15:04:05.000Z", tk.ToString(xval.Value))
+				if _e != nil {
+					_xtime, _ = time.Parse("2006-01-02 15:04:05", tk.ToString(xval.Value))
+				}
+				if xval.Op == "lte" {
+					_tend = _xtime
+				} else {
+					_tstart = _xtime
+				}
+			}
+		}
+	}
+
+	if _sub := _tend.UTC().Sub(_tstart.UTC()).Hours(); !_tstart.IsZero() && !_tend.IsZero() && _sub >= 0 && _sub < 24 {
+		_usethis = true
+	}
+
 	for _, val := range filter {
-		matches = append(matches, tk.M{
+		ttkm := tk.M{
 			val.Field: tk.M{val.Op: val.Value},
+		}
+
+		if val.Field == "timestamp" {
+			ttime := val.Value.(time.Time).UTC()
+			if _usethis && val.Op == "$lte" {
+				ttime = _tend
+			} else if _usethis {
+				ttime = _tstart
+			}
+			ttkm = tk.M{
+				val.Field: tk.M{val.Op: ttime},
+			}
+			// tk.Println(val, ttkm)
+		}
+
+		matches = append(matches, ttkm)
+	}
+	if tipe == "ScadaHFD" {
+		matches = append(matches, tk.M{
+			"windspeed_ms": tk.M{"$gt": -200},
+		})
+		matches = append(matches, tk.M{
+			"windspeed_ms": tk.M{"$exists": true},
+		})
+		matches = append(matches, tk.M{
+			"activepower_kw": tk.M{"$exists": true},
 		})
 	}
+
 	pipes := []tk.M{}
 	// 	tk.M{"$match": tk.M{"$and": matches}},
 	// 	tk.M{"$project": projection},
@@ -678,7 +932,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	}...)
 	//tk.Printf("%#v\n", pipes)
 
-	// timenow := time.Now()
+	//timenow := time.Now()
 	csr, e := DB().Connection.NewQuery().
 		From(tablename).Command("pipe", pipes).Cursor(nil)
 	defer csr.Close()
@@ -686,22 +940,23 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	// defer csr.Close()
-	//	duration := time.Now().Sub(timenow).Seconds()
+	// duration := time.Now().Sub(timenow).Seconds()
 	// tk.Printf("Kondisi 1 = %v\n", duration)
-	// tk.Printf("Total = %v\n", csr.Count())
+	//tk.Printf("Total = %v\n", csr.Count())
 
 	// timenow = time.Now()
 	results := make([]tk.M, 0)
-	e = csr.Fetch(&results, 0, false)
+	// e = csr.Fetch(&results, 0, false)
 	// item := tk.M{}
-	// for {
-	// 	item = tk.M{}
-	// 	e = csr.Fetch(&item, 1, false)
-	// 	if e != nil {
-	// 		break
-	// 	}
-	// 	results = append(results, item)
-	// }
+	for {
+		item := tk.M{}
+		e = csr.Fetch(&item, 1, false)
+		if e != nil {
+			e = nil
+			break
+		}
+		results = append(results, item)
+	}
 	// tk.Printf("Total = %v\n", len(results))
 
 	if e != nil {
@@ -713,32 +968,32 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 
 	// arrmettowercond := []interface{}{}
 
-	config := lh.ReadConfig()
+	/*config := lh.ReadConfig()
 
 	loc, err := time.LoadLocation(config["ReadTimeLoc"])
 	if err != nil {
 		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
-	}
+	}*/
 
 	// timenow = time.Now()
-	for i, val := range results {
-		if val.Has("timestamputc") {
-			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
-			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
-				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
-			// arrmettowercond = append(arrmettowercond, itime)
-			val.Set("timestamputc", itime)
-			results[i] = val
-		}
-		if istimestamp {
-			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
-			/*if tipe == "ScadaHFD" {
-				arrmettowercond = append(arrmettowercond, itime)
-			}*/
-			val.Set("timestamp", itime)
-			results[i] = val
-		}
-	}
+	// for i, val := range results {
+	// 	if val.Has("timestamputc") {
+	// 		strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
+	// 		itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
+	// 			strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
+	// 		// arrmettowercond = append(arrmettowercond, itime)
+	// 		val.Set("timestamputc", itime)
+	// 		results[i] = val
+	// 	}
+	// 	if istimestamp {
+	// 		itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
+	// 		/*if tipe == "ScadaHFD" {
+	// 			arrmettowercond = append(arrmettowercond, itime)
+	// 		}*/
+	// 		val.Set("timestamp", itime)
+	// 		results[i] = val
+	// 	}
+	// }
 	// duration = time.Now().Sub(timenow).Seconds()
 	// tk.Printf("Kondisi 3 = %v\n", duration)
 
@@ -800,7 +1055,7 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	AvgWS := 0.0
 
 	aggrData := []tk.M{}
-	groups := tk.M{}
+	groups, gprojects := tk.M{}, tk.M{}
 
 	switch tipe {
 	case "ScadaOEM":
@@ -813,21 +1068,42 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 			"TotalEnergy":      tk.M{"$sum": "$energy"},
 			"DataCount":        tk.M{"$sum": 1},
 		}
+		gprojects.Set("turbine", 1).Set("power", 1).Set("powerlost", 1).Set("ai_intern_activpower", 1).Set("ai_intern_windspeed", 1).Set("energy", 1)
 	case "ScadaHFD":
 		groups = tk.M{
 			"_id":              "$turbine",
-			"TotalActivePower": tk.M{"$sum": "$activepower_kw"},
-			"AvgWindSpeed":     tk.M{"$sum": "$windspeed_ms"},
+			"TotalActivePower": tk.M{"$sum": "$power"},
+			"AvgWindSpeed":     tk.M{"$sum": "$avgwindspeed"},
 			"DataCount":        tk.M{"$sum": 1},
 		}
-	}
-	pipes = []tk.M{
-		tk.M{"$match": tk.M{"$and": matches}},
-		tk.M{"$group": groups},
+		gprojects.Set("turbine", 1).Set("power", 1).Set("avgwindspeed", 1)
+		tablename = "ScadaData"
+		for i, _match := range matches {
+			if _match.Has("windspeed_ms") {
+				_match.Set("avgwindspeed", _match.Get("windspeed_ms"))
+				_match.Unset("windspeed_ms")
+			}
+			if _match.Has("activepower_kw") {
+				_match.Set("power", _match.Get("activepower_kw"))
+				_match.Unset("activepower_kw")
+			}
+			if _match.Has("isnull") {
+				_match.Set("available", 1)
+				_match.Unset("isnull")
+			}
+			matches[i] = _match
+		}
 	}
 
-	//tk.Printf("%#v\n", matches)
-	//tk.Printf("%#v\n", groups)
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$project": gprojects},
+		tk.M{"$group": groups},
+	}
+	// tk.Printf("%#v\n", matches)
+	// tk.Printf("%#v\n", groups)
+
+	// tk.Printf("%#v\n", pipes)
 
 	// timenow = time.Now()
 	caggr, e := DB().Connection.NewQuery().
@@ -842,7 +1118,18 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	// tk.Printf("Kondisi 4 = %v\n", duration)
 
 	// timenow = time.Now()
-	e = caggr.Fetch(&aggrData, 0, false)
+	// e = caggr.Fetch(&aggrData, 0, false)
+
+	for {
+		item := tk.M{}
+		e = caggr.Fetch(&item, 1, false)
+		if e != nil {
+			e = nil
+			break
+		}
+		aggrData = append(aggrData, item)
+	}
+
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -993,6 +1280,164 @@ func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, 
 	}
 
 	return xVal
+}
+
+func (m *DataBrowserController) GetLostEnergyDetail(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	p.Misc.Set("knot_data", k)
+	matches, pipes, project := []tk.M{}, []tk.M{}, ""
+
+	tstart, tend := time.Time{}, time.Time{}
+	for _, val := range p.Filter.Filters {
+		if val.Field == "startdate" {
+			if val.Op == "$gte" {
+				tstart = tk.ToDate(tk.ToString(val.Value)[:10], "2006-01-02")
+			} else {
+				tend = tk.ToDate(tk.ToString(val.Value)[:10], "2006-01-02")
+			}
+			continue
+		}
+
+		if val.Field == "projectname" {
+			project = tk.ToString(val.Value)
+		}
+
+		_match := tk.M{val.Field: tk.M{val.Op: val.Value}}
+		if val.Op == "$regex" {
+			_match = tk.M{val.Field: tk.M{val.Op: val.Value, "$options": "i"}}
+		}
+
+		matches = append(matches, _match)
+	}
+
+	tend = tend.AddDate(0, 0, 1)
+	dates := []tk.M{
+		tk.M{"$and": []tk.M{tk.M{"startdate": tk.M{"$gte": tstart}}, tk.M{"startdate": tk.M{"$lt": tend}}}},
+		tk.M{"$and": []tk.M{tk.M{"enddate": tk.M{"$gte": tstart}}, tk.M{"enddate": tk.M{"$lt": tend}}}},
+		tk.M{"$and": []tk.M{tk.M{"startdate": tk.M{"$gte": tstart}}, tk.M{"enddate": tk.M{"$lt": tend}}}},
+	}
+
+	matches = append(matches, tk.M{"$or": dates})
+
+	matches = append(matches, tk.M{"reduceavailability": true})
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "startdate": 1, "enddate": 1, "reduceavailability": 1, "powerlost": 1, "alertdescription": 1, "detail": 1}})
+	pipes = append(pipes, tk.M{"$unwind": tk.M{"path": "$detail"}})
+	pipes = append(pipes, tk.M{"$project": tk.M{"turbine": 1, "startdate": 1, "enddate": 1, "reduceavailability": 1, "powerlost": 1, "alertdescription": 1,
+		"detail.startdate": 1, "detail.enddate": 1, "detail.powerlost": 1, "detail.duration": 1, "detail.griddown": 1, "detail.machinedown": 1}})
+	pipes = append(pipes, tk.M{"$match": tk.M{"detail.startdate": tk.M{"$gte": tstart, "$lt": tend}}})
+	pipesAggr := []tk.M{}
+	for _, val := range pipes {
+		pipesAggr = append(pipesAggr, val)
+	}
+	pipesAggr = append(pipesAggr, tk.M{
+		"$group": tk.M{
+			"_id":            "$turbine",
+			"totalpowerlost": tk.M{"$sum": "$detail.powerlost"},
+			"totalduration":  tk.M{"$sum": "$detail.duration"},
+			"totaldata":      tk.M{"$sum": 1},
+		},
+	})
+
+	if len(p.Sort) > 0 {
+		sortList := map[string]int{}
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				sortList[strings.ToLower(val.Field)] = -1
+			} else {
+				sortList[strings.ToLower(val.Field)] = 1
+			}
+		}
+		pipes = append(pipes, tk.M{"$sort": sortList})
+	}
+
+	pipes = append(pipes, []tk.M{
+		tk.M{"$skip": p.Skip},
+		tk.M{"$limit": p.Take},
+	}...)
+
+	csr, e := DB().Connection.NewQuery().
+		From("Alarm").Command("pipe", pipes).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	Datas := []tk.M{}
+	e = csr.Fetch(&Datas, 0, false)
+
+	turbinename, e := helper.GetTurbineNameList(project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	for i, data := range Datas {
+		detail := data.Get("detail", tk.M{}).(tk.M)
+
+		_tstart := detail.Get("startdate", time.Time{}).(time.Time)
+		_tend := detail.Get("enddate", time.Time{}).(time.Time)
+
+		if !_tstart.IsZero() && !_tend.IsZero() {
+			detail.Set("duration", _tend.UTC().Sub(_tstart.UTC()).Seconds())
+			data.Set("detail", detail)
+		}
+
+		idturbine := data.GetString("turbine")
+		tname, cond := turbinename[idturbine]
+		if !cond {
+			tname = idturbine
+		}
+		data.Set("turbinename", tname)
+
+		Datas[i] = data
+	}
+
+	csrAggr, e := DB().Connection.NewQuery().
+		From("Alarm").Command("pipe", pipesAggr).Cursor(nil)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csrAggr.Close()
+
+	dataAggr := []tk.M{}
+	e = csrAggr.Fetch(&dataAggr, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	totalPower, totalDuration, totalData := 0.0, 0.0, 0
+	for _, val := range dataAggr {
+		totalPower += val.GetFloat64("totalpowerlost")
+		totalDuration += val.GetFloat64("totalduration")
+		totalData += val.GetInt("totaldata")
+	}
+
+	data := struct {
+		Data           []tk.M
+		Total          int
+		TotalPowerLost float64
+		TotalTurbine   int
+		TotalDuration  float64
+		LastFilter     *helper.FilterJS
+		LastSort       []helper.Sorting
+	}{
+		Data:           Datas,
+		Total:          totalData,
+		TotalPowerLost: totalPower / 1000,
+		TotalTurbine:   len(dataAggr),
+		TotalDuration:  totalDuration,
+		LastFilter:     p.Filter,
+		LastSort:       p.Sort,
+	}
+
+	return helper.CreateResult(true, data, "success")
 }
 
 // Generate excel

@@ -86,6 +86,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
 		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
 		"scadaavail":       tk.M{"$avg": "$scadaavail"},
+		"totalrows":        tk.M{"$sum": "$totalrows"},
 		"LossEnergy":       tk.M{"$sum": "$lostenergy"}}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -165,6 +166,26 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 		resultJMR[sections.GetString("turbine")] += (contrgen - boenet) / 1000.0
 	}
 	/*======== END OF JMR PART ==================*/
+
+	/*======== Denominator for DATA AVAIL */
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
+	}
+
+	totalDataShouldBe := tk.ToFloat64(tEnd.UTC().Sub(tStart.UTC()).Hours()/24, 0, tk.RoundingUp) * 144
+
+	tk.Println(tEnd, tStart, totalDataShouldBe)
+
+	/*======== END OF Denominator for DATA AVAIL */
+
 	LossAnalysisResult := []tk.M{}
 	turbineName, e := helper.GetTurbineNameList(p.Project)
 	if e != nil {
@@ -184,7 +205,7 @@ func (m *AnalyticLossAnalysisController) GetScadaSummaryList(k *knot.WebContext)
 				break
 			}
 		}
-		scadaavail = tk.ToString(val.GetFloat64("scadaavail") * 100)
+		scadaavail = tk.ToString(tk.Div(val.GetFloat64("totalrows"), totalDataShouldBe) * 100)
 		scadaavail = " (" + strings.Split(scadaavail, ".")[0] + "." + strings.Split(scadaavail, ".")[1][0:2] + "%)"
 
 		LossAnalysisResult = append(LossAnalysisResult, tk.M{
@@ -1487,6 +1508,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 	interval = tk.ToFloat64(interval, 0, tk.RoundingUp)
 	startcategory := p.MinValue
 	totalData := 0.0
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
 
 	var wg sync.WaitGroup
 	wg.Add(p.BinValue)
@@ -1499,15 +1521,15 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 		}
 
 		category = append(category, fmt.Sprintf(catformat, startcategory))
+		if e != nil {
+			tk.Println("error on get start end date GetTempHistogramData()", e.Error())
+			return helper.CreateResult(false, nil, e.Error())
+		}
 
 		// match.Set("isnull", false)
-		go func(p *TempHistoPayload, k *knot.WebContext, valueMap tk.M, totalData *float64, startcategory, interval float64, wg *sync.WaitGroup) {
+		go func(p *TempHistoPayload, valueMap tk.M, totalData *float64, startcategory, interval float64,
+			wg *sync.WaitGroup, tStart, tEnd time.Time) {
 			defer wg.Done()
-			tStart, tEnd, e := helper.GetStartEndDate(k, p.Filter.Period, p.Filter.DateStart, p.Filter.DateEnd)
-			if e != nil {
-				tk.Println("error on get start end data go func", e.Error())
-				return
-			}
 			turbine := p.Filter.Turbine
 			project := p.Filter.Project
 			match := tk.M{}
@@ -1532,6 +1554,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				Command("pipe", pipes).
 				Cursor(nil)
 
+			defer csr.Close()
 			if e != nil {
 				csr.Close()
 				tk.Println("error on cursor go func get temperature histogram", e.Error())
@@ -1546,7 +1569,6 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				tk.Println("error on fetch go func get temperature histogram", e.Error())
 				return
 			}
-			csr.Close()
 			// duration := time.Now().Sub(timenow).Seconds()
 			// tk.Printf("KOndisi temp %v = %v\n", i, duration)
 
@@ -1563,7 +1585,7 @@ func (m *AnalyticLossAnalysisController) GetTempHistogramData(k *knot.WebContext
 				valueMap.Set(fmt.Sprintf(catformat, startcategory), 0.0)
 			}
 			m.mux.Unlock()
-		}(p, k, valueMap, &totalData, startcategory, interval, &wg)
+		}(p, valueMap, &totalData, startcategory, interval, &wg, tStart, tEnd)
 
 		startcategory = startcategory + interval
 	}
@@ -1732,12 +1754,6 @@ func (m *AnalyticLossAnalysisController) GetWarning(k *knot.WebContext) interfac
 	return helper.CreateResult(true, data, "success")
 }
 
-func (m *AnalyticLossAnalysisController) GetAvailDate(k *knot.WebContext) interface{} {
-	k.Config.OutputType = knot.OutputJson
-
-	return helper.CreateResult(true, k.Session("availdate", ""), "success")
-}
-
 func (m *AnalyticLossAnalysisController) GetAvailDateAll(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
@@ -1841,4 +1857,153 @@ func (m *AnalyticLossAnalysisController) GetMaxValTempTags(k *knot.WebContext) i
 	csr.Close()
 
 	return helper.CreateResult(true, datamax, "success")
+}
+
+type PayloadEventAnalysis struct {
+	Period           string
+	Project          string
+	Turbine          []interface{}
+	DateStart        time.Time
+	DateEnd          time.Time
+	BreakDown        string
+	AdditionalFilter tk.M
+	RealDesc         tk.M
+}
+
+func (m *AnalyticLossAnalysisController) GetEventAnalysisTab(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(PayloadEventAnalysis)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	result, resultpct, realDesc, e := getEventAnalysis(p.BreakDown, p.AdditionalFilter, p.RealDesc, p, k)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	data := tk.M{
+		"data":           result,
+		"datapercentage": resultpct,
+		"realdesc":       realDesc,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEventAnalysis, k *knot.WebContext) ([]tk.M, []tk.M, tk.M, error) {
+	var e error
+	dfilter := []*dbox.Filter{}
+	var dataSeries []tk.M
+	var dataSeriesPct []tk.M
+
+	if p != nil {
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return dataSeries, dataSeriesPct, realDesc, e
+		}
+		if p.Project != "" {
+			dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
+		}
+		orFilter := dbox.Or(dbox.And(dbox.Gte("timestart", tStart), dbox.Lte("timestart", tEnd)),
+			dbox.And(dbox.Gte("timeend", tStart), dbox.Lte("timeend", tEnd)),
+			dbox.And(dbox.Lte("timestart", tStart), dbox.Gte("timeend", tEnd)))
+		if len(p.Turbine) > 0 {
+			dfilter = append(dfilter, dbox.In("turbine", p.Turbine...))
+		}
+		dfilter = append(dfilter, dbox.Eq("isdeleted", false))
+		dfilter = append(dfilter, dbox.Eq("reduceavailability", true))
+		dfilter = append(dfilter, orFilter)
+		/*
+			filter tambahan untuk tiap breakdown
+			jika breakdown = alarmdesc maka dapat filter tambahan detailgroup
+			jika breakdown = turbine maka dapat filter tambahan alarmdesc dan detailgroup
+		*/
+		if len(addFilter) > 0 {
+			for key, val := range addFilter {
+				if breakDown == "turbine" && key == "alarmdesc" { /* jika breakdown turbine menggunakan alarmdesc sesuai DB */
+					dfilter = append(dfilter, dbox.Eq(key, realDesc.GetString(tk.ToString(val))))
+				} else {
+					dfilter = append(dfilter, dbox.Eq(key, val))
+				}
+			}
+		}
+
+		csr, e := DBRealtime().NewQuery().
+			Select("turbine", "timestart", "timeend", "duration", "alarmdesc", "detailgroup").
+			From("AlarmHFD").
+			Where(dbox.And(dfilter...)).
+			Cursor(nil)
+
+		if e != nil {
+			return dataSeries, dataSeriesPct, realDesc, e
+		}
+
+		_data := tk.M{}
+		dataPerGroup := map[string]float64{} /* data per breakdown */
+		groupName := ""
+		timestart := time.Time{}
+		timeend := time.Time{}
+		duration := 0.0
+		timeIndia := getTimeNow()
+		totalHours := 0.0
+		for {
+			_data = tk.M{}
+			e = csr.Fetch(&_data, 1, false)
+			if e != nil {
+				e = nil
+				break
+			}
+			timestart = _data.Get("timestart", time.Time{}).(time.Time).UTC()
+			timeend = _data.Get("timeend", time.Time{}).(time.Time).UTC()
+			duration = timeend.Sub(timestart).Hours()
+			groupName = _data.GetString(breakDown)
+
+			if !timestart.Before(tStart) && timeend.After(tEnd) { /* jika timeend melebihi tEnd filter */
+				duration = tEnd.Sub(timestart).Hours() /* tEnd filter - timestart db */
+			} else if !timeend.After(tEnd) && timestart.Before(tStart) { /* jika timestart sebelum tStart */
+				duration = timeend.Sub(tStart).Hours() /* timeend db - tStart filter */
+			} else if !timestart.Before(tStart) && timeend.IsZero() { /* jika alarm belum selesai */
+				if timeIndia.After(tEnd) { /* jika time now India lebih besar dari tEnd filter maka gunakan tEnd filter */
+					duration = tEnd.Sub(timestart).Hours()
+				} else {
+					duration = timeIndia.Sub(timestart).Hours()
+				}
+			}
+			dataPerGroup[groupName] += duration
+			totalHours += duration
+		}
+
+		csr.Close()
+
+		if breakDown == "alarmdesc" {
+			realDesc = tk.M{} /* untuk alarm desc sesuai value di DB */
+		}
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return dataSeries, dataSeriesPct, realDesc, e
+		}
+		for key, val := range dataPerGroup {
+			series := tk.M{}
+			seriesPct := tk.M{}
+			id := strings.Title(strings.Replace(key, "_", " ", -69)) /* underscore diganti spasi dan huruf awal besar semua */
+			if breakDown == "turbine" {
+				id = turbineName[key]
+			}
+			if breakDown == "alarmdesc" {
+				realDesc.Set(id, key)
+			}
+
+			series.Set("_id", id)
+			series.Set("result", val)
+			seriesPct.Set("_id", id)
+			seriesPct.Set("result", tk.Div(val, totalHours)*100)
+
+			dataSeries = append(dataSeries, series)
+			dataSeriesPct = append(dataSeriesPct, seriesPct)
+		}
+	}
+
+	return dataSeries, dataSeriesPct, realDesc, e
 }

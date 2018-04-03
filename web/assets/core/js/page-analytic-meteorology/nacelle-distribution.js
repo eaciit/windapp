@@ -8,6 +8,7 @@ nd.turbine = ko.observableArray([]);
 nd.project = ko.observable();
 nd.dateStart = ko.observable();
 nd.dateEnd = ko.observable();
+nd.isValid = ko.observable(true);
 
 
 nd.getPDF = function(selector){
@@ -65,6 +66,7 @@ nd.ChartNacelleDistributon =  function () {
         project: fa.project,
         breakdown: "nacelledeviation",
         color: color,
+        isclean:nd.isValid()
     };
 
     toolkit.ajaxPost(viewModel.appName + "analyticwinddistribution/getlist", param, function (res) {
@@ -132,7 +134,7 @@ nd.ChartNacelleDistributon =  function () {
             tooltip: {
                 visible: true,
                 // template: "Contribution of #= series.name # : #= kendo.toString(value, 'n4')# % at #= category #",
-                template: "#= category # : #= kendo.toString(value, 'p2')#",
+                template: "#= series.name # : #= category #"+String.fromCharCode(176)+" (#= kendo.toString(value, 'p2')#)",
                 // shared: true,
                 background: "rgb(255,255,255, 0.9)",
                 color: "#58666e",
@@ -234,6 +236,15 @@ nd.NacelleDis = function(){
             nd.project(project);
             nd.dateStart(moment(new Date(dateStart)).format("DD-MMM-YYYY"));
             nd.dateEnd(moment(new Date(dateEnd)).format("DD-MMM-YYYY"));
+
+            $("input[name=isValid]").on("change", function() {
+                nd.isValid(true);
+                if(this.id == "alldata"){
+                    nd.isValid(false);
+                }
+                app.loading(true);
+                nd.ChartNacelleDistributon();
+            });
         }else{
             app.loading(false);
             setTimeout(function () {

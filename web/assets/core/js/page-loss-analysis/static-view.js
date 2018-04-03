@@ -269,7 +269,19 @@ sv.getChartView = function(gData){
     app.loading(false);
 }
 
+
+sv.getPdfGrid = function(){
+    $("#lossGrid").getKendoGrid().saveAsExcel();
+     return false;
+}
 sv.getGridView = function(gData){
+
+    var project = $("#projectList").data("kendoDropDownList").value();
+    var dateStart = $('#dateStart').data('kendoDatePicker').value();
+    var dateEnd = $('#dateEnd').data('kendoDatePicker').value();  
+    var title = project+"StaticView"+kendo.toString(dateStart, "dd/MM/yyyy")+"to"+kendo.toString(dateEnd, "dd/MM/yyyy")+".xlsx";
+
+
     $('#lossGrid').html("");
     $('#lossGrid').kendoGrid({
         dataSource: {
@@ -291,6 +303,11 @@ sv.getGridView = function(gData){
             serverPaging: false,
             sort: [ { field: "Id", dir: "asc" }],
         },
+        excel:{
+            fileName:title,
+            allPages:true, 
+            filterable:true
+        },
         scrollable: true,
         groupable: false,
         sortable: true,
@@ -303,9 +320,9 @@ sv.getGridView = function(gData){
         //     input: true, 
         // },
         columns: [
-            { title: sv.type,field: "Id",width: 130,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "<center>Total</center>"}, 
-            { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" }, 
-            { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"},
+            { title: sv.type,field: "Id",width: 130,attributes: {style: "text-align:center;"},headerAttributes: {style: "text-align:center;"},footerTemplate: "Total",footerAttributes: {style: "text-align:center;"}}, 
+            { title: "Production (MWh)", headerAttributes: { tyle: "text-align:center;"}, field: "Production",width: 100,attributes: { class: "align-center" },format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}}, 
+            { title: "Lost Energy (MWh)",headerAttributes: {style: "text-align:center;"},field: "LossEnergy", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}},
             {
                 title: "Downtime : Energy Loss (MWh)",
                 headerAttributes: {
@@ -315,17 +332,17 @@ sv.getGridView = function(gData){
                     {
                         title: "Machine",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                        field: "EnergyyMD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                     {
                         title: "Grid",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                        field: "EnergyyGD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                     {
                         title: "Others",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "EnergyyOD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                        field: "EnergyyOD", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                 ]
             },
@@ -338,17 +355,17 @@ sv.getGridView = function(gData){
                     {
                         title: "Machine",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>" 
+                        field: "MachineDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                     {
                         title: "Grid",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                        field: "GridDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                     {
                         title: "Others",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "OtherDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                        field: "OtherDownHours", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                 ]
             }, 
@@ -361,12 +378,12 @@ sv.getGridView = function(gData){
                     {
                         title: "Total Avail. (%)",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "TotalAvail", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(average, 'n2')#</div>" 
+                        field: "TotalAvail", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(average, 'n2')#",footerAttributes: {style: "text-align:center;"} 
                     },
                     {
                         title: "Uptime (Hrs)",
                         headerAttributes: { style: "text-align:center;" },
-                        field: "OKTime", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                        field: "OKTime", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
                     },
                 ]
             },
@@ -375,14 +392,14 @@ sv.getGridView = function(gData){
                 headerAttributes: {
                     style: "text-align:center;"
                 },
-                field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                field: "ElectricLoss", width: 100, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
             }, 
             {
                 title: "Power Curve Deviation (MW)", //Sepertinya ini MW
                 headerAttributes: {
                     style: "text-align:center;"
                 },
-                field: "PCDeviation", width: 120, attributes: { class: "align-center" }, format: "{0:n2}", footerTemplate:"<div style='text-align:center'>#=kendo.toString(sum, 'n2')#</div>"
+                field: "PCDeviation", width: 120, attributes: { class: "align-center" }, format: "{0:n2}",footerTemplate: "#=kendo.toString(sum, 'n2')#",footerAttributes: {style: "text-align:center;"}
             }
             // , {
             //     title: "Others (MWh)", //Sepertinya ini KWh

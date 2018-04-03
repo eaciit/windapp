@@ -454,6 +454,15 @@ sum.LostEnergy = function (dataSource) {
         },
         series: [{
             field: "LostEnergy",
+            tooltip: {
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return e.category + " (MWh) : " +sum.templateValue(e);
+                    }else{
+                        return e.category + " (GWh) : " + kendo.toString(e.value, 'n2');
+                    }
+                }
+            }
             // opacity : 0.7,
         }],
         seriesColors: colorField,
@@ -477,6 +486,13 @@ sum.LostEnergy = function (dataSource) {
             },
             labels: {
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n2');
+                    }
+                }
             },
             axisCrossingValue: -10,
             majorGridLines: {
@@ -499,7 +515,7 @@ sum.LostEnergy = function (dataSource) {
         tooltip: {
             visible: true,
             // template: "Lost Energy for #: category # : #: kendo.toString(value, 'n1')# GWh ",
-            template: "#: category #: #: kendo.toString(value, 'n2')# GWh ",
+            // template: "#: category #: #: kendo.toString(value, 'n2')# GWh ",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -840,6 +856,15 @@ sum.ProdMonth = function (id, dataSource) {
             field: "Production",
             // opacity : 0.7,
             color: "#ff9933",
+            tooltip: {
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return  sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n2');
+                    }
+                }
+            }
         }],
         // seriesColors: colorField,
         // seriesClick: function (e) {
@@ -865,7 +890,13 @@ sum.ProdMonth = function (id, dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0",
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n0');
+                    }
+                },
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         }],
@@ -884,7 +915,7 @@ sum.ProdMonth = function (id, dataSource) {
             visible: true,
             format: "{0:n1}",
             shared: true,
-            sharedTemplate: kendo.template($("#templateProdMonth").html()),
+            // sharedTemplate: kendo.template($("#templateProdMonth").html()),
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
@@ -1045,6 +1076,15 @@ sum.ProdCurLast = function (id,dataSource) {
             field: "Production",
             // opacity : 0.7,
             axis: "production",
+            tooltip: {
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return  sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n2');
+                    }
+                }
+            }
             // color: "#21c4af",
         }, {
             type: "column",
@@ -1053,6 +1093,15 @@ sum.ProdCurLast = function (id,dataSource) {
             field: "ProductionLastYear",
             // opacity : 0.7,
             axis: "production",
+            tooltip: {
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return  sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n2');
+                    }
+                }
+            }
             // color: "#ff880e",
         }, {
             type: "line",
@@ -1072,6 +1121,13 @@ sum.ProdCurLast = function (id,dataSource) {
             labels: {
                 step: 2,
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+                template : function(e){
+                    if(lgd.projectName() !== 'Fleet'){
+                        return sum.templateValue(e);
+                    }else{
+                        return kendo.toString(e.value, 'n0');
+                    }
+                },
             },
             majorGridLines: {
                 visible: true,
@@ -1081,7 +1137,7 @@ sum.ProdCurLast = function (id,dataSource) {
             name: "production",
         }, {
             line: {
-                visible: false
+                visible: true
             },
             majorGridLines: {
                 visible: true,
@@ -1090,7 +1146,7 @@ sum.ProdCurLast = function (id,dataSource) {
             },
             labels: {
                 format: "{0}%",
-                visible: false,
+                visible: true,
             },
             name: "variance",
         }],
@@ -1421,7 +1477,7 @@ sum.CumProduction = function (dataSource) {
             // opacity : 0.7,
             markers: {
                 visible: false,
-            }
+            },
         },
         series: [
         {
@@ -1449,7 +1505,9 @@ sum.CumProduction = function (dataSource) {
             },
             labels: {
                 step: 2,
-                format: "n0",
+                template: function(e){
+                    return sum.templateValue(e);
+                },
                 font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
             },
         },
@@ -1684,6 +1742,27 @@ sum.DetailProd = function (e) {
     })
 }
 
+sum.templateValue = function(e){
+    var value = e.value * 1000;
+    if(value >= 1 && value < 1000){
+        if(value != Math.floor(value)){
+            return kendo.toString(value, 'n1');
+        }else{
+            return kendo.toString(value, 'n0');
+        }
+        
+    }else if(value >= 1000){
+        value = value / 1000;
+        if(value != Math.floor(value)){
+            return kendo.toString(value, 'n1') + " k";
+        }else{
+            return kendo.toString(value, 'n0') + " k";
+        }
+    }else{
+        return kendo.toString(value, 'n2');
+    }
+}
+
 // show monthly project, level 2 of generation summary / production monthly from dashboard
 sum.MonthlyProject = function (e, tipe) {
     app.loading(true);
@@ -1695,7 +1774,7 @@ sum.MonthlyProject = function (e, tipe) {
     sum.isMonthlyProject(true);
 
     var projects =  [];
-    $.each(lgd.projectItem(), function(key, val){
+    $.each(lgd.projectList(), function(key, val){
         if(val.value !== "Fleet"){
              projects.push(val.value);
         }
@@ -1708,6 +1787,8 @@ sum.MonthlyProject = function (e, tipe) {
     var param = {
         Projects: projects
     };
+    //console.log("Ini Param");
+    //console.log(param);
     var dataSource;
     var dataRequest = toolkit.ajaxPost(viewModel.appName + "dashboard/getmonthlyproject", param, function (res) {
         if (!app.isFine(res)) {
@@ -1720,16 +1801,26 @@ sum.MonthlyProject = function (e, tipe) {
             data.push(key);
         });
 
-        sum.dataDrilldown(data);  
+        sum.dataDrilldown(data);
     });
     var dataSeries = [{
-        name: "Production (GWh)",
+        name: "Production (MWh)",
         field: "production",
-        axis: "production"
+        axis: "production",
+        tooltip: {
+            template: function(e){
+                return sum.templateValue(e);
+            }
+        }
     }, {
-        name: "Lost Energy (GWh) ",
+        name: "Lost Energy (MWh) ",
         field: "lostenergy",
-        axis: "lostenergy"
+        axis: "lostenergy",
+        tooltip: {
+            template: function(e){
+                return sum.templateValue(e);
+            }
+        }
     }];
 
     var valueAxesData = [{
@@ -1738,13 +1829,17 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 right: 0
             },
-            text: "Production (GWh)",font: "10px"
+            text: "Production (MWh)",font: "10px"
         },
         line: {
             visible: false
         },
         labels:{
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            template: function(e){
+                return sum.templateValue(e);
+            }
+
         },
         axisCrossingValue: -10,
         majorGridLines: {
@@ -1759,12 +1854,15 @@ sum.MonthlyProject = function (e, tipe) {
             margin: {
                 left: 0
             },
-            text: "Lost Energy (GWh)",font: "10px"},
+            text: "Lost Energy (MWh)",font: "10px"},
         line: {
             visible: false
         },
         labels:{
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',
+            template: function(e){
+                return sum.templateValue(e);
+            }
         },
         axisCrossingValue: -10,
         majorGridLines: {
@@ -1773,7 +1871,7 @@ sum.MonthlyProject = function (e, tipe) {
             width: 0.8,
         },
     }];
-    sum.titleDetailLevel1('Controller Generation (GWh) - Last 12 Months By Project');
+    sum.titleDetailLevel1('Controller Generation (MWh) - Last 12 Months By Project');
 
     if(tipe == "plf") {
         sum.titleDetailLevel1('PLF (%) - Last 12 Months By Project');
@@ -1892,7 +1990,7 @@ sum.MonthlyProject = function (e, tipe) {
         tooltip: {
             visible: true,
             shared: true,
-            template: "#= kendo.toString(value, 'n2') #",
+            // template: "#= kendo.toString(value, 'n2') #",
             background: "rgb(255,255,255, 0.9)",
             color: "#58666e",
             font: 'Source Sans Pro, Lato , Open Sans , Helvetica Neue, Arial, sans-serif',

@@ -493,6 +493,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		gridavail    float64
 		machineavail float64
 		trueavail    float64
+		dataavail    float64
 	}
 
 	type DataReturn struct {
@@ -595,6 +596,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		"gridavail":        tk.M{"$avg": "$gridavail"},
 		"mindate":          tk.M{"$min": "$dateinfo.dateid"},
 		"maxdate":          tk.M{"$max": "$dateinfo.dateid"},
+		"totalrows":        tk.M{"$sum": "$totalrows"},
 	}})
 
 	csr, e := DB().Connection.NewQuery().
@@ -650,6 +652,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 		sPlf = (sEnergy / (turbinecapacity * duration)) * 100
 		sMachineavail = tk.Div(totalhours-scada.GetFloat64("machinedownhours"), totalhours) * 100
 		sGridavail = tk.Div(totalhours-scada.GetFloat64("griddownhours"), totalhours) * 100
+		scadaItem.dataavail = tk.Div(scada.GetFloat64("totalrows")/6, totalhours) * 100
 	} else {
 		scadaDataAvailable = false
 	}
@@ -927,6 +930,7 @@ func (m *AnalyticDgrScadaController) GetDataRev(k *knot.WebContext) interface{} 
 	result = append(result, tk.M{"desc": "Grid Availability", "dgr": dgrItem.gridavail, "scada": scadaItem.gridavail, "difference": varItem.gridavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "Machine Availability", "dgr": dgrItem.machineavail, "scada": scadaItem.machineavail, "difference": varItem.machineavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 	result = append(result, tk.M{"desc": "True Availability", "dgr": dgrItem.trueavail, "scada": scadaItem.trueavail, "difference": varItem.trueavail, "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
+	result = append(result, tk.M{"desc": "Data Availability", "dgr": "N/A", "scada": scadaItem.dataavail, "difference": "N/A", "ScadaHFD": "N/A", "diffdgrhfd": "N/A"})
 
 	if scadaDataAvailable == false {
 		for _, val := range result {

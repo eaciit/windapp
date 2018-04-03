@@ -131,7 +131,7 @@ mn.generateGrid = function(param){
         }, {
             field: "timestart",
             title: "Time Start",
-            width: 130,
+            width: 120,
             attributes: {
                 style: "text-align:center;"
             },
@@ -139,7 +139,7 @@ mn.generateGrid = function(param){
         }, {
             field: "timeend",
             title: "Time End",
-            width: 130,
+            width: 120,
             attributes: {
                 style: "text-align:center;"
             },
@@ -147,7 +147,7 @@ mn.generateGrid = function(param){
         }, {
             field: "duration",
             title: "Duration (hh:mm:ss)",
-             width: 120,
+             width: 100,
              attributes: {
                 style: "text-align:center;"
             },
@@ -158,18 +158,18 @@ mn.generateGrid = function(param){
             attributes: {
                 style: "text-align:center;"
             },
-            width: 130,
+            width: 160,
         }, {
             field: "endcond",
             title: "End Value",
             attributes: {
                 style: "text-align:center;"
             },
-            width: 130,
+            width: 160,
         },{
             field: "description",
             title: "Description",
-            width: 190,
+            width: 170,
             attributes: {
                 style: "text-align:center;"
             },

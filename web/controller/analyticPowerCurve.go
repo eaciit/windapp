@@ -9,6 +9,8 @@ import (
 
 	// "fmt"
 	"math"
+	"os"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -17,6 +19,7 @@ import (
 	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
+	x "github.com/tealeg/xlsx"
 )
 
 type AnalyticPowerCurveController struct {
@@ -30,7 +33,110 @@ var (
 	// colorFieldDegradation = [...]string{"#ffcf9e", "#a6e7df", "#ffc8c0", "#ffe2b8", "#d9f2ba", "#a4d8e7", "#ffc0db", "#fab3ae", "#efa5a2", "#cfc8dc", "#d6a0e0", "#a8e6cc", "#f5b9bd", "#e7d8b5", "#ffbbd5", "#e7a89d", "#edc7be", "#ffa9ef", "#adddd0", "#9fe0f7", "#fabcaf", "#ff99af", "#b9cada", "#ffc1c1", "#ffeec1", "#c6ddff", "#c9bbb5"}
 	colorFieldDegradation = [...]string{"#FFD6AD", "#A6E7DF", "#FFC8C0", "#FFE2B8", "#D9F2BA", "#A4D8E7", "#FFC0DB", "#FAB3AE", "#C3EDF5", "#CFC8DC", "#D6A0E0", "#A8E6CC", "#F5B9BD", "#E7D8B5", "#FFBBD5", "#E7A89D", "#EDC7BE", "#FFA9EF", "#ADDDD0", "#9FE0F7", "#99B7C9", "#FF99AF", "#B9CADA", "#FFC1C1", "#FFEEC1", "#C6DDFF", "#C9BBB5", "#AFADC6", "#C3B5D4", "#E5E7BA", "#DDBCA3", "#FBDFF3", "#CAADA1", "#99ABF8", "#D1C7A3", "#A5CF9B", "#FFD699", "#D7A8DF", "#C4CBD0", "#EFB1A4", "#BDF5D9", "#F099ED", "#DFDBC5", "#CBADEA", "#D9F6FB", "#D7E2FA", "#D8D8D8", "#9BBC9B", "#9AB2CD", "#A2D3CB", "#AAC9C9", "#DBCA9D", "#A7B3B3", "#A3DEC9", "#C9E89F", "#C7C5BF", "#B8C7A5", "#C2ADD7", "#A4FAE1", "#F2AA9C", "#EFEBDD", "#C5B8B9", "#FAA2CC", "#C9C9F7", "#FBDDF5", "#B1E1DE", "#BE9BDF", "#A1ECE3", "#D9BDBD", "#A5BFB0", "#B79CCC", "#C0D5BF", "#A4D2AB", "#DFE99D", "#C1A8D4", "#F39B9E", "#A6A7F9"}
 	downColor             = [...]string{"#000", "#444", "#666", "#888", "#aaa", "#ccc", "#eee"}
+	colorPCComparison     = []string{"#ff9933", "#4D9E4D", "#C4C920", "#B33D43", "#4068B3"}
+	colorLineComparison   = []string{"#FF6565", "#3AA19B", "#4CAECF", "#94D154", "#5A298F"}
 	// downIcon   = [...]string{"triangle", "square", "triangle", "cross", "square", "triangle", "cross"}
+	headerExcelPC = map[string]string{
+		"avgwindspeed":                "Wind Speed",
+		"power":                       "Power",
+		"turbine":                     "Turbine",
+		"timestamp":                   "Timestamp",
+		"deviationpct":                "Deviation",
+		"dendeviationpct":             "Deviation",
+		"avgbladeangle":               "Pitch Angle",
+		"winddirection":               "Wind Direction",
+		"nacelletemperature":          "Nacelle Temp",
+		"ambienttemperature":          "Ambient Temp",
+		"windspeed_ms_stddev":         "WS Std. Deviation",
+		"windspeed_ms":                "Wind Speed",
+		"activepower_kw":              "Power",
+		"rotorrpm":                    "Rotor RPM",
+		"generatorrpm":                "Generator RPM",
+		"wsavgforpc":                  "Wind Speed Bin",
+		"denadjwindspeed":             "Density Wind Speed Bin",
+		"wsadjforpc":                  "Wind Speed Bin",
+		"pcvalue":                     "Exp. Prod / PC",
+		"pitchaccuv2":                 "Pitch Vol Bl2",
+		"pitchaccuv3":                 "Pitch Vol Bl3",
+		"tempnacelle":                 "Nacelle Temp",
+		"pitchangle2":                 "Pitch Angle 2",
+		"tempshaftbearing2":           "Gbox Temp Inter NonDrv",
+		"temprefcoolingunit":          "Cooling unit temp",
+		"gridppvphaseca":              "Phs Volt 3",
+		"hydraulictemp":               "Hyd. Temp",
+		"tempslipring":                "Slip ring temp",
+		"gridppvphasebc":              "Phs Volt 2",
+		"tempoutdoor":                 "Ambient Temp",
+		"rotorspeed_rpm":              "Rotor Speed",
+		"tempg1l2":                    "Gen. winding temp2",
+		"gridpowerfactor":             "Grid Power Factor",
+		"tempshaftbearing1":           "Gbox Temp Drv",
+		"tempgearboxoilsump":          "Temp Gear box oil",
+		"tempconv3":                   "Temp P.Mot Bl3",
+		"nacellepos":                  "Nacell Position",
+		"temphubbearing":              "Temp Rotor Brng",
+		"pitchangle3":                 "Pitch Angle 3",
+		"rawwindspeed":                "Raw Wind speed",
+		"refradiatortemp1":            "Rad temp1 ref",
+		"hydraulicpressure":           "Hyd Pres.",
+		"temprectifiergrid":           "Rect grid temp",
+		"pitchaccuv1":                 "Pitch Vol Bl1",
+		"pitchangle":                  "Pitch Angle",
+		"genspeed_rpm":                "Generator Speed",
+		"reactivepower_kvar":          "Reactive Power",
+		"pitchangle1":                 "Pitch Angle 1",
+		"tempconvcabinetmax":          "Temp Conv cab max",
+		"transformerwindingtemp2":     "Trnsf Wndg temp2",
+		"powerfactor":                 "Cos Phi",
+		"tempg1l3":                    "Gen. winding temp3",
+		"refradiatortemp2":            "Rad temp2 ref",
+		"transformerwindingtemp3":     "Trnsf Wndg temp3",
+		"statorcurrent":               "Stator current",
+		"gridfrequencyhz":             "Freq Grid",
+		"tempg1l1":                    "Gen. winding temp1",
+		"tempgeneratorbearingnde":     "Temp Gen Brng NDE",
+		"tempconv1":                   "Temp P.Mot Bl1",
+		"tempconv2":                   "Temp P.Mot Bl2",
+		"tempgeneratorbearingde":      "Temp Gen Brng DE",
+		"tempshaftbearing3":           "Gbox NonDrv",
+		"gridppvphaseab":              "Phs Volt 1",
+		"transformerwindingtemp1":     "Trnsf Wndg temp1",
+		"temprectifierrotor":          "Rect rotor temp",
+		"drivetrainvib":               "Drive train Vibration",
+		"gridcurrent":                 "Grid current",
+		"pitchcabinettempblade2":      "Pitch Cab Temp Bl2",
+		"statorpower":                 "Stator pwr",
+		"nacelledeviation":            "Nacelle Dev.",
+		"yawnacelposrotation":         "Nacelle Pos Rotn",
+		"pitchcabinettempblade3":      "Pitch Cab Temp Bl3",
+		"powerlimittemp":              "Power limit temp power",
+		"tempgridside":                "Conv Temp Grid side",
+		"tempgeneratorchoke":          "Temp Gen side choke",
+		"pitchconvinternaltempblade1": "Pitch Int Conv Temp Bl1",
+		"pitchconvinternaltempblade2": "Pitch Int Conv Temp Bl2",
+		"tempgridchoke":               "Temp Grid side choke ",
+		"pitchcabinettempblade1":      "Pitch Cab Temp Bl1",
+		"pitchconvinternaltempblade3": "Pitch Int Conv Temp Bl3",
+		"tempgeneratorcoolingunit":    "Temp Gen Inlet",
+		"gearboxmaxpowerhightemp":     "Gearbox Max Power High Temp",
+		"yawwindirtower":              "Yaw win Dir Twr",
+		"rectifieractivepower":        "Active pwr rectifier",
+		"tempgeneratorside":           "Conv Temp Gen side",
+		"dcvoltage":                   "DC Volt",
+		"accydir":                     "Vibr Y Axis",
+		"rotorcurrent":                "Rotor current",
+		"tempconvcabinet2":            "Temp Conv Cab2",
+		"tempconvwaterout":            "Conv Water temp output",
+		"gridvoltage":                 "Grid voltage",
+		"busbarvoltage":               "Busbar volt",
+		"gridexport":                  "Grid Exp Pwr",
+		"accxdir":                     "Vibr. X axis",
+		"rectifiercurrent":            "Rectifier current",
+		"tempgearboxoiltank":          "Temp G.Box oil Tank",
+		"gearboxoilpressure":          "Gbox Oil Pres",
+		"naceldirection":              "Nacelle Deviation",
+	}
+	percentageList = []string{"deviationpct", "dendeviationpct"}
 )
 
 func CreateAnalyticPowerCurveController() *AnalyticPowerCurveController {
@@ -279,6 +385,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if project != "" {
 		filter = append(filter, dbox.Eq("projectname", project))
 	}
+
+	//startend treshold for data available
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+
 	IsDeviation := p.IsDeviation
 	DeviationVal := p.DeviationVal
 	DeviationOpr := tk.ToInt(p.DeviationOpr, tk.RoundingAuto)
@@ -288,6 +399,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	colId := "$wsavgforpc"
 	colValue := "$power"
 	colDeviation := "deviationpct"
+	fieldList := []string{}
 	switch viewSession {
 	case "density":
 		colId = "$denadjwindspeed"
@@ -300,6 +412,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 		colId = "$wsavgforpc"
 		colDeviation = "deviationpct"
 	}
+	fieldList = []string{"timestamp", "turbine", "avgwindspeed", strings.Split(colId, "$")[1], strings.Split(colValue, "$")[1], "pcvalue", colDeviation}
 
 	issitespecific := false
 	if p.IsSpecific && p.ViewSession != "density" {
@@ -320,7 +433,6 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 	filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 	filter = append(filter, dbox.Ne("turbine", ""))
-	filter = append(filter, dbox.Eq("projectname", project))
 	filter = append(filter, dbox.In("turbine", turbine...))
 
 	// temporary
@@ -342,18 +454,29 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	// }
 
 	filter = append(filter, dbox.Eq("available", 1))
+	deviationString := "-"
 
 	// modify by ams, 2017-08-11
 	if IsDeviation {
 		if DeviationOpr > 0 {
 			filter = append(filter, dbox.Or(dbox.Gte(colDeviation, dVal), dbox.Lte(colDeviation, (-1.0*dVal))))
+			if IsDeviation {
+				deviationString = tk.Sprintf("> %s%%", DeviationVal)
+			}
 		} else {
 			filter = append(filter, dbox.And(dbox.Lte(colDeviation, dVal), dbox.Gte(colDeviation, (-1.0*dVal))))
+			deviationString = tk.Sprintf("< %s%%", DeviationVal)
 		}
 	}
 	if isClean {
 		filter = append(filter, dbox.Eq("isvalidstate", true))
 		// filter = append(filter, dbox.Eq("oktime", 600))
+	}
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+		tk.Sprintf("Data Valid: %v", isClean),
+		tk.Sprintf("Deviation: %s", deviationString),
 	}
 
 	csr, e := DB().Connection.NewQuery().
@@ -365,8 +488,11 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
+	e = csr.Fetch(&list, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
 
 	pipesx = append(pipesx, tk.M{"$group": tk.M{"_id": tk.M{"Turbine": "$turbine"}, "totaldata": tk.M{"$sum": 1}}})
 	pipesx = append(pipesx, tk.M{"$sort": tk.M{"_id": 1}})
@@ -408,6 +534,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
 	}
 
 	totalAllPerTurbines := map[string]tk.M{}
@@ -505,21 +641,270 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveScada(k *knot.WebContext
 
 	dataSeries = append(dataSeries, pcData)
 
+	/* adding LastFilter, FieldList, TableName & ContentFilter for Download Excel */
 	data := struct {
 		Data              []tk.M
 		TotalData         int
 		TotalDataAvail    float64
 		TotalDataShouldBe float64
 		TotalPerTurbine   map[string]tk.M
+		LastFilter        []*dbox.Filter
+		FieldList         []string
+		TableName         string
+		ContentFilter     []string
 	}{
 		Data:              dataSeries,
 		TotalData:         totalDataAll,
 		TotalDataAvail:    totalDataAvail,
 		TotalPerTurbine:   totalAllPerTurbines,
 		TotalDataShouldBe: (float64(totalDataShouldBe) * float64(len(p.Turbine))),
+		LastFilter:        filter,
+		FieldList:         fieldList,
+		TableName:         new(ScadaData).TableName(),
+		ContentFilter:     contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func toDboxFilter(val interface{}) (newVal []*dbox.Filter) {
+	valInt := val.([]interface{})
+	newVal = []*dbox.Filter{}
+	for _, vInt := range valInt {
+		vMap := vInt.(map[string]interface{})
+		newVal = append(newVal, &dbox.Filter{
+			Field: tk.ToString(vMap["Field"]),
+			Op:    tk.ToString(vMap["Op"]),
+			Value: vMap["Value"],
+		})
+	}
+	return
+}
+
+func GetTurbineNameForPC(turbineIDList []interface{}) (turbineName, turbineProject map[string]string, err error) {
+	query := DB().Connection.NewQuery().From("ref_turbine")
+	pipes := []tk.M{
+		tk.M{"$match": tk.M{"turbineid": tk.M{"$in": turbineIDList}}},
+	}
+	query = query.Command("pipe", pipes)
+	csrTurbine, err := query.Cursor(nil)
+	if err != nil {
+		return
+	}
+	defer csrTurbine.Close()
+	turbineList := []tk.M{}
+	err = csrTurbine.Fetch(&turbineList, 0, false)
+	if err != nil {
+		return
+	}
+	turbineName = map[string]string{}
+	turbineProject = map[string]string{}
+	for _, val := range turbineList {
+		turbineName[val.GetString("turbineid")] = tk.Sprintf("%s<>%s", val.GetString("project"), val.GetString("turbinename"))
+		turbineProject[val.GetString("turbinename")] = tk.Sprintf("%s<>%s", val.GetString("project"), val.GetString("turbinename"))
+	}
+	return
+}
+
+func (m *AnalyticPowerCurveController) GenExcelPowerCurve(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := struct {
+		Filters           []*dbox.Filter
+		FieldList         []string
+		TableName         string
+		TypeExcel         string
+		ContentFilter     []string
+		IsSplittedSheet   bool
+		IsMultipleProject bool
+	}{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dateList := []string{"dateinfo.dateid", "timestamp"}
+	tStart := time.Time{}
+	tEnd := time.Time{}
+	turbineIDList := []interface{}{}
+	for _, val := range p.Filters {
+		if tk.HasMember(dateList, val.Field) { /* you have to define tStart using gt or gte and tEnd using lt or lte */
+			b, _ := time.Parse("2006-01-02T15:04:05Z", val.Value.(string))
+			val.Value = b.UTC()
+			if strings.Contains(val.Op, "gt") {
+				tStart = b.UTC()
+			} else {
+				tEnd = b.UTC()
+			}
+		}
+		if val.Field == "" && (val.Op == "$and" || val.Op == "$or") { /* if the filter contains $and or $or*/
+			val.Value = toDboxFilter(val.Value)
+		}
+		if val.Field == "turbine" && val.Op == "$in" && tk.IsSlice(val.Value) { /* populate turbine id list to get turbine name */
+			turbineIDList = val.Value.([]interface{})
+		}
+		if val.Field == "turbine" && val.Op == "$eq" {
+			turbineIDList = append(turbineIDList, val.Value)
+		}
+	}
+	fieldList := p.FieldList
+	headerList := []string{}
+	csr, e := DB().Connection.NewQuery().
+		From(p.TableName).
+		Select(fieldList...).
+		Where(dbox.And(p.Filters...)).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+	results := []tk.M{}
+	e = csr.Fetch(&results, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	sortedTimeStamp := []time.Time{}
+	timeCount := tStart.UTC()
+	for {
+		timeCount = timeCount.Add(time.Duration(time.Minute) * 10).UTC()
+		if timeCount.After(tEnd.UTC()) {
+			break
+		}
+		sortedTimeStamp = append(sortedTimeStamp, timeCount)
+	}
+	turbineName, turbineProject, err := GetTurbineNameForPC(turbineIDList)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbineNameSorted := []string{}
+	for _, val := range turbineName {
+		turbineNameSorted = append(turbineNameSorted, val)
+	}
+	sort.Strings(turbineNameSorted)
+	dataPerTurbine := map[string][]tk.M{}
+	dataPerTimeStamp := map[time.Time][]tk.M{}
+	sortedDataByTimeStamp := []tk.M{}
+	waktu := time.Time{}
+
+	for _, _data := range results { /* grouping data per timestamp */
+		waktu = _data.Get("timestamp", time.Time{}).(time.Time).UTC()
+		_data.Set("turbine", strings.Split(turbineName[_data.GetString("turbine")], "<>")[1])
+		dataPerTimeStamp[waktu] = append(dataPerTimeStamp[waktu], _data)
+	}
+	for _, _waktu := range sortedTimeStamp { /* masukkan data yang sudah urut timestamp ke variable */
+		data, hasData := dataPerTimeStamp[_waktu]
+		if hasData {
+			sortedDataByTimeStamp = append(sortedDataByTimeStamp, data...)
+		}
+	}
+	for _, _data := range sortedDataByTimeStamp { /* grouping sortedDataByTimeStamp per turbine */
+		keys := turbineProject[_data.GetString("turbine")]
+		dataPerTurbine[keys] = append(dataPerTurbine[keys], _data)
+	}
+
+	var pathDownload string
+	tempPath := "web/assets/Excel/"
+	typeExcel := p.TypeExcel
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := tk.Sprintf("%s_%s", typeExcel, TimeCreate)
+	filename := tempPath + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	if err := os.RemoveAll(tempPath + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	if _, err := os.Stat(tempPath + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll(tempPath+typeExcel+"/", 0777)
+	}
+
+	for _, val := range fieldList {
+		headerList = append(headerList, headerExcelPC[val])
+	}
+	createExcelPowerCurve(dataPerTurbine, filename, headerList, fieldList, turbineNameSorted, p.ContentFilter, p.IsSplittedSheet, p.IsMultipleProject)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
+func createExcelPowerCurve(dataPerTurbine map[string][]tk.M, filename string, header, fieldList, turbineNameSorted,
+	contentFilter []string, isSplitSheet, isMultipleProject bool) error {
+	file := x.NewFile()
+	sheet := new(x.Sheet)
+	dataType := ""
+
+	for idxTurbine, _turbine := range turbineNameSorted {
+		data := dataPerTurbine[_turbine]
+		if idxTurbine == 0 && !isSplitSheet { /* tambah header dan sheet saat awal saja*/
+			sheet, _ = file.AddSheet("Sheet1")
+			for _, val := range contentFilter {
+				sheet.AddRow().AddCell().Value = val
+			}
+			sheet.AddRow()
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		} else if isSplitSheet { /* tambah header dan sheet tiap ada perubahan nama turbine */
+			if isMultipleProject { /* jika multiple project dapat bonus nama project + turbine */
+				sheet, _ = file.AddSheet(strings.Replace(_turbine, "<>", "_", 1))
+			} else {
+				sheet, _ = file.AddSheet(strings.Split(_turbine, "<>")[1])
+			}
+			for _, val := range contentFilter {
+				sheet.AddRow().AddCell().Value = val
+			}
+			sheet.AddRow()
+			rowHeader := sheet.AddRow()
+			for _, hdr := range header {
+				cell := rowHeader.AddCell()
+				cell.Value = hdr
+			}
+		}
+		for _, each := range data {
+			rowContent := sheet.AddRow()
+			cell := rowContent.AddCell()
+			for idx, field := range fieldList {
+				if idx > 0 {
+					cell = rowContent.AddCell()
+				}
+				if each.Has(field) {
+					switch field {
+					case "timestamp", "timestamputc", "timestart", "timeend":
+						cell.Value = each[field].(time.Time).UTC().Format("2006-01-02 15:04:05")
+					default:
+						dataType = reflect.Indirect(reflect.ValueOf(each[field])).Type().Name()
+						switch dataType {
+						case "float64":
+							value := each.GetFloat64(field)
+							if tk.HasMember(percentageList, field) {
+								cell.Value = tk.Sprintf("%.2f%%", math.Abs(value*100))
+							} else if value != -999999 {
+								cell.SetFloat(tk.ToFloat64(tk.Sprintf("%.2f", value), 2, tk.RoundingAuto))
+							}
+						case "int":
+							value := each.GetInt(field)
+							if value != -999999 {
+								cell.SetInt(value)
+							}
+						case "string":
+							cell.Value = each.GetString(field)
+						case "bool":
+							cell.SetBool(each[field].(bool))
+						}
+					}
+				}
+			}
+		}
+	}
+
+	err := file.Save(filename)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebContext) interface{} {
@@ -578,6 +963,7 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
 	}
+	filter := pipeMatchToDboxFilter(match)
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
 
@@ -722,15 +1108,50 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthly(k *knot.WebConte
 		categoryList = append(categoryList, catList)
 	}
 
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data     []tk.M
-		Category []tk.M
+		Data          []tk.M
+		Category      []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     results,
-		Category: categoryList,
+		Data:          results,
+		Category:      categoryList,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
+}
+
+func pipeMatchToDboxFilter(matches []tk.M) (result []*dbox.Filter) {
+	result = []*dbox.Filter{}
+	for _, match := range matches {
+		_result := new(dbox.Filter)
+		for key, val := range match {
+			_result.Field = key
+			if tk.TypeName(val) == "toolkit.M" {
+				for operator, value := range val.(tk.M) {
+					_result.Op = operator
+					_result.Value = value
+				}
+			} else {
+				_result.Op = "$eq"
+				_result.Value = val
+			}
+		}
+		result = append(result, _result)
+	}
+	return
 }
 
 func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.WebContext) interface{} {
@@ -761,6 +1182,10 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
+	//startend treshold for data available
+	listavaildate := getAvailDateByCondition(project, "ScadaData")
+	_availdate := listavaildate.Get(project, tk.M{}).(tk.M).Get("ScadaData", []time.Time{}).([]time.Time)
+
 	match := []tk.M{}
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$gte": tStart}})
 	match = append(match, tk.M{"dateinfo.dateid": tk.M{"$lt": tEnd}})
@@ -771,13 +1196,20 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	//match = append(match, tk.M{"turbine": tk.M{"$ne": ""}})
 	//match = append(match, tk.M{"power": tk.M{"$ne": 0.0}})
 	match = append(match, tk.M{"projectname": project})
-	match = append(match, tk.M{"isvalidstate": true})
+	if p.IsClean {
+		match = append(match, tk.M{"isvalidstate": true})
+	}
 	match = append(match, tk.M{"available": 1})
 	match = append(match, tk.M{"power": tk.M{"$ne": nil}})
 	match = append(match, tk.M{"avgwindspeed": tk.M{"$ne": nil}})
 
 	if len(p.Turbine) > 0 {
 		match = append(match, tk.M{"turbine": tk.M{"$in": p.Turbine}})
+	}
+	filter := pipeMatchToDboxFilter(match)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": match}})
@@ -844,6 +1276,16 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	var datas [][]float64
 	results := []tk.M{}
 	sortTurbines := []string{}
+
+	if len(_availdate) > 0 {
+		if _availdate[0].UTC().After(tStart.UTC()) {
+			tStart = _availdate[0]
+		}
+
+		if _availdate[1].UTC().Before(tEnd.UTC()) {
+			tEnd = _availdate[1]
+		}
+	}
 
 	totalDays := tk.Div(tEnd.Sub(tStart).Hours(), 24.0)
 	totalDataShouldBe := totalDays * 144
@@ -936,12 +1378,22 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 	categoryList = append(categoryList, tk.M{"category": "Power Curve", "color": "#ff9933"})
 	categoryList = append(categoryList, tk.M{"category": "Data", "color": "#21c4af"})
 
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
+
 	data := struct {
-		Data     []tk.M
-		Category []tk.M
+		Data          []tk.M
+		Category      []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     results,
-		Category: categoryList,
+		Data:          results,
+		Category:      categoryList,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -950,152 +1402,190 @@ func (m *AnalyticPowerCurveController) GetListPowerCurveMonthlyScatter(k *knot.W
 func (m *AnalyticPowerCurveController) GetListPowerCurveComparison(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	var (
-		pipes      []tk.M
-		filter     []*dbox.Filter
-		list       []tk.M
-		dataSeries []tk.M
-		// sortTurbines []string
-	)
+	type ComparisonDetail struct {
+		Period    string
+		Project   string
+		Turbine   string
+		DateStart time.Time
+		DateEnd   time.Time
+	}
 
-	p := new(PayloadPCComparison)
-	e := k.GetPayload(&p)
+	type PayloadComparison struct {
+		ProjectList   []string
+		TurbineList   []interface{}
+		Details       []ComparisonDetail
+		MostDateStart time.Time
+		MostDateEnd   time.Time
+	}
+
+	payload := PayloadComparison{}
+	e := k.GetPayload(&payload)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	PC1tStart, PC1tEnd, e := helper.GetStartEndDate(k, p.PC1Period, p.PC1DateStart, p.PC1DateEnd)
-	PC2tStart, PC2tEnd, e := helper.GetStartEndDate(k, p.PC2Period, p.PC2DateStart, p.PC2DateEnd)
+	tStartMost, tEndMost, e := helper.GetStartEndDate(k, "custom", payload.MostDateStart, payload.MostDateEnd)
+
+	filterExcel := []*dbox.Filter{}
+	filterExcel = append(filterExcel, dbox.Ne("_id", ""))
+	filterExcel = append(filterExcel, dbox.Gte("dateinfo.dateid", tStartMost))
+	filterExcel = append(filterExcel, dbox.Lte("dateinfo.dateid", tEndMost))
+	filterExcel = append(filterExcel, dbox.In("turbine", payload.TurbineList...))
+	filterExcel = append(filterExcel, dbox.Gt("power", 0))
+	filterExcel = append(filterExcel, dbox.Eq("available", 1))
+
+	var mux sync.Mutex
+	dataSeriesPC := []tk.M{}
+
+	powerCurve := []PowerCurveModel{}
+
+	csr, e := DB().Connection.NewQuery().From(new(PowerCurveModel).TableName()).
+		Order("model", "windspeed").Cursor(nil)
 	if e != nil {
+		tk.Println("Error on GetListPowerCurveComparison func at payload.ProjectList range due to >>", e.Error())
 		return helper.CreateResult(false, nil, e.Error())
 	}
-	PC1turbine := p.PC1Turbine
-	PC1project := p.PC1Project
-	PC2turbine := p.PC2Turbine
-	// PC2project := ""
-	// if p.PC2Project != "" {
-	// 	anProject := strings.Split(p.PC2Project, "(")
-	// 	PC2project = strings.TrimRight(anProject[0], " ")
-	// }
-
-	colId := "$wsavgforpc"
-	colValue := "$power"
-
-	// Hardcode first
-	engine := ""
-	if PC1project == "Dewas" {
-		engine = "S-97"
-	}
-
-	PC1Data, e := getPCData(PC1project, engine, true)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-
-	// PC2Data, e := getPCData(PC2project)
-	// if e != nil {
-	// 	return helper.CreateResult(false, nil, e.Error())
-	// }
-
-	dataSeries = append(dataSeries, PC1Data)
-	// dataSeries = append(dataSeries, PC2Data)
-
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": colId, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	filter = nil
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", PC1tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", PC1tEnd))
-	filter = append(filter, dbox.Eq("turbine", PC1turbine))
-	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Eq("available", 1))
-
-	csr, e := DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
-		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
-		Cursor(nil)
-
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	e = csr.Fetch(&list, 0, false)
 	defer csr.Close()
 
-	turbineName, e := helper.GetTurbineNameList(p.PC1Project)
+	e = csr.Fetch(&powerCurve, 0, false)
 	if e != nil {
+		tk.Println("Error on GetListPowerCurveComparison func at payload.ProjectList range due to >>", e.Error())
 		return helper.CreateResult(false, nil, e.Error())
 	}
-
-	var datas [][]float64
-	turbineData := tk.M{}
-	// turbineData.Set("name", PC1turbine)
-	turbineData.Set("name", turbineName[p.PC1Turbine]+" ("+PC1tStart.Format("02-Jan-2006")+"  to "+PC1tEnd.Format("02-Jan-2006")+")")
-	turbineData.Set("type", "scatterLine")
-	turbineData.Set("style", "smooth")
-	turbineData.Set("dashType", "solid")
-	turbineData.Set("markers", tk.M{"visible": false})
-	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[1])
-
-	for _, val := range list {
-
-		datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
+	PCPerProject := map[string][][]float64{}
+	for _, val := range powerCurve {
+		if (val.Model == "Dewas" && val.Engine == "S-97") || val.Engine == "" {
+			PCPerProject[val.Model] = append(PCPerProject[val.Model], []float64{val.WindSpeed, val.Power1})
+		}
 	}
 
-	if len(datas) > 0 {
-		turbineData.Set("data", datas)
+	for idx, _project := range payload.ProjectList {
+		dataSeriesPC = append(dataSeriesPC, tk.M{
+			"name":      "Power Curve " + _project,
+			"idxseries": idx,
+			"type":      "scatterLine",
+			"dashType":  "longDash",
+			"style":     "smooth",
+			"color":     colorPCComparison[idx],
+			"markers":   tk.M{"visible": false},
+			"width":     3,
+			"data":      PCPerProject[_project],
+		})
 	}
 
-	dataSeries = append(dataSeries, turbineData)
+	var wg sync.WaitGroup
+	wg.Add(len(payload.Details))
+	turbineNameOrder := []string{} /* for sort the result */
+	dataSeriesLine := []tk.M{}
 
-	filter = nil
-	filter = append(filter, dbox.Ne("_id", ""))
-	filter = append(filter, dbox.Gte("dateinfo.dateid", PC2tStart))
-	filter = append(filter, dbox.Lte("dateinfo.dateid", PC2tEnd))
-	filter = append(filter, dbox.Eq("turbine", PC2turbine))
-	filter = append(filter, dbox.Gt("power", 0))
-	filter = append(filter, dbox.Eq("available", 1))
+	for idx, p := range payload.Details {
+		turbineName, e := helper.GetTurbineNameList(p.Project) /* harus sebelum go routine karna dibutuhkan buat ordering */
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine]+" ("+tStart.Format("02-Jan-2006")+"  to "+tEnd.Format("02-Jan-2006")+")")
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		go func(_dataSeriesLine *[]tk.M, index int, _project, _turbineID, _turbine string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
+			defer _wg.Done()
 
-	csr, e = DB().Connection.NewQuery().
-		From(new(ScadaData).TableName()).
-		Command("pipe", pipes).
-		Where(dbox.And(filter...)).
-		Cursor(nil)
+			colId := "$wsavgforpc"
+			colValue := "$power"
+			legendName := _turbine + " (" + _tStart.Format("02-Jan-2006") + "  to " + _tEnd.Format("02-Jan-2006") + ")"
 
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+			pipes := []tk.M{}
+			pipes = append(pipes, tk.M{"$group": tk.M{"_id": colId, "production": tk.M{"$avg": colValue}, "totaldata": tk.M{"$sum": 1}}})
+			pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
+
+			filter := []*dbox.Filter{}
+			filter = append(filter, dbox.Ne("_id", ""))
+			filter = append(filter, dbox.Eq("projectname", _project))
+			filter = append(filter, dbox.Gte("dateinfo.dateid", _tStart))
+			filter = append(filter, dbox.Lte("dateinfo.dateid", _tEnd))
+			filter = append(filter, dbox.Eq("turbine", _turbineID))
+			filter = append(filter, dbox.Gt("power", 0))
+			filter = append(filter, dbox.Eq("available", 1))
+
+			csr, e := DB().Connection.NewQuery().
+				From(new(ScadaData).TableName()).
+				Command("pipe", pipes).
+				Where(dbox.And(filter...)).
+				Cursor(nil)
+
+			defer csr.Close()
+
+			if e != nil {
+				tk.Println("Error on GetListPowerCurveComparison func at payload.Details range due to >>", e.Error())
+				return
+			}
+			list := []tk.M{}
+			e = csr.Fetch(&list, 0, false)
+			if e != nil {
+				tk.Println("Error on GetListPowerCurveComparison func at payload.Details range due to >>", e.Error())
+				return
+			}
+
+			var datas [][]float64
+			turbineData := tk.M{}
+			turbineData.Set("name", legendName)
+			turbineData.Set("type", "scatterLine")
+			turbineData.Set("style", "smooth")
+			turbineData.Set("dashType", "solid")
+			turbineData.Set("markers", tk.M{"visible": false})
+			turbineData.Set("width", 2)
+			turbineData.Set("color", colorLineComparison[index])
+
+			for _, val := range list {
+				datas = append(datas, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
+			}
+
+			if len(datas) > 0 {
+				turbineData.Set("data", datas)
+			}
+
+			mux.Lock()
+			*_dataSeriesLine = append(*_dataSeriesLine, turbineData)
+			mux.Unlock()
+
+		}(&dataSeriesLine, idx, p.Project, p.Turbine, turbineName[p.Turbine], tStart, tEnd, &wg)
 	}
-	e = csr.Fetch(&list, 0, false)
-	defer csr.Close()
+	wg.Wait()
 
-	var datasC2 [][]float64
-	turbineData = tk.M{}
-	// turbineData.Set("name", PC2turbine)
-	turbineData.Set("name", turbineName[p.PC2Turbine]+" ("+PC2tStart.Format("02-Jan-2006")+"  to "+PC2tEnd.Format("02-Jan-2006")+")")
-	turbineData.Set("type", "scatterLine")
-	turbineData.Set("style", "smooth")
-	turbineData.Set("dashType", "solid")
-	turbineData.Set("markers", tk.M{"visible": false})
-	turbineData.Set("width", 2)
-	turbineData.Set("color", colorField[6])
-
-	for _, val := range list {
-
-		datasC2 = append(datasC2, []float64{val.GetFloat64("_id"), val.GetFloat64("production")})
+	/* sort the dataseriesLine after processing on go routine */
+	tempResult := []tk.M{}
+	for _, val := range turbineNameOrder {
+	loopSeries:
+		for _, dtSeries := range dataSeriesLine {
+			if dtSeries.GetString("name") == val {
+				tempResult = append(tempResult, dtSeries)
+				break loopSeries
+			}
+		}
 	}
+	dataSeriesLine = tempResult
+	dataSeries := []tk.M{}
+	dataSeries = append(dataSeriesPC, dataSeriesLine...)
 
-	if len(datasC2) > 0 {
-		turbineData.Set("data", datasC2)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", strings.Join(payload.ProjectList, ", ")),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStartMost.Format("02/01/2006"), tEndMost.Format("02/01/2006"))),
 	}
-
-	dataSeries = append(dataSeries, turbineData)
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1115,7 +1605,7 @@ func setScatterData(name, xField, yField, color, yAxis string, marker tk.M, data
 	}
 }
 
-func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+func getScatterValue(list []tk.M, tipe, field, project string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
 	resWSvsPower = []tk.M{}
 	resWSvsTipe = []tk.M{}
 	dataWSvsPower := tk.M{}
@@ -1134,6 +1624,15 @@ func getScatterValue(list []tk.M, tipe, field string) (resWSvsPower []tk.M, resW
 			dataWSvsTipe.Set("WindSpeed", val.GetFloat64("avgwindspeed"))
 			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
 			dataWSvsTipe.Set("valueColor", colorField[2])
+
+			if tipe == "Nacelle_Deviation" && project == "Lahori" {
+				_val := val.GetFloat64(field) - val.GetFloat64("naceldirection")
+				dataWSvsTipe.Set(tipe, _val)
+			}
+
+			if tipe == "Nacelle_Deviation" && project == "Lahori" && val.GetFloat64("naceldirection") == 0 {
+				continue
+			}
 
 			resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
 		}
@@ -1162,6 +1661,34 @@ func getScatterValue10Min(list []tk.M, tipe, field string, isTI bool) (resWSvsPo
 		} else {
 			dataWSvsTipe.Set(tipe, val.GetFloat64(field))
 		}
+		dataWSvsTipe.Set("valueColor", colorField[2])
+
+		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
+	}
+	return
+}
+
+func getScatterValue10MinRev(list []tk.M, tipe, field, project string) (resWSvsPower []tk.M, resWSvsTipe []tk.M) {
+	resWSvsPower = []tk.M{}
+	resWSvsTipe = []tk.M{}
+	dataWSvsPower := tk.M{}
+	dataWSvsTipe := tk.M{}
+	for _, val := range list {
+		dataWSvsPower = tk.M{}
+		dataWSvsTipe = tk.M{}
+
+		dataWSvsPower.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
+		dataWSvsPower.Set("Power", val.GetFloat64("activepower_kw"))
+		dataWSvsPower.Set("valueColor", colorField[1])
+
+		resWSvsPower = append(resWSvsPower, dataWSvsPower)
+
+		dataWSvsTipe.Set("WindSpeed", val.GetFloat64("windspeed_ms"))
+		dataWSvsTipe.Set(tipe, val.GetFloat64(field))
+		if tipe == "TI_Wind_Speed" {
+			dataWSvsTipe.Set(tipe, tk.Div(val.GetFloat64(field), val.GetFloat64("windspeed_ms")))
+		}
+
 		dataWSvsTipe.Set("valueColor", colorField[2])
 
 		resWSvsTipe = append(resWSvsTipe, dataWSvsTipe)
@@ -1273,16 +1800,16 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 
 	switch scatterType {
 	case "temp":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleTemperature", "nacelletemperature", p.Project)
 		seriesData = setScatterData("Nacelle Temperature", "WindSpeed", "NacelleTemperature", colorField[2], "tempAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "deviation":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "winddirection")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "NacelleDeviation", "winddirection", p.Project)
 		seriesData = setScatterData("Nacelle Deviation", "WindSpeed", "NacelleDeviation", colorField[2], "deviationAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "pitch":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "PitchAngle", "avgbladeangle", p.Project)
 		seriesData = setScatterData("Pitch Angle", "WindSpeed", "PitchAngle", colorField[2], "pitchAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "ambient":
-		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature")
+		resWSvsPower, resWSvsTipe = getScatterValue(list, "AmbientTemperature", "ambienttemperature", p.Project)
 		seriesData = setScatterData("Ambient Temperature", "WindSpeed", "AmbientTemperature", colorField[2], "ambientAxis", tk.M{"size": 2}, resWSvsTipe)
 	case "windspeed_dev":
 		resWSvsPower, resWSvsTipe = getScatterValue10Min(list, "WindSpeedStdDev", "windspeed_ms_stddev", false)
@@ -1294,11 +1821,24 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
 	dataSeries = append(dataSeries, turbineData)
 	dataSeries = append(dataSeries, seriesData)
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -1307,7 +1847,7 @@ func (m *AnalyticPowerCurveController) GetPowerCurveScatter(k *knot.WebContext) 
 func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputJson
 
-	type PayloadOperational struct {
+	type OperationalDetail struct {
 		Period      string
 		Project     string
 		Turbine     string
@@ -1316,41 +1856,91 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 		ScatterType string
 	}
 
-	payload := []*PayloadOperational{}
+	type PayloadOperational struct {
+		ProjectList   []string
+		TurbineList   []interface{}
+		Details       []OperationalDetail
+		MostDateStart time.Time
+		MostDateEnd   time.Time
+	}
+
+	payload := PayloadOperational{}
 	e := k.GetPayload(&payload)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+
+	tStartMost, tEndMost, e := helper.GetStartEndDate(k, "custom", payload.MostDateStart, payload.MostDateEnd)
+
+	filterExcel := []*dbox.Filter{}
+	filterExcel = append(filterExcel, dbox.Ne("_id", ""))
+	filterExcel = append(filterExcel, dbox.Gte("timestamp", tStartMost))
+	filterExcel = append(filterExcel, dbox.Lte("timestamp", tEndMost))
+	filterExcel = append(filterExcel, dbox.In("turbine", payload.TurbineList...))
+	filterExcel = append(filterExcel, dbox.Gt("power", 0))
+	filterExcel = append(filterExcel, dbox.Gt("avgwindspeed", 0))
+	filterExcel = append(filterExcel, dbox.Eq("available", 1))
+
 	minAxisX := 0.0
 	maxAxisX := 0.0
 	minAxisY := 0.0
 	maxAxisY := 0.0
 	dataSeries := []tk.M{}
-
-	turbineName, e := helper.GetTurbineNameList(payload[0].Project)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
+	typeDetail := map[string]tk.M{
+		"rotor": tk.M{
+			"field":      "rotorrpm",
+			"seriesname": "Rotor RPM",
+			"xfieldname": "Rotor",
+		},
+		"pitch": tk.M{
+			"field":      "avgbladeangle",
+			"seriesname": "Pitch Angle",
+			"xfieldname": "Pitch",
+		},
+		"generatorrpm": tk.M{
+			"field":      "generatorrpm",
+			"seriesname": "Generator RPM",
+			"xfieldname": "Generator",
+		},
+		"windspeed": tk.M{
+			"field":      "avgwindspeed",
+			"seriesname": "Wind Speed",
+			"xfieldname": "WindSpeed",
+		},
 	}
 
 	var mux sync.Mutex
-	for idx, p := range payload {
+	var wg sync.WaitGroup
+	wg.Add(len(payload.Details))
+	turbineNameOrder := []string{} /* for sort the result */
+	tipe := ""
+	for idx, p := range payload.Details {
 		idx++
-		func(p *PayloadOperational, dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int) {
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		turbineNameOrder = append(turbineNameOrder, turbineName[p.Turbine])
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		tipe = p.ScatterType
+		go func(dataSeries *[]tk.M, minAxisX, maxAxisX, minAxisY, maxAxisY *float64, index int,
+			_turbinename, _project, _turbine, _tipe string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
+			defer _wg.Done()
 			list := []tk.M{}
-			tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 			if e != nil {
 				return
 			}
-			turbine := p.Turbine
-			project := p.Project
 
 			var filter []*dbox.Filter
 			filter = []*dbox.Filter{}
 			filter = append(filter, dbox.Ne("_id", ""))
-			filter = append(filter, dbox.Gte("timestamp", tStart))
-			filter = append(filter, dbox.Lte("timestamp", tEnd))
-			filter = append(filter, dbox.Eq("turbine", turbine))
-			filter = append(filter, dbox.Eq("projectname", project))
+			filter = append(filter, dbox.Gte("timestamp", _tStart))
+			filter = append(filter, dbox.Lte("timestamp", _tEnd))
+			filter = append(filter, dbox.Eq("turbine", _turbine))
+			filter = append(filter, dbox.Eq("projectname", _project))
 			// filter = append(filter, dbox.Eq("oktime", 600))
 			filter = append(filter, dbox.Gt("power", 0))
 			filter = append(filter, dbox.Gt("avgwindspeed", 0))
@@ -1379,29 +1969,8 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 			data := tk.M{}
 			datas := []tk.M{}
 			seriesData := tk.M{}
-			typeDetail := map[string]tk.M{
-				"rotor": tk.M{
-					"field":      "rotorrpm",
-					"seriesname": "Rotor RPM",
-					"xfieldname": "Rotor",
-				},
-				"pitch": tk.M{
-					"field":      "avgbladeangle",
-					"seriesname": "Pitch Angle",
-					"xfieldname": "Pitch",
-				},
-				"generatorrpm": tk.M{
-					"field":      "generatorrpm",
-					"seriesname": "Generator RPM",
-					"xfieldname": "Generator",
-				},
-				"windspeed": tk.M{
-					"field":      "avgwindspeed",
-					"seriesname": "Wind Speed",
-					"xfieldname": "WindSpeed",
-				},
-			}
-			typeSelected := typeDetail[p.ScatterType]
+
+			typeSelected := typeDetail[_tipe]
 			fieldName := typeSelected.GetString("field")
 			seriesName := typeSelected.GetString("seriesname")
 			xFieldName := typeSelected.GetString("xfieldname")
@@ -1435,26 +2004,52 @@ func (m *AnalyticPowerCurveController) GetPCScatterOperational(k *knot.WebContex
 				datas = append(datas, data)
 			}
 			seriesData = setScatterData(seriesName, xFieldName, "Power", colorField[index], "powerAxis", tk.M{"size": 2}, datas)
-			seriesData.Set("name", turbineName[turbine]+" ("+p.DateStart.Format("02-Jan-2006")+"  to "+p.DateEnd.Format("02-Jan-2006")+")")
+			seriesData.Set("name", _turbinename+" ("+_tStart.Format("02-Jan-2006")+" to "+_tEnd.Format("02-Jan-2006")+")")
 			mux.Lock()
 			*dataSeries = append(*dataSeries, seriesData)
 			mux.Unlock()
 
-		}(p, &dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx)
+		}(&dataSeries, &minAxisX, &maxAxisX, &minAxisY, &maxAxisY, idx, turbineName[p.Turbine], p.Project, p.Turbine, tipe, tStart, tEnd, &wg)
 	}
+	wg.Wait()
+
+	/* sort the dataseries after processing on go routine */
+	tempResult := []tk.M{}
+	for _, val := range turbineNameOrder {
+		for _, dtSeries := range dataSeries {
+			split := strings.Split(dtSeries.GetString("name"), " (")
+			if split[0] == val {
+				tempResult = append(tempResult, dtSeries)
+			}
+		}
+	}
+	dataSeries = tempResult
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", strings.Join(payload.ProjectList, ", ")),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStartMost.Format("02/01/2006"), tEndMost.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "power", typeDetail[tipe].GetString("field")}
 
 	result := struct {
-		Data     []tk.M
-		MinAxisX float64
-		MaxAxisX float64
-		MinAxisY float64
-		MaxAxisY float64
+		Data          []tk.M
+		MinAxisX      float64
+		MaxAxisX      float64
+		MinAxisY      float64
+		MaxAxisY      float64
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data:     dataSeries,
-		MinAxisX: minAxisX,
-		MaxAxisX: maxAxisX,
-		MinAxisY: minAxisY,
-		MaxAxisY: maxAxisY,
+		Data:          dataSeries,
+		MinAxisX:      minAxisX,
+		MaxAxisX:      maxAxisX,
+		MinAxisY:      minAxisY,
+		MaxAxisY:      maxAxisY,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, result, "success")
@@ -1516,6 +2111,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 	}
 
 	powerData := []tk.M{}
+	filterExcel := []*dbox.Filter{}
 
 	pipes := []tk.M{}
 	if !isScada10Min {
@@ -1540,6 +2136,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		filter = append(filter, dbox.Eq("available", 1))
 
 		// filter = append(filter, dbox.Eq("oktime", 600))
+		filterExcel = filter
 
 		csrPower, e := DB().Connection.NewQuery().
 			From(new(ScadaData).TableName()).
@@ -1623,6 +2220,7 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 		filter2 = append(filter2, dbox.Eq("projectname", project))
 		filter2 = append(filter2, dbox.Gt("windspeed_ms", 0))
 		filter2 = append(filter2, dbox.Gt("activepower_kw", 0))
+		filterExcel = filter2
 
 		csr, e := DB().Connection.NewQuery().
 			Select("activepower_kw", "windspeed_ms_stddev", "windspeed_ms").
@@ -1801,48 +2399,204 @@ func (m *AnalyticPowerCurveController) GetPCScatterAnalysis(k *knot.WebContext) 
 
 	switch p.ScatterType {
 	case "deviation":
-		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Nacelle Deviation < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Nacelle Deviation > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "pitch":
-		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Pitch Angle < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Pitch Angle > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "ambient":
-		seriesData1 := setScatterData("Ambient Temp. < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Ambient Temp. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Ambient Temp. > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Ambient Temp. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "temp":
-		seriesData1 := setScatterData("Nacelle Temp. < "+tk.ToString(p.LessValue), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Nacelle Temp. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Nacelle Temp. > "+tk.ToString(p.GreaterValue), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Nacelle Temp. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "windspeed_dev":
-		seriesData1 := setScatterData("Wind Speed Std. Dev. < "+tk.ToString(tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("Wind Speed Std. Dev. < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("Wind Speed Std. Dev. > "+tk.ToString(tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("Wind Speed Std. Dev. > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	case "windspeed_ti":
-		seriesData1 := setScatterData("TI Wind Speed < "+tk.ToString(tk.ToFloat64(p.LessValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
+		seriesData1 := setScatterData("TI Wind Speed < "+tk.ToString(tk.Sprintf("%.2f", p.LessValue)), "WindSpeed", "Power", p.LessColor, "powerAxis", tk.M{"size": 2, "type": p.LessMarker, "background": p.LessColor}, scatterDatas1)
 		seriesData1.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData1)
-		seriesData2 := setScatterData("TI Wind Speed > "+tk.ToString(tk.ToFloat64(p.GreaterValue, 2, tk.RoundingAuto)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
+		seriesData2 := setScatterData("TI Wind Speed > "+tk.ToString(tk.Sprintf("%.2f", p.GreaterValue)), "WindSpeed", "Power", p.GreaterColor, "powerAxis", tk.M{"size": 2, "type": p.GreaterMarker, "background": p.GreaterColor}, scatterDatas2)
 		seriesData2.Unset("colorField")
 		dataSeries = append(dataSeries, seriesData2)
 	}
+
+	addFieldExcel := ""
+	switch p.ScatterType {
+	case "pitch":
+		addFieldExcel = "avgbladeangle"
+	case "deviation":
+		addFieldExcel = "winddirection"
+	case "temp":
+		addFieldExcel = "nacelletemperature"
+	case "ambient":
+		addFieldExcel = "ambienttemperature"
+	case "windspeed_dev":
+		addFieldExcel = "windspeed_ms_stddev"
+	case "windspeed_ti":
+		addFieldExcel = "windspeed_ms_stddev"
+	}
+
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", addFieldExcel, "power", "pcvalue", "deviationpct"}
+
+	data := struct {
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
+	}{
+		Data:          dataSeries,
+		LastFilter:    filterExcel,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetScatterComparison(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	var (
+		dataSeries []tk.M
+	)
+
+	type ScatterComparison struct {
+		Period    string
+		DateStart time.Time
+		DateEnd   time.Time
+		Turbine   string
+		Project   string
+		Color     string
+	}
+
+	payload := []ScatterComparison{}
+	e := k.GetPayload(&payload)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbineNameOrder := []string{} /* for sort the result */
+
+	var mux sync.Mutex
+	var wg sync.WaitGroup
+	wg.Add(len(payload))
+
+	for _, p := range payload {
+		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+		turbineNameOrder = append(turbineNameOrder, "Scatter-"+turbineName[p.Turbine]+" ("+tStart.Format("02-Jan-2006")+"  to "+tEnd.Format("02-Jan-2006")+")")
+
+		tNow := time.Now()
+		if tEnd.Sub(tNow).Hours() > 0.0 {
+			tEnd, _ = time.Parse("20060102", tNow.Format("20060102"))
+		}
+
+		turbine := p.Turbine
+		project := p.Project
+		colors := p.Color
+
+		go func(_dataSeries *[]tk.M, _project, _turbine, _turbinename, _colors string, _tStart, _tEnd time.Time, _wg *sync.WaitGroup) {
+			defer _wg.Done()
+
+			var filter []*dbox.Filter
+			filter = append(filter, dbox.Gte("dateinfo.dateid", _tStart))
+			filter = append(filter, dbox.Lte("dateinfo.dateid", _tEnd))
+			filter = append(filter, dbox.Eq("turbine", _turbine))
+			filter = append(filter, dbox.Eq("projectname", _project))
+			filter = append(filter, dbox.Eq("available", 1))
+			filter = append(filter, dbox.Gt("avgwindspeed", 0))
+			filter = append(filter, dbox.Gt("power", 0))
+
+			csr, e := DB().Connection.NewQuery().From(new(ScadaData).TableName()).Where(dbox.And(filter...)).Cursor(nil)
+			if e != nil {
+				tk.Println("Error on GetScatterComparison func at payload range due to >>", e.Error())
+				return
+			}
+			defer csr.Close()
+
+			list := []tk.M{}
+			e = csr.Fetch(&list, 0, false)
+			if e != nil {
+				tk.Println("Error on GetScatterComparison func at payload range due to >>", e.Error())
+				return
+			}
+
+			turbineData := tk.M{
+				"name":       "Scatter-" + _turbinename + " (" + _tStart.Format("02-Jan-2006") + "  to " + _tEnd.Format("02-Jan-2006") + ")",
+				"xField":     "WindSpeed",
+				"yField":     "Power",
+				"color":      _colors,
+				"colorField": "valueColor",
+				"type":       "scatter",
+				"markers":    tk.M{"size": 2},
+			}
+
+			datas := tk.M{}
+			arrDatas := []tk.M{}
+			for _, val := range list {
+				datas = tk.M{
+					"WindSpeed":  val.GetFloat64("avgwindspeed"),
+					"Power":      val.GetFloat64("power"),
+					"valueColor": _colors,
+				}
+
+				arrDatas = append(arrDatas, datas)
+			}
+
+			turbineData.Set("data", arrDatas)
+			mux.Lock()
+			*_dataSeries = append(*_dataSeries, turbineData)
+			mux.Unlock()
+
+		}(&dataSeries, project, turbine, turbineName[turbine], colors, tStart, tEnd, &wg)
+	}
+	wg.Wait()
+
+	tempResult := []tk.M{}
+	for _, val := range turbineNameOrder {
+	loopSeries:
+		for _, dtSeries := range dataSeries {
+			if dtSeries.GetString("name") == val {
+				tempResult = append(tempResult, dtSeries)
+				break loopSeries
+			}
+		}
+	}
+	dataSeries = tempResult
 
 	data := struct {
 		Data []tk.M
@@ -2168,8 +2922,8 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 
 	dataSeries = append(dataSeries, pcData)
 
+	var filter []*dbox.Filter
 	if len(turbine) == 1 {
-		var filter []*dbox.Filter
 		filter = append(filter, dbox.Gte("dateinfo.dateid", tStart))
 		filter = append(filter, dbox.Lte("dateinfo.dateid", tEnd))
 
@@ -2206,11 +2960,24 @@ func (m *AnalyticPowerCurveController) GetDetails(k *knot.WebContext) interface{
 		turbineData.Set("data", datas)
 		dataSeries = append(dataSeries, turbineData)
 	}
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "wsavgforpc", "power", "pcvalue", "deviationpct"}
 
 	data := struct {
-		Data []tk.M
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
 	}{
-		Data: dataSeries,
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     new(ScadaData).TableName(),
+		ContentFilter: contentFilter,
 	}
 
 	return helper.CreateResult(true, data, "success")
@@ -2323,4 +3090,213 @@ func getPCFilter(project string, engine string, turbine []interface{}, dateStart
 	filter = append(filter, dbox.Ne("avgwindspeed", nil))
 
 	return filter
+}
+
+func (m *AnalyticPowerCurveController) GetPCScatterFieldList(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+	result := []FieldAnalysis{}
+
+	p := tk.M{}
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	pipe := []tk.M{}
+	matches := tk.M{}.Set("inscatter", tk.M{}.Set("$ne", ""))
+	project := p.GetString("project")
+
+	pipe = append(pipe, tk.M{"$match": matches})
+	pipe = append(pipe, tk.M{"$group": tk.M{
+		"_id":   tk.M{"scada": "$scadafield", "scada10min": "$scada10minfield", "name": "$fieldname", "units": "$units", "inscatter": "$inscatter", "inproject": "$inproject"},
+		"order": tk.M{"$max": "$order"},
+	}})
+
+	csr, e := DB().Connection.NewQuery().
+		From("ref_multifieldlist").
+		Command("pipe", pipe).
+		Cursor(nil)
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	defer csr.Close()
+
+	for {
+		tkm := tk.M{}
+		e = csr.Fetch(&tkm, 1, false)
+
+		if e != nil {
+			break
+		}
+
+		_id := tkm.Get("_id", tk.M{}).(tk.M)
+
+		// inproject := _id.Get("inproject", []string{}).([]string)
+		// iscontinue := true
+		// for _, _v := range inproject {
+		// 	if _v == project {
+		// 		iscontinue = false
+		// 		break
+		// 	}
+		// }
+
+		// if iscontinue {
+		// 	continue
+		// }
+
+		if !strings.Contains(_id.GetString("inproject"), project) {
+			continue
+		}
+
+		field := _id.GetString("scada10min")
+		if _id.GetString("inscatter") == "ScadaData" {
+			field = _id.GetString("scada")
+		}
+
+		_fa := FieldAnalysis{
+			Id:     field,
+			Name:   _id.GetString("name"),
+			Order:  tkm.GetInt("order"),
+			Text:   tk.Sprintf("%s (%s)", _id.GetString("name"), _id.GetString("units")),
+			Source: _id.GetString("inscatter"),
+		}
+
+		result = append(result, _fa)
+	}
+
+	sort.Sort(byOrder(result))
+
+	return helper.CreateResult(true, result, "success")
+}
+
+func (m *AnalyticPowerCurveController) GetPowerCurveScatterRev(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	type PayloadScatter struct {
+		Period    string
+		DateStart time.Time
+		DateEnd   time.Time
+		Turbine   string
+		Project   string
+		Engine    string
+		PlotWith  FieldAnalysis
+	}
+
+	list := []tk.M{}
+	var dataSeries []tk.M
+
+	p := new(PayloadScatter)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	turbine := p.Turbine
+	project := p.Project
+	fieldid := strings.ToLower(p.PlotWith.Id)
+	pcData, e := getPCData(project, p.Engine, true)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	dataSeries = append(dataSeries, pcData)
+
+	filter := []*dbox.Filter{}
+	filter = append(filter, dbox.Ne("_id", ""))
+	filter = append(filter, dbox.Gte("timestamp", tStart))
+	filter = append(filter, dbox.Lte("timestamp", tEnd))
+	filter = append(filter, dbox.Eq("turbine", turbine))
+	filter = append(filter, dbox.Eq("projectname", project))
+
+	_list := tk.M{}
+	var csr dbox.ICursor
+	if p.PlotWith.Source == "ScadaData" {
+		filter = append(filter, dbox.Gt("avgwindspeed", 0))
+		filter = append(filter, dbox.Gt("power", 0))
+		filter = append(filter, dbox.Eq("available", 1))
+
+		csr, e = DB().Connection.NewQuery().
+			Select("power", "avgwindspeed", fieldid, "naceldirection"). // for lahori, NacelDirection
+			From(new(ScadaData).TableName()).
+			Where(dbox.And(filter...)).
+			Take(10000).
+			Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+
+	} else {
+		filter = append(filter, dbox.Gt("windspeed_ms", 0))
+		filter = append(filter, dbox.Gt("activepower_kw", 0))
+
+		csr, e = DB().Connection.NewQuery().
+			Select("activepower_kw", "windspeed_ms", fieldid).
+			From("Scada10MinHFD").
+			Where(dbox.And(filter...)).
+			Take(10000).
+			Cursor(nil)
+		if e != nil {
+			return helper.CreateResult(false, nil, e.Error())
+		}
+	}
+
+	for {
+		_list = tk.M{}
+		e = csr.Fetch(&_list, 1, false)
+		if e != nil {
+			break
+		}
+		list = append(list, _list)
+	}
+
+	defer csr.Close()
+
+	turbineData := tk.M{}
+	seriesData := tk.M{}
+	resWSvsPower := []tk.M{}
+	resWSvsTipe := []tk.M{}
+	isScada10Min := true
+	fieldList := []string{"timestamp", "turbine", "avgwindspeed", "power", fieldid}
+	tipe := strings.Replace(p.PlotWith.Name, " ", "_", -1)
+
+	if p.PlotWith.Source == "ScadaData" {
+		resWSvsPower, resWSvsTipe = getScatterValue(list, tipe, fieldid, p.Project)
+		isScada10Min = false
+		if tipe == "Nacelle_Deviation" && project == "Lahori" {
+			fieldList = append(fieldList, "naceldirection")
+		}
+	} else {
+		resWSvsPower, resWSvsTipe = getScatterValue10MinRev(list, tipe, fieldid, p.Project)
+		fieldList = []string{"timestamp", "turbine", "windspeed_ms", "activepower_kw", fieldid}
+	}
+	seriesData = setScatterData(p.PlotWith.Text, "WindSpeed", strings.Replace(p.PlotWith.Name, " ", "_", -1), colorField[2], "PlotWith", tk.M{"size": 2}, resWSvsTipe)
+	turbineData = setScatterData("Power", "WindSpeed", "Power", colorField[1], "powerAxis", tk.M{"size": 2}, resWSvsPower)
+
+	dataSeries = append(dataSeries, turbineData)
+	dataSeries = append(dataSeries, seriesData)
+
+	contentFilter := []string{
+		tk.Sprintf("Project: %s", project),
+		tk.Sprintf("Date Period: %s", tk.Sprintf("%s to %s", tStart.Format("02/01/2006"), tEnd.Format("02/01/2006"))),
+	}
+
+	data := struct {
+		Data          []tk.M
+		LastFilter    []*dbox.Filter
+		FieldList     []string
+		TableName     string
+		ContentFilter []string
+	}{
+		Data:          dataSeries,
+		LastFilter:    filter,
+		FieldList:     fieldList,
+		TableName:     (map[bool]string{true: "Scada10MinHFD", false: new(ScadaData).TableName()})[isScada10Min],
+		ContentFilter: contentFilter,
+	}
+
+	return helper.CreateResult(true, data, "success")
 }

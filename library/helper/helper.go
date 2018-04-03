@@ -21,6 +21,7 @@ import (
 
 	"github.com/eaciit/dbox"
 	_ "github.com/eaciit/dbox/dbc/mongo"
+	"github.com/pkelchte/spline"
 )
 
 var (
@@ -650,4 +651,90 @@ func PopulateTurbinesCapacity(_db dbox.IConnection, project string) (tkturbines 
 		}
 	}
 	return
+}
+
+func GetPowerCurveByWs(conn dbox.IConnection, _model string, avgws float64) (cpowerspc float64, cpowerstd float64, err error) {
+	cpowerspc = 0.0
+	cpowerstd = 0.0
+	err = nil
+	if avgws >= 3 && avgws <= 20 {
+
+		apcm := []tk.M{}
+
+		csr, err := conn.NewQuery().From("ref_powercurve").
+			Where(dbox.Eq("model", _model)).
+			Order("windspeed").Cursor(nil)
+		defer csr.Close()
+
+		if err != nil {
+			return cpowerspc, cpowerstd, err
+		}
+
+		err = csr.Fetch(&apcm, 0, false)
+		if err != nil {
+			return cpowerspc, cpowerstd, err
+		}
+
+		_ws := []float64{}
+		_powerspc := []float64{}
+		_powerstd := []float64{}
+
+		for _, _val := range apcm {
+			iws := _val.GetFloat64("windspeed")
+			ipowerspc := _val.GetFloat64("power1")
+			ipowerstd := _val.GetFloat64("standard")
+
+			if tk.HasMember(_ws, iws) {
+				continue
+			}
+
+			_ws = append(_ws, iws)
+			_powerspc = append(_powerspc, ipowerspc)
+			_powerstd = append(_powerstd, ipowerstd)
+		}
+
+		s := spline.Spline{}
+		s.Set_points(_ws, _powerspc, true)
+		cpowerspc = s.Operate(avgws)
+
+		t := spline.Spline{}
+		t.Set_points(_ws, _powerstd, true)
+		cpowerstd = t.Operate(avgws)
+	}
+
+	return cpowerspc, cpowerstd, err
+}
+
+func GetPowerCurveTkMSource(pcSrcTkM []tk.M, avgws float64) (cpowerspc float64, cpowerstd float64) {
+	cpowerspc = 0.0
+	cpowerstd = 0.0
+	if avgws >= 3 && avgws <= 20 {
+		_ws := []float64{}
+		_powerspc := []float64{}
+		_powerstd := []float64{}
+
+		for _, _val := range pcSrcTkM {
+			iws := _val.GetFloat64("windspeed")
+			ipowerspc := _val.GetFloat64("power1")
+			ipowerstd := _val.GetFloat64("standard")
+
+			if tk.HasMember(_ws, iws) {
+				continue
+			}
+
+			_ws = append(_ws, iws)
+			_powerspc = append(_powerspc, ipowerspc)
+			_powerstd = append(_powerstd, ipowerstd)
+		}
+
+		s := spline.Spline{}
+		s.Set_points(_ws, _powerspc, true)
+		cpowerspc = s.Operate(avgws)
+
+		t := spline.Spline{}
+		t.Set_points(_ws, _powerstd, true)
+		cpowerstd = t.Operate(avgws)
+	}
+
+	return cpowerspc, cpowerstd
 }

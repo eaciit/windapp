@@ -182,7 +182,7 @@ wrb.initChartWRC = function () {
                 },
             }
         });
-    }, 100);
+    }, 300);
 
     setTimeout(function(){
         var chart = $("#WRChartComparison").data("kendoChart");
@@ -194,7 +194,7 @@ wrb.initChartWRC = function () {
         });
 
         kendo.bind($("#legendWindrose"), viewModel);
-    },300);
+    },500);
 
     wrb.InitTurbineListCompare();
     // $('#WRChartComparison').data('kendoChart').options.chartArea.width = $('#WRChartComparison').height() + ($('#WRChartComparison').height()/4);

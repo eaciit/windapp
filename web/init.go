@@ -74,6 +74,7 @@ func init() {
 	app.Register(controller.CreateDataSensorGovernanceController())
 	app.Register(controller.CreateTimeSeriesController())
 	app.Register(controller.CreateDiyViewController())
+	app.Register(controller.CreateXyAnalysisController())
 
 	app.Register(controller.CreateReportingController())
 
@@ -86,6 +87,11 @@ func init() {
 	app.Register(controller.CreateMonitoringCustomController())
 
 	app.Register(controller.CreateTurbineCollaborationController())
+	app.Register(controller.CreateForecastController())
+
+	app.Register(controller.CreateAnalyticDgrReportController())
+
+	app.Register(controller.CreateThreeDAnalyticController())
 
 	// app.Route("/", func(r *knot.WebContext) interface{} {
 	// 	regex := regexp.MustCompile("/web/report/[a-zA-Z0-9_]+(/.*)?$")

@@ -104,11 +104,16 @@ fa.populateTurbine = function (selected, engine) {
 };
 
 
-fa.populateEngine = function(selected){
+fa.populateEngine = function(selected, allEngine){
     var list = [];
     $.each(fa.rawproject(), function(i, val){
         if(val.ProjectId == selected){
           if(val.Engine.length > 0){
+            if(allEngine !== undefined) {
+                if(allEngine) {
+                    list.push({text : "All", value : ""})
+                }
+            }
             $.each(val.Engine, function(id, engine){
                 var data = {text : engine, value : engine};
                 list.push(data);
@@ -128,13 +133,21 @@ fa.populateEngine = function(selected){
                 dataTextField: 'text',
                 suggest: true,
                 change: function () { 
-                    fa.populateTurbine(selected,this._old);
+                    var selectedEngine = this._old;
+                    if (selectedEngine === "") {
+                        selectedEngine = undefined;
+                    }
+                    fa.populateTurbine(selected, selectedEngine);
                 }
             });
 
             $("#engineList").data("kendoDropDownList").select(0);               
             fa.engine = $("#engineList").data("kendoDropDownList").value();
-            fa.populateTurbine(selected, fa.engine);
+            var selectedEngine = fa.engine;
+            if (selectedEngine === "") {
+                selectedEngine = undefined;
+            }
+            fa.populateTurbine(selected, selectedEngine);
             
         }else{
             fa.engine = "";
@@ -158,7 +171,6 @@ fa.populateProject = function (selected) {
         fa.projectList(datavalue);
 
         // override to set the value
-        
         setTimeout(function () {
             if (selected != "") {
                 $("#projectList").data("kendoDropDownList").value(selected);
@@ -303,7 +315,7 @@ fa.LoadData = function () {
     fa.dateStart = $('#dateStart').data('kendoDatePicker').value();
     fa.dateEnd = $('#dateEnd').data('kendoDatePicker').value();
 
-    if (fa.dateStart - fa.dateEnd > 25200000) {
+    if (fa.dateStart - fa.dateEnd > 86400000) {
         toolkit.showError("Invalid Date Range Selection");
         return false;
     } else {
@@ -344,6 +356,7 @@ fa.InitDefaultValue = function () {
 
     var maxDateData = new Date(app.getUTCDate(app.currentDateData));
     var lastStartDate = new Date(Date.UTC(moment(maxDateData).get('year'), maxDateData.getMonth(), maxDateData.getDate()-7, 0, 0, 0, 0));
+    //lastStartDate = new Date(lastStartDate.setHours(0, 0, 0));
     var lastEndDate = new Date(app.getDateMax(maxDateData));
 
     $('#dateEnd').data('kendoDatePicker').value(lastEndDate);
@@ -355,7 +368,7 @@ fa.InitDefaultValue = function () {
             enableFiltering: true,
             maxHeight: 200,
             dropRight: false,
-            buttonWidth: '120px',
+            buttonWidth: '160px',
             onDropdownHide: function(event) {
                 fa.checkTurbine();
                 fa.currentFilter().turbine = this.$select.val();
@@ -433,6 +446,7 @@ fa.DateChange = function () {
     var end = $('#dateEnd').data('kendoDatePicker').value();
 
     fa.dateStart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0));
+    fa.dateStart = fa.dateStart.setHours(0, 0, 0);
     fa.dateEnd = new Date(Date.UTC(end.getFullYear(), end.getMonth(), end.getDate(), 0, 0, 0));
 }
 

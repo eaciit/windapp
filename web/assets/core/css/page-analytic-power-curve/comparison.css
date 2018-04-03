@@ -1,6 +1,5 @@
 .Epdf{
-    margin-top: -30px;
-    margin-right: 20px;
+    margin-right: 10px;
     cursor:pointer
 }
 
@@ -16,20 +15,87 @@
 .k-tooltip{
     margin-left: -20px;
 }
-.turbine-list{
-    width: 150px;
-}
-.project-list{
-    width: 150px;
-}
 .mgb10{
     margin-bottom: 7px;
+}
+.date-info {
+    margin-top: -10px;
+}
+.chart-wrapper {
+    margin-top: -15px;
+}
+.filter-part{
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: -5px;
+}
+.dynamic-filter {
+    margin-bottom: 15px;
+    position: relative;
+    border-bottom: 1px solid #f1f3f4;
+    padding-bottom: 21px;
+}
+div.dynamic-filter:last-child, div.dynamic-filter-last {
+    border-bottom: none;
+    padding-bottom: 10px;
+}
+.versus-wrapper {
+    position: relative;
+}
+.versus-wrapper:last-child, .versus-last {
+    display: none;
+}
+.versus {
+    padding: 2px 6px 3px 6px;
+    width: 30px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1em;
+    background: #f1f3f4;
+    border-radius: 50%;
+    color: #333333;
+    position: absolute;
+    bottom: 5px;
+    left: 45%;
+    z-index: 10002;
+}
+.btn-pdf {
+    position: absolute;
+    top: -25px;
+    right: 10px;
+    z-index: 10001;
+}
+.btn-filter-refresh {
+    margin-left: 7px;
+    margin-right: 7px;
+}
+.button-add {
+    margin-left: 5px;
+}
+.remove-btn{
+    padding: 0px 4px;
+    font-size: 10px;
+    position: absolute;
+    top: -25px;
+    right: 0px;
+}
+.horizontal-line{
+    margin-top: 5px;
+    margin-bottom: 2px;
+    border-top:1px solid rgb(207, 207, 207);
 }
 .mgb15{
     margin-bottom: 15px;
 }
+.button-area{
+    margin-top: -30px;
+    margin-left: -5px;
+}
 .period-list{
-    width: 75px;
+    width: 78px;
+}
+.lbl-period{
+    padding-top: 10px !important;
 }
 .bread-info {
     margin-top: 11px;
@@ -43,11 +109,14 @@
     padding-left: 60px;
 }
 .label-to{
-    width:40px;
+    width:10px;
     text-align: center;
-    margin-left: -5px;
+    margin: 2px;
 }
-.filter-part{
+.right-filter {
+    margin-top: 4px;
+}
+.button-group-part{
     padding-left: 10px;
 }
 .template-pdf{
@@ -60,4 +129,89 @@
 }
 .k-pdf-export .template-pdf {
     display: block;
+}
+
+.multiselect.dropdown-toggle.btn.btn-default{
+    padding: 5px!important;
+    border: 1px solid #fff;
+    border-radius: 0px;
+    font-size: 12px!important;
+}
+.multiselect.dropdown-toggle.btn.btn-default:hover{
+    padding: 5px!important;
+    border: 1px solid #a9bbc0;
+}
+.multiselect.dropdown-toggle.btn.btn-default:focus,.multiselect.dropdown-toggle.btn.btn-default:visited{
+    padding: 5px!important;
+    border: 1px solid #ea5b19;
+    box-shadow: 0 0 7px 0 #ea5b19;
+}
+.multiselect-container>li>a>label {
+    margin: 0;
+    height: 100%;
+    cursor: pointer;
+    font-weight: 400;
+    padding: 3px 20px 3px 30px;
+}
+.multiselect.dropdown-toggle.btn.btn-default {
+    border: 1px solid #ecf0f6;
+}
+
+#showHideChk {
+    margin-top: 7.5px;
+    margin-left: -25px;
+}
+.turList{
+    max-height: 200px;
+    height: 470px;
+    margin-top: -13.5px;
+    overflow-x: auto;
+    overflow-y: auto;
+    margin-left: -10px;
+}
+.turbine-btn{
+    margin-bottom: 5px;
+    margin-right: 5px;
+    height: 20px !important;
+    padding: 0;
+    margin-left: -1px;
+    border-radius: 0px;
+}
+.turbine-chk{
+    width: 20px;
+    height: 20px;
+    padding-left: 4px;
+    color: #fff;
+    padding-top: 1px!important;
+    border-radius: 0px;
+}
+.turbine-chk:hover, .down-chk:hover{
+    color: #fff;
+}
+.turbine-chk:active, .down-chk:active{
+    color: #fff;
+}
+.wbtn {
+    font-size: 10px;
+    /*width: 80px;*/
+    font-weight: 600;
+    text-align: left;
+    padding-left: 2px;
+    padding-top: 2px;
+}
+.turbine-list {
+    max-width: 92.5%;
+    margin-top: 0px;
+}
+.turbine-list .k-dropdown-wrap {
+    max-width: 92.5%;
+}
+.control-label {
+    padding-top: 5px;
+}
+.row-separator {
+    border-top: 1px solid #f1f3f4;
+}
+.row-separator:first-child {
+    border-top: none;
 }

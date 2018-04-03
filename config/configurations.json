@@ -40,7 +40,7 @@
   },
   {
     "_id": "port",
-    "data": 9002
+    "data": 8003
   },
   {
     "_id": "default_username",
@@ -49,5 +49,9 @@
   {
     "_id": "default_password",
     "data": "Password.1"
+  },
+  {
+    "_id": "scada15min_path",
+    "data": "/mnt/data/ostrorealtime/scada15minrev/data/"
   }
 ]

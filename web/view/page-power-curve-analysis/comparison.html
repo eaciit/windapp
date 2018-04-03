@@ -1,0 +1,58 @@
+<script src="{{BaseUrl}}res/core/js/page-power-curve-analysis/comparison.js?ANTI_CACHE={{.AntiCache}}&v=1.0.0"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-power-curve-analysis/comparison.css?ANTI_CACHE={{.AntiCache}}&v=1.0.0">
+
+<div class="cm-wrapper">
+    <div class="row">
+        <div class="col-md-8 cm-scatter">
+        	<div class="col-md-12">
+        		<div class="col-md-9 cm-filter-project">
+					<label class="col-md-1 control-label">Project</label>
+					<div class="col-md-9 no-padding">
+						<select class="project-list no-padding" id="cm-project" name="table" style="width: 100%"></select>
+					</div>
+					<div class="col-md-1 no-padding pull-right" style="margin-top: 5px;margin-right: 15px;">
+						<button type="button" id="cm-btn-refresh" class="btn btn-xs btn-primary btn-filter-refresh"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+					</div>
+				</div>
+				<div class="tools pull-right btn-pdf">
+					<span class="checkbox btn-group">
+						<label>
+							<input type="checkbox" id="sScater" name="filter" value="Scatter" >
+							<span class="cr"><i class="cr-icon glyphicon glyphicon-ok"></i></span>
+							<span class="colRed"><b class="colBlack">Show Scatter</b></span>
+						</label>
+					</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Excel" data-bind="click:function(){cm.PowerCurveExporttoExcel('Power Curve Comparison', true, true)}">
+				    	<i class="fa fa-file-excel-o" aria-hidden="true"></i>
+				  	</button>
+					<button type="button" class="btn btn-primary btn-xs tooltipster tooltipstered ExportTo" title="Export to Pdf" data-bind="click:function(){cm.getPDF('#cm-pdf')}">
+				    	<i class="fa fa-file-pdf-o" aria-hidden="true"></i>
+				  	</button>
+				</div>
+			</div>
+			<div class="col-md-12" style="margin-top: 10px;">
+				<div class="scatter-div" id="cm-pdf">
+					<div class="panel-heading template-pdf">
+						<img src="{{BaseUrl}}res/img/ostro-logo.png" class="navbar-brand"/>&nbsp;<h4 style="margin-top: 0px;">Energy</h4>
+						<div class="col-md-12 text-center title-pdf">
+							<span>Power Curve Comparison</span>
+						</div>
+					</div>
+					<div id="cm-chart"></div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4 right-filter">
+			<div class="col-md-12">
+				<div class="col-md-12">
+					<div class="filter-part"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 button-add">
+					<button class="btn btn-sm btn-success" onclick="cm.generateElementFilter(null, 'button')"><i class="fa fa-plus"></i> Add Filter</button>				
+				</div>
+			</div>
+		</div>
+    </div>
+</div>

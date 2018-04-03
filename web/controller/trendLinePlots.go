@@ -2,14 +2,11 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"math"
 	"sort"
 	"time"
 
-	"github.com/eaciit/crowd"
-	"github.com/eaciit/dbox"
 	"github.com/eaciit/knot/knot.v1"
 	tk "github.com/eaciit/toolkit"
 )
@@ -33,7 +30,6 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	var (
 		pipes        []tk.M
-		filter       []*dbox.Filter
 		list         []tk.M
 		dataSeries   []tk.M
 		sortTurbines []string
@@ -52,7 +48,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	}
 	startdate := tStart.Day()
 	enddate := tEnd.Day()
-	turbine := p.Turbine
+	// turbine := p.Turbine
 	colName := p.ColName
 	deviationStatus := p.DeviationStatus
 	deviation := p.Deviation
@@ -62,12 +58,12 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	minValue := 100.0
 	maxValue := 0.0
-	selArr := 1
+	selArr := 2
 	var listMonth []int
 	catTitle := ""
 	listOfYears := []int{}
 
-	colId := "$dateinfo.dateid"
+	colId := "$timestamp"
 
 	/*==================== CREATING CATEGORY PART ====================*/
 	for i := tStart.Year(); i <= tEnd.Year(); i++ {
@@ -78,12 +74,9 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	for _, val := range months {
 		listMonth = append(listMonth, tk.ToInt(val, tk.RoundingAuto))
 	}
-	// sort.Ints(listMonth)
 	categoryChecker := []string{}
 	lastMonth := 0
 	idxYear := 0
-	// tk.Println(":1:", monthDay)
-	// tk.Println(":2:", listMonth)
 
 	for lm, lMonth := range listMonth {
 		if lm == 0 { /*bulan pertama*/
@@ -92,7 +85,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				for iDate := startdate; iDate <= enddate; iDate++ {
 					categories = append(categories, tk.ToString(iDate))
 					/*category checker akan berisi tanggal_bulan_tahun*/
-					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"<>"+tk.ToString(lMonth)+"<>"+tk.ToString(listOfYears[idxYear]))
 				}
 				catTitle += " " + tk.ToString(listOfYears[0]) /*Dec 2015*/
 			} else {
@@ -100,7 +93,7 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
 				for iDate := startdate; iDate <= maxDays; iDate++ {
 					categories = append(categories, tk.ToString(iDate))
-					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"<>"+tk.ToString(lMonth)+"<>"+tk.ToString(listOfYears[idxYear]))
 				}
 				if len(listOfYears) > 1 { /*jika lebih dari 1 tahun, lanjut ke berikutnya*/
 					catTitle += " " + tk.ToString(listOfYears[0]) /* Dec 2015*/
@@ -120,14 +113,14 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 				}
 				for iDate := 1; iDate <= enddate; iDate++ {
 					categories = append(categories, tk.ToString(iDate))
-					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"<>"+tk.ToString(lMonth)+"<>"+tk.ToString(listOfYears[idxYear]))
 				}
 			} else {
 				month := lMonth
 				maxDays := monthDay.Get(tk.ToString(tStart.Year()) + tk.ToString(month)).(tk.M).GetInt("totalInMonth")
 				for iDate := 1; iDate <= maxDays; iDate++ {
 					categories = append(categories, tk.ToString(iDate))
-					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"_"+tk.ToString(lMonth)+"_"+tk.ToString(listOfYears[idxYear]))
+					categoryChecker = append(categoryChecker, tk.ToString(iDate)+"<>"+tk.ToString(lMonth)+"<>"+tk.ToString(listOfYears[idxYear]))
 				}
 				lastMonth = lMonth
 			}
@@ -135,141 +128,28 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	}
 	/*==================== END OF CREATING CATEGORY PART ====================*/
 
-	/*============================== AVG TLP PART ============================*/
-	AvgTlp, TLPavgData, e := getTLPavgData(tStart, tEnd, colName, project, categoryChecker)
-	//tk.Printf("AvgTlp : %#v\n", AvgTlp)
-	//tk.Printf("TLPavgData : %#v\n", TLPavgData)
-	if e != nil {
-		return helper.CreateResult(false, nil, e.Error())
-	}
-	dataSeries = append(dataSeries, TLPavgData)
-	/*============================== END OF AVG TLP PART ============================*/
-
-	/*================================= MET TOWER PART =================================*/
-	metData := tk.M{}
-	metData.Set("name", "Met Tower")
-	metData.Set("type", "line")
-	metData.Set("style", "smooth")
-	metData.Set("dashType", "solid")
-	metData.Set("markers", tk.M{"visible": true})
-	metData.Set("width", 2)
-	metData.Set("color", colorFieldTLP[selArr])
-	metData.Set("idxseries", selArr)
-	// if colName == "temp_yawbrake_1" {
-	if colName == "temp_outdoor" {
-		matches := []tk.M{
-			tk.M{"_id": tk.M{"$ne": ""}},
-			tk.M{"timestamp": tk.M{"$gte": tStart}},
-			tk.M{"timestamp": tk.M{"$lte": tEnd}},
-		}
-		pipes = []tk.M{
-			tk.M{"$match": tk.M{"$and": matches}},
-		}
-		if project != "" {
-			filter = append(filter, dbox.Eq("projectname", project))
-		}
-		if tStart.Before(time.Date(2017, 1, 1, 0, 0, 0, 0, time.UTC)) {
-			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":       tk.M{"colId": "$dateinfo.dateid"},
-				"colresult": tk.M{"$avg": "$trefhreftemp855mavg"},
-			}})
-		} else {
-			pipes = append(pipes, tk.M{"$group": tk.M{
-				"_id":       tk.M{"colId": "$dateinfo.dateid"},
-				"colresult": tk.M{"$avg": "$trefhrefhumid855mavg"},
-			}})
-		}
-
-		pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-		csrMet, e := DB().Connection.NewQuery().
-			From(new(MetTower).TableName()).
-			Command("pipe", pipes).
-			Where(dbox.And(filter...)).
-			Cursor(nil)
-
-		if e != nil {
-			return helper.CreateResult(false, nil, e.Error())
-		}
-		listMet := []tk.M{}
-		e = csrMet.Fetch(&listMet, 0, false)
-		defer csrMet.Close()
-
-		var datas []float64
-
-		idxAvgTlp := 0
-		shownSeries := false
-
-		dateFound := false
-		for _, tanggal := range categoryChecker {
-			dateFound = false
-		metLoop:
-			for _, val := range listMet {
-				ids := val["_id"].(tk.M)
-				tgl := ids.Get("colId").(time.Time)
-				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-				if tglString == tanggal {
-					dateFound = true
-					/*calculation process*/
-					colresult := val.GetFloat64("colresult")
-					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation {
-						shownSeries = true
-					}
-
-					datas = append(datas, colresult)
-
-					if colresult < minValue {
-						minValue = colresult
-					}
-					if colresult > maxValue {
-						maxValue = colresult
-					}
-					idxAvgTlp++
-					break metLoop
-				}
-			}
-			if !dateFound {
-				datas = append(datas, 999999)
-			}
-		}
-		if deviationStatus {
-			if shownSeries {
-				if len(datas) > 0 {
-					metData.Set("data", datas)
-				}
-			}
-		} else {
-			if len(datas) > 0 {
-				metData.Set("data", datas)
-			}
-		}
-		selArr++
-	} else {
-		selArr++
-	}
-	dataSeries = append(dataSeries, metData)
-	/*================================= END OF MET TOWER PART =================================*/
-
 	/*==================== SCADA DATA OEM PART ====================*/
 	matches := []tk.M{
 		tk.M{"projectname": project},
-		tk.M{"isnull": false},
 		tk.M{"timestamp": tk.M{"$gte": tStart}},
 		tk.M{"timestamp": tk.M{"$lte": tEnd}},
-		// TEMPORARY SOLUTION,sampek disemprot mak e gara2 gak ngerti kudu lapho, kita selalu salah di mata wanita
-		tk.M{colName: tk.M{"$lte": 200}},
 	}
 
 	pipes = []tk.M{
 		tk.M{"$match": tk.M{"$and": matches}},
 	}
+
+	colSum := tk.Sprintf("$%stotal", colName)
+	colCount := tk.Sprintf("$%scount", colName)
+
 	pipes = append(pipes, tk.M{"$group": tk.M{
-		"_id":       tk.M{"colId": colId, "Turbine": "$turbine"},
-		"colresult": tk.M{"$avg": "$" + colName}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id.Turbine": 1}})
+		"_id":      tk.M{"timestamp": colId, "turbine": "$turbine"},
+		"colsum":   tk.M{"$sum": colSum},
+		"colcount": tk.M{"$sum": colCount},
+	}})
 
 	csr, e := DB().Connection.NewQuery().
-		From("Scada10MinHFD").
+		From("rpt_trendlineplot").
 		Command("pipe", pipes).
 		Cursor(nil)
 
@@ -279,6 +159,27 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 	_list := tk.M{}
 	list = []tk.M{}
+	ids := tk.M{}
+	timestamp := time.Time{}
+	keys := ""
+	keysPerTurbine := ""
+	sumAggr := map[string]float64{}
+	countAggr := map[string]float64{}
+	sumAggrScada := map[string]float64{}
+	countAggrScada := map[string]float64{}
+	sumAggrMet := map[string]float64{}
+	countAggrMet := map[string]float64{}
+	turbineName, e := helper.GetTurbineNameList(p.Project)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	for _, val := range turbineName {
+		sortTurbines = append(sortTurbines, val)
+	}
+	sort.Strings(sortTurbines)
+
+	dataPerGroup := map[string]float64{}
+	dataMet := map[string]float64{}
 	for {
 		_list = tk.M{}
 		e = csr.Fetch(&_list, 1, false)
@@ -286,42 +187,59 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 			break
 		}
 		list = append(list, _list)
+		ids = _list.Get("_id", tk.M{}).(tk.M)
+		timestamp = ids.Get("timestamp", time.Time{}).(time.Time).UTC()
+		keys = tk.Sprintf("%d<>%d<>%d", timestamp.Day(), tk.ToInt(timestamp.Month(), tk.RoundingAuto), timestamp.Year())
+		_turbine := turbineName[ids.GetString("turbine")]
+		if _turbine == "" {
+			sumAggrMet[keys] += _list.GetFloat64("colsum")
+			countAggrMet[keys] += _list.GetFloat64("colcount")
+		} else {
+			keysPerTurbine = tk.Sprintf("%s<>%s", _turbine, keys)
+			sumAggrScada[keysPerTurbine] += _list.GetFloat64("colsum")
+			countAggrScada[keysPerTurbine] += _list.GetFloat64("colcount")
+		}
+		sumAggr[keys] += _list.GetFloat64("colsum")
+		countAggr[keys] += _list.GetFloat64("colcount")
 	}
 	csr.Close()
 
-	if len(p.Turbine) == 0 {
-		for _, listVal := range list {
-			exist := false
-			for _, val := range turbine {
-				if listVal["_id"].(tk.M)["Turbine"] == val {
-					exist = true
-				}
-			}
-			if exist == false {
-				turbine = append(turbine, listVal["_id"].(tk.M)["Turbine"])
-			}
+	for key, val := range sumAggrMet {
+		colresult := tk.Div(val, countAggrMet[key])
+		dataMet[key] = colresult
+		if colresult < minValue {
+			minValue = colresult
+		}
+		if colresult > maxValue {
+			maxValue = colresult
+		}
+	}
+	for key, val := range sumAggrScada {
+		colresult := tk.Div(val, countAggrScada[key])
+		dataPerGroup[key] = colresult
+		if colresult < minValue {
+			minValue = colresult
+		}
+		if colresult > maxValue {
+			maxValue = colresult
 		}
 	}
 
-	for _, turX := range turbine {
-		sortTurbines = append(sortTurbines, turX.(string))
-	}
-	sort.Strings(sortTurbines)
-	turbineName, e := helper.GetTurbineNameList(p.Project)
+	AvgTlp, TLPavgData := getTLPavgData(sumAggr, countAggr, categoryChecker)
+	dataSeries = append(dataSeries, TLPavgData)
+
+	/*================================= MET TOWER PART =================================*/
+	metData, e := getMetData(dataMet, categoryChecker, AvgTlp, deviationStatus, deviation)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	dataSeries = append(dataSeries, metData)
+	/*================================= END OF MET TOWER PART =================================*/
+
 	for _, turbineX := range sortTurbines {
-		exist := crowd.From(&list).Where(func(x interface{}) interface{} {
-			y := x.(tk.M)
-			id := y.Get("_id").(tk.M)
-
-			return id.GetString("Turbine") == turbineX
-		}).Exec().Result.Data().([]tk.M)
-
 		var datas []float64
 		turbineData := tk.M{}
-		turbineData.Set("name", turbineName[turbineX])
+		turbineData.Set("name", turbineX)
 		turbineData.Set("type", "line")
 		turbineData.Set("style", "smooth")
 		turbineData.Set("dashType", "solid")
@@ -332,32 +250,14 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 
 		idxAvgTlp := 0
 		shownSeries := false
-		dateFound := false
 		for _, tanggal := range categoryChecker {
-			dateFound = false
-		existLoop:
-			for _, val := range exist {
-				ids := val["_id"].(tk.M)
-				tgl := ids.Get("colId").(time.Time)
-				tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-				if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
-					dateFound = true
-					/*calculation process*/
-					colresult := val.GetFloat64("colresult")
-					// tk.Printf("turbine -> colresult = AvgTlp[idxAvgTlp] -> %s - %v = %v - %v\n", turbineX, colresult, AvgTlp[idxAvgTlp], AvgTlp[idxAvgTlp]-colresult)
-					if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
-						shownSeries = true
-					}
-					datas = append(datas, colresult)
-
-					if colresult < minValue {
-						minValue = colresult
-					}
-					if colresult > maxValue {
-						maxValue = colresult
-					}
-					break existLoop
+			keys = tk.Sprintf("%s<>%s", turbineX, tanggal)
+			colresult, dateFound := dataPerGroup[keys]
+			if dateFound { /*jika tanggal di dalam aggregate result ada di dalam category date*/
+				if math.Abs(AvgTlp[idxAvgTlp]-colresult) > deviation && AvgTlp[idxAvgTlp] < 999999 { // adding check filter for data date not found, would be not calculated here
+					shownSeries = true
 				}
+				datas = append(datas, colresult)
 			}
 			idxAvgTlp++
 			if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
@@ -411,109 +311,63 @@ func (m *TrendLinePlotsController) GetList(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
-/**
- * @param  {[
- * Turbine    []interface{}
-	DateStart  time.Time
-	DateEnd    time.Time]}
- * @return {pcData}
-*/
+func getMetData(dataMet map[string]float64, catChecker []string, AvgTlp []float64, devStatus bool, dev float64) (metData tk.M, e error) {
+	selArr := 1
+	metData = tk.M{}
+	metData.Set("name", "Met Tower")
+	metData.Set("type", "line")
+	metData.Set("style", "smooth")
+	metData.Set("dashType", "solid")
+	metData.Set("markers", tk.M{"visible": true})
+	metData.Set("width", 2)
+	metData.Set("color", colorFieldTLP[selArr])
+	metData.Set("idxseries", selArr)
 
-func getTLPavgData(DateStart time.Time, DateEnd time.Time, colName string, project string, categoryChecker []string) (datas []float64, pcData tk.M, e error) {
+	var datas []float64
 
-	var (
-		pipes []tk.M
-		list  tk.M
-	)
+	idxAvgTlp := 0
+	shownSeries := false
 
-	matches := []tk.M{
-		tk.M{"isnull": false},
-		tk.M{"dateinfo.dateid": tk.M{"$gte": DateStart}},
-		tk.M{"dateinfo.dateid": tk.M{"$lte": DateEnd}},
-		// TEMPORARY SOLUTION
-		tk.M{colName: tk.M{"$lte": 200}},
-	}
-	if project != "" {
-		matches = append(matches, tk.M{"projectname": project})
-	}
-	pipes = []tk.M{
-		tk.M{"$match": tk.M{"$and": matches}},
-	}
-
-	pipes = append(pipes, tk.M{"$group": tk.M{"_id": "$dateinfo.dateid", "colresult": tk.M{"$avg": "$" + colName}}})
-	pipes = append(pipes, tk.M{"$sort": tk.M{"_id": 1}})
-
-	csr, e := DB().Connection.NewQuery().
-		From("Scada10MinHFD").
-		Command("pipe", pipes).
-		Cursor(nil)
-	if e != nil {
-		return
-	}
-
-	// contains := func(arr []string, str string) (bool) {
-	// 	for _, a := range arr {
-	// 		if a == str {
-	// 		   return true
-	// 		}
-	// 	 }
-	// 	 return false
-	// }
-
-	//timestartd := time.Now()
-
-	l := tk.M{}
-	list = tk.M{}
-	for {
-		l = tk.M{}
-		e = csr.Fetch(&l, 1, false)
-		if e != nil {
-			e = nil
-			break
+	if len(dataMet) > 0 {
+		for _, tanggal := range catChecker {
+			colresult, dateFound := dataMet[tanggal]
+			if dateFound {
+				/*calculation process*/
+				if math.Abs(AvgTlp[idxAvgTlp]-colresult) > dev {
+					shownSeries = true
+				}
+				datas = append(datas, colresult)
+				idxAvgTlp++
+			} else {
+				datas = append(datas, 999999)
+			}
 		}
-		//tk.Printf("L = %#v\n", l)
-		tgl := l.Get("_id", time.Time{}).(time.Time)
-		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-		list[tglString] = l
+		if devStatus {
+			if shownSeries {
+				if len(datas) > 0 {
+					metData.Set("data", datas)
+				}
+			}
+		} else {
+			if len(datas) > 0 {
+				metData.Set("data", datas)
+			}
+		}
 	}
-	csr.Close()
 
-	//durationd := time.Now().Sub(timestartd).Seconds()
-	//tk.Printf("Kondisi 1b : %v\n", durationd)
+	return
+}
 
-	// dateFound := false
-	// for _, tanggal := range categoryChecker {
-	// 	dateFound = false
-	// existLoop:
-	// 	for _, val := range list {
-	// 		tgl := val.Get("_id", time.Time{}).(time.Time)
-	// 		tglString := tk.ToString(tgl.Day()) + "_" + tk.ToString(int(tgl.Month())) + "_" + tk.ToString(tgl.Year())
-	// 		if tglString == tanggal { /*jika tanggal di dalam aggregate result ada di dalam category date*/
-	// 			dateFound = true
-	// 			colresult := val.GetFloat64("colresult")
-
-	// 			datas = append(datas, colresult)
-	// 			break existLoop
-	// 		}
-	// 	}
-	// 	if !dateFound { /*jika tanggal di dalam aggregate result tidak ditemukan di dalam category date*/
-	// 		datas = append(datas, 999999)
-	// 	}
-	// }
-
-	//timestartd = time.Now()
-
+func getTLPavgData(sumAggr, countAggr map[string]float64, categoryChecker []string) (datas []float64, pcData tk.M) {
 	for _, tanggal := range categoryChecker {
 		colresult := 999999.0
-		if list.Has(tanggal) {
-			val := list.Get(tanggal, tk.M{}).(tk.M)
-			colresult = val.GetFloat64("colresult")
+		sumData, hasSum := sumAggr[tanggal]
+		countData, hasCount := countAggr[tanggal]
+		if hasSum && hasCount {
+			colresult = tk.Div(sumData, countData)
 		}
 		datas = append(datas, colresult)
 	}
-
-	//durationd = time.Now().Sub(timestartd).Seconds()
-	//tk.Printf("Kondisi 2b : %v\n", durationd)
 
 	pcData = tk.M{
 		"name":      "Average",
