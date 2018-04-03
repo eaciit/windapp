@@ -277,7 +277,6 @@ func (w *PageController) AnalyticLoss(r *knot.WebContext) interface{} {
 		"page-loss-analysis/warning-frequency.html",
 		"page-loss-analysis/component-alarm.html",
 		"page-loss-analysis/mtbf.html",
-		"page-loss-analysis/event-analysis.html",
 	}
 	r.Config.ViewName = "page-loss-analysis.html"
 
@@ -525,6 +524,21 @@ func (w *PageController) MonitoringTemperature(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputTemplate
 	r.Config.LayoutTemplate = LayoutFile
 	r.Config.ViewName = "page-monitoring/temperature.html"
+
+	if r.Session("sessionid", "") == "" {
+		AppMuxSync.Lock()
+		r.SetSession("sessionid", "monitoring-page")
+		AppMuxSync.Unlock()
+	}
+
+	return w.GetParams(r, true)
+}
+
+func (w *PageController) MonitoringEvent(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputTemplate
+	r.Config.LayoutTemplate = LayoutFile
+	r.Config.IncludeFiles = []string{"_filter-analytic.html"}
+	r.Config.ViewName = "page-monitoring/event-analysis.html"
 
 	if r.Session("sessionid", "") == "" {
 		AppMuxSync.Lock()
