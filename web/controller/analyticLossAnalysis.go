@@ -1879,28 +1879,29 @@ func (m *AnalyticLossAnalysisController) GetEventAnalysisTab(k *knot.WebContext)
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	result, realDesc, e := getEventAnalysis(p.BreakDown, p.AdditionalFilter, p.RealDesc, p, k)
+	result, resultpct, realDesc, e := getEventAnalysis(p.BreakDown, p.AdditionalFilter, p.RealDesc, p, k)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 	data := tk.M{
-		"data":     result,
-		"realdesc": realDesc,
+		"data":           result,
+		"datapercentage": resultpct,
+		"realdesc":       realDesc,
 	}
 
 	return helper.CreateResult(true, data, "success")
 }
 
-func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEventAnalysis, k *knot.WebContext) ([]tk.M, tk.M, error) {
-	var result []tk.M
+func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEventAnalysis, k *knot.WebContext) ([]tk.M, []tk.M, tk.M, error) {
 	var e error
 	dfilter := []*dbox.Filter{}
 	var dataSeries []tk.M
+	var dataSeriesPct []tk.M
 
 	if p != nil {
 		tStart, tEnd, e := helper.GetStartEndDate(k, p.Period, p.DateStart, p.DateEnd)
 		if e != nil {
-			return result, realDesc, e
+			return dataSeries, dataSeriesPct, realDesc, e
 		}
 		if p.Project != "" {
 			dfilter = append(dfilter, dbox.Eq("projectname", p.Project))
@@ -1936,7 +1937,7 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 			Cursor(nil)
 
 		if e != nil {
-			return result, realDesc, e
+			return dataSeries, dataSeriesPct, realDesc, e
 		}
 
 		_data := tk.M{}
@@ -1946,6 +1947,7 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 		timeend := time.Time{}
 		duration := 0.0
 		timeIndia := getTimeNow()
+		totalHours := 0.0
 		for {
 			_data = tk.M{}
 			e = csr.Fetch(&_data, 1, false)
@@ -1970,6 +1972,7 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 				}
 			}
 			dataPerGroup[groupName] += duration
+			totalHours += duration
 		}
 
 		csr.Close()
@@ -1978,8 +1981,12 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 			realDesc = tk.M{} /* untuk alarm desc sesuai value di DB */
 		}
 		turbineName, e := helper.GetTurbineNameList(p.Project)
+		if e != nil {
+			return dataSeries, dataSeriesPct, realDesc, e
+		}
 		for key, val := range dataPerGroup {
 			series := tk.M{}
+			seriesPct := tk.M{}
 			id := strings.Title(strings.Replace(key, "_", " ", -69)) /* underscore diganti spasi dan huruf awal besar semua */
 			if breakDown == "turbine" {
 				id = turbineName[key]
@@ -1990,14 +1997,13 @@ func getEventAnalysis(breakDown string, addFilter, realDesc tk.M, p *PayloadEven
 
 			series.Set("_id", id)
 			series.Set("result", val)
+			seriesPct.Set("_id", id)
+			seriesPct.Set("result", tk.Div(val, totalHours)*100)
 
 			dataSeries = append(dataSeries, series)
-		}
-
-		if e != nil {
-			return dataSeries, realDesc, e
+			dataSeriesPct = append(dataSeriesPct, seriesPct)
 		}
 	}
 
-	return dataSeries, realDesc, e
+	return dataSeries, dataSeriesPct, realDesc, e
 }

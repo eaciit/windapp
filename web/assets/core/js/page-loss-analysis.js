@@ -40,7 +40,7 @@ pg.isFirstReliability = ko.observable(true);
 pg.isFirstWindSpeed = ko.observable(true);
 pg.isFirstWarning = ko.observable(true);
 pg.isFirstComponentAlarm = ko.observable(true);
-pg.isFirstEventAnalysis = ko.observable(true);
+// pg.isFirstEventAnalysis = ko.observable(true);
 pg.isFirstMTBF = ko.observable(true);
 
 var availDateAll;
@@ -157,7 +157,7 @@ pg.resetStatus = function(){
     pg.isFirstWindSpeed(true);
     pg.isFirstWarning(true);
     pg.isFirstComponentAlarm(true);
-    pg.isFirstEventAnalysis(true);
+    // pg.isFirstEventAnalysis(true);
     pg.isFirstMTBF(true);
 }
 vm.currentMenu('Losses and Efficiencies ');

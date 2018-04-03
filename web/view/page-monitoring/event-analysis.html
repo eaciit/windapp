@@ -1,0 +1,66 @@
+<script>
+    app.currentDateData = '{{.CurrentDateData}}';
+	vm.menu({{.Menus}});
+</script>
+
+<script src="{{BaseUrl}}res/core/js/page-monitoring/event-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
+<link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-loss-analysis.css">
+
+<div>
+	<div class="row">
+		{{template "_filter-analytic.html"}}
+		<div class="col-md-12 col-sm-12 ez panel-content">
+			<div class="col-md-12 col-sm-12 hardcore landing">
+				<div class="panel ez no-padding hardcore">
+					<div class="panel-body">
+						<div class="date-info">
+                            Data Available from: <strong><span id="availabledatestart">-</span></strong> until: <strong><span id="availabledateend">-</span></strong>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
+
+                        <div class="col-md-12 text-center">
+							<div class="col-md-4">
+								<div class="panel ez no-padding hardcore">
+									<div class="panel-heading text-center">
+										<span>Event Analysis by Detail Group</span>
+									</div>
+									<div class="panel-body">
+										<div id="chartEventAnalysis"></div>
+									</div>
+								</div>
+							</div>   
+							<div class="col-md-4">
+								<div class="panel ez no-padding hardcore">
+									<div class="panel-heading text-center">
+										<span>Event Analysis by Alarm Desc</span><br>
+										<span><strong data-bind="text:ea.labelEventDetail1"></strong></span>
+									</div>
+									<div class="panel-body text-center">
+										<div id="chartEventAnalysisLevel1"></div>
+									</div>
+								</div>
+							</div>   
+							<div class="col-md-4">
+								<div class="panel ez no-padding hardcore">
+									<div class="panel-heading text-center">
+										<span>Event Analysis by Turbine</span><br>
+										<span><strong data-bind="text:ea.labelEventDetail2"></strong></span>
+									</div>
+									<div class="panel-body text-center">
+										<div id="chartEventAnalysisLevel2"></div>
+									</div>
+								</div>
+							</div>                      	
+						</div>
+
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="clearfix"></div>
+<script>
+	fa.setProjectTurbine({{.ProjectList}}, {{.TurbineList}}, "");
+</script>
