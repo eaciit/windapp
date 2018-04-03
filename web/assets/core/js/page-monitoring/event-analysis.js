@@ -14,6 +14,9 @@ ea.firsLoad = ko.observable(true);
 ea.labelEventDetail1 = ko.observable();
 ea.labelEventDetail2 = ko.observable();
 
+
+ea.data = {level0: {},level1 : {}, level2:{}}
+
 vm.currentMenu('Event Analysis ');
 vm.currentTitle('Event Analysis ');
 vm.breadcrumb([
@@ -60,8 +63,16 @@ ea.setAvailableDate = function(isFirstLoad) {
 
     }, 500);
 }
+ea.checkType = function(level){
+    var value = $('input[name=convert'+level+']:checked').val();
+    if(value == ("tohours"+level)){
+        return "hours";
+    }else{
+        return "percentage";
+    }
+}
 
-ea.RefreshData = function(params = {}){  
+ea.RefreshData = function(params = {}, type){  
     var valid = fa.LoadData();
     if (valid) {
         app.loading(true);
@@ -90,14 +101,28 @@ ea.RefreshData = function(params = {}){
                 return;
             }
             setTimeout(function(){
-                dataByGroup = _.sortBy(res.data.data, '_id');
+                var results;
+                var labelAxis;
+
+                ea.data[params.level]  = {
+                    hours : res.data.data,
+                    percentage : res.data.datapercentage
+                }
+                if(type == "percentage"){
+                    labelAxis = "%"
+                    results = res.data.datapercentage;
+                }else{
+                    labelAxis = "Hours";
+                    results = res.data.data;
+                }
+                dataByGroup = _.sortBy(results, '_id');
                 realDesc = res.data.realdesc;
 
                 var chartId;
 
-                if(params.level == undefined){
+                if(params.level == "level0"){
                     chartId = "chartEventAnalysis";
-                }else if(params.level == 1){
+                }else if(params.level == "level1"){
                     chartId = "chartEventAnalysisLevel1";
                     ea.labelEventDetail1(additionalFilter.detailgroup);
                 }else{
@@ -106,12 +131,31 @@ ea.RefreshData = function(params = {}){
                 }
                 
 
+                ea.GenEventAnalysisChart(dataByGroup, chartId, "", labelAxis, false, "N2", params.level)
                 if(ea.firsLoad() == true){
-                    $.when(ea.GenEventAnalysisChart(dataByGroup, chartId, "", "Hours", false, "N2", params.level)).done(function(){
+                    setTimeout(function(){
+                        var category1 = $("#chartEventAnalysis").data("kendoChart").options.categoryAxis.categories[0];
+                        var paramLevel1 = {
+                            level : "level1", 
+                            additionalfilter:{ detailgroup : category1 },
+                            breakDownEa:  "alarmdesc"
+                        };
 
-                    }); 
+                        if(ea.RefreshData(paramLevel1, ea.checkType(1))){
+                            var category2 = $("#chartEventAnalysisLevel1").data("kendoChart").options.categoryAxis.categories[0]
+                            var paramLevel2 = {
+                                level : "level2", 
+                                additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
+                                breakDownEa: "turbine"
+                            };
+
+                            ea.RefreshData(paramLevel2, ea.checkType(2));                              
+                        }
+
+                    },500);
+
+                    ea.firsLoad(false);
                 }
-
                 app.loading(false);
             },300);
         }); 
@@ -119,14 +163,18 @@ ea.RefreshData = function(params = {}){
     }
 }
 
+ea.refreshChart = function(chartId, type, level, axisLabel){
+    var dataByGroup = _.sortBy(ea.data[level][type], '_id');
+    ea.GenEventAnalysisChart(dataByGroup, chartId, "", axisLabel, false, "N2", level)
+}
 
 ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,format, level) {
-
     var CONTAINER_SIZE = 370;
     var LEGEND_SIZE = 100;
     var LEGEND_OFFSET = CONTAINER_SIZE - LEGEND_SIZE;
 
     var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c","#053872","#b1b2ac","#ffcf49","#605c5c","#b1b2ac","#ffcf49","#605c5c"];
+
     $("#" + id).kendoChart({
         dataSource: {
             data: dataSource,
@@ -207,23 +255,25 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             majorTickType: "none",
         },
         seriesClick : function (e){
-            if(level == undefined){
+            if(level == "level0"){
+                is.firsLoad(true);
                 var param = {
-                    level : 1, 
+                    level : "level1", 
                     additionalfilter:{ detailgroup : e.category },
                     breakDownEa:  "alarmdesc"
                 };
 
                 categoryLvl1 = e.category;
-                ea.RefreshData(param);
-            } else if(level == 1){
+
+                ea.RefreshData(param, ea.checkType(1));
+            } else if(level == "level1"){
                 var param = {
-                    level : 2, 
+                    level : "level2", 
                     additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : e.category},
                     breakDownEa: "turbine"
                 };
 
-                ea.RefreshData(param);
+                ea.RefreshData(param, ea.checkType(2));
             }
             
         },
@@ -250,8 +300,17 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
 }
 
 $(function() {
+
+    $("input[name=convert0][value=tohours0]").prop('checked', true);
+    $("input[name=convert1][value=tohours1]").prop('checked', true);
+    $("input[name=convert2][value=tohours2]").prop('checked', true);
+
+    $(".btnhours0").addClass("active");
+    $(".btnhours1").addClass("active");
+    $(".btnhours2").addClass("active");
+
     $('#btnRefresh').on('click', function () {
-        ea.RefreshData();
+        ea.RefreshData({level : "level0"}, ea.checkType(0));
         fa.checkTurbine();
     });
 
@@ -275,6 +334,6 @@ $(function() {
 
     setTimeout(function(){
         ea.getDataAvailableInfo(true);
-        ea.RefreshData();
+        ea.RefreshData({level : "level0"}, ea.checkType(0));
     }, 300)
 });
