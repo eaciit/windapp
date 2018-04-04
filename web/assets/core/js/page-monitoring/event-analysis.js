@@ -72,11 +72,19 @@ ea.checkType = function(level){
     }
 }
 
+ea.autoGenerateLevel1 = function(params = {}, type) {
+    app.loading(true);
+    ea.RefreshData(params, type);
+}
+
+ea.autoGenerateLevel2 = function(params = {}, type) {
+    app.loading(true);
+    ea.RefreshData(params, type)
+}
+
 ea.RefreshData = function(params = {}, type){  
     var valid = fa.LoadData();
-    if (valid) {
-        app.loading(true);
-        
+    if (valid) {        
         var dateStart = $('#dateStart').data('kendoDatePicker').value();
         var dateEnd = new Date(moment($('#dateEnd').data('kendoDatePicker').value()).format('YYYY-MM-DD'));
 
@@ -100,66 +108,37 @@ ea.RefreshData = function(params = {}, type){
             if (!app.isFine(res)) {
                 return;
             }
-            setTimeout(function(){
-                var results;
-                var labelAxis;
+            var results;
+            var labelAxis;
 
-                ea.data[params.level]  = {
-                    hours : res.data.data,
-                    percentage : res.data.datapercentage
-                }
-                if(type == "percentage"){
-                    labelAxis = "%"
-                    results = res.data.datapercentage;
-                }else{
-                    labelAxis = "Hours";
-                    results = res.data.data;
-                }
-                dataByGroup = _.sortBy(results, '_id');
-                realDesc = res.data.realdesc;
-
-                var chartId;
-
-                if(params.level == "level0"){
-                    chartId = "chartEventAnalysis";
-                }else if(params.level == "level1"){
-                    chartId = "chartEventAnalysisLevel1";
-                    ea.labelEventDetail1(additionalFilter.detailgroup);
-                }else{
-                    chartId = "chartEventAnalysisLevel2";
-                    ea.labelEventDetail2(additionalFilter.alarmdesc);
-                }
-                
-
-                ea.GenEventAnalysisChart(dataByGroup, chartId, "", labelAxis, false, "N2", params.level);
-            },300);
-        }); 
-        $.when(reqData).done(function(){
-            if(ea.firstLoad() && params.level == "level0" ){
-                setTimeout(function(){
-                    var category1 = $("#chartEventAnalysis").data("kendoChart").options.categoryAxis.categories[0];
-                    var paramLevel1 = {
-                        level : "level1", 
-                        additionalfilter:{ detailgroup : category1 },
-                        breakDownEa:  "alarmdesc"
-                    };
-                    ea.RefreshData(paramLevel1, ea.checkType(1));
-                }, 500);
-            } else if (ea.firstLoad() && params.level == "level1" ){
-                setTimeout(function(){
-                    var category2 = $("#chartEventAnalysisLevel1").data("kendoChart").options.categoryAxis.categories[0]
-                    var paramLevel2 = {
-                        level : "level2", 
-                        additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
-                        breakDownEa: "turbine"
-                    };
-
-                    ea.RefreshData(paramLevel2, ea.checkType(2));   
-                }, 500);
-                ea.firstLoad(false);
+            ea.data[params.level]  = {
+                hours : res.data.data,
+                percentage : res.data.datapercentage
             }
-            app.loading(false);
-        })
+            if(type == "percentage"){
+                labelAxis = "%"
+                results = res.data.datapercentage;
+            }else{
+                labelAxis = "Hours";
+                results = res.data.data;
+            }
+            dataByGroup = _.sortBy(results, '_id');
+            realDesc = res.data.realdesc;
+
+            var chartId;
+
+            if(params.level == "level0"){
+                chartId = "chartEventAnalysis";
+            }else if(params.level == "level1"){
+                chartId = "chartEventAnalysisLevel1";
+                ea.labelEventDetail1(additionalFilter.detailgroup);
+            }else{
+                chartId = "chartEventAnalysisLevel2";
+                ea.labelEventDetail2(additionalFilter.alarmdesc);
+            }
+            
+            ea.GenEventAnalysisChart(dataByGroup, chartId, "", labelAxis, false, "N2", params.level);
+        });
     }
 }
 
@@ -265,14 +244,14 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
 
                 categoryLvl1 = e.category;
 
-                ea.RefreshData(param, ea.checkType(1));
+                ea.autoGenerateLevel2(param, ea.checkType(1));
             } else if(level == "level1"){
                 var param = {
                     level : "level2", 
                     additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : e.category},
                     breakDownEa: "turbine"
                 };
-
+                app.loading(true);
                 ea.RefreshData(param, ea.checkType(2));
             }
             
@@ -296,6 +275,32 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
         if ($("#" + id).data("kendoChart") != null) {
             $("#" + id).data("kendoChart").refresh();
         }
+        /* check for auto generating */
+        if(ea.firstLoad() && level == "level0" ){
+            setTimeout(function(){
+                var category1 = $("#chartEventAnalysis").data("kendoChart").options.categoryAxis.categories[0];
+                var paramLevel1 = {
+                    level : "level1", 
+                    additionalfilter:{ detailgroup : category1 },
+                    breakDownEa:  "alarmdesc"
+                };
+                ea.RefreshData(paramLevel1, ea.checkType(1));
+            }, 100);
+        } else if (ea.firstLoad() && level == "level1" ){
+            setTimeout(function(){
+                var category2 = $("#chartEventAnalysisLevel1").data("kendoChart").options.categoryAxis.categories[0]
+                var paramLevel2 = {
+                    level : "level2", 
+                    additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
+                    breakDownEa: "turbine"
+                };
+                ea.RefreshData(paramLevel2, ea.checkType(2));
+            },100);
+        } else if (level == "level2") {
+            setTimeout(function(){
+                app.loading(false);
+            }, 500);
+        }
     }, 100);
 }
 
@@ -310,7 +315,7 @@ $(function() {
     $(".btnhours2").addClass("active");
 
     $('#btnRefresh').on('click', function () {
-        ea.RefreshData({level : "level0"}, ea.checkType(0));
+        ea.autoGenerateLevel1({level : "level0"}, ea.checkType(0));
         fa.checkTurbine();
     });
 
@@ -334,6 +339,6 @@ $(function() {
 
     setTimeout(function(){
         ea.getDataAvailableInfo(true);
-        ea.RefreshData({level : "level0"}, ea.checkType(0));
+        ea.autoGenerateLevel1({level : "level0"}, ea.checkType(0));
     }, 300)
 });
