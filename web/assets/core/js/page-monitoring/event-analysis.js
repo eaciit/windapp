@@ -298,6 +298,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
             },100);
         } else if (level == "level2") {
             setTimeout(function(){
+                ea.firstLoad(false);
                 app.loading(false);
             }, 500);
         }
