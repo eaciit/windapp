@@ -142,9 +142,13 @@ ea.RefreshData = function(params = {}, type){
     }
 }
 
-ea.refreshChart = function(chartId, type, level, axisLabel){
-    var dataByGroup = _.sortBy(ea.data[level][type], '_id');
-    ea.GenEventAnalysisChart(dataByGroup, chartId, "", axisLabel, false, "N2", level)
+ea.refreshChart = function(type, axisLabel){
+    var dataByGroup1 = _.sortBy(ea.data["level0"][type], '_id');
+    var dataByGroup2 = _.sortBy(ea.data["level1"][type], '_id');
+    var dataByGroup3 = _.sortBy(ea.data["level2"][type], '_id');
+    ea.GenEventAnalysisChart(dataByGroup1, "chartEventAnalysis", "", axisLabel, false, "N2", "level0")
+    ea.GenEventAnalysisChart(dataByGroup2, "chartEventAnalysisLevel1", "", axisLabel, false, "N2", "level1")
+    ea.GenEventAnalysisChart(dataByGroup3, "chartEventAnalysisLevel2", "", axisLabel, false, "N2", "level2")
 }
 
 ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,format, level) {
@@ -152,7 +156,8 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
     var LEGEND_SIZE = 100;
     var LEGEND_OFFSET = CONTAINER_SIZE - LEGEND_SIZE;
 
-    var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c","#053872","#b1b2ac","#ffcf49","#605c5c","#b1b2ac","#ffcf49","#605c5c"];
+    // var colours = ["#ff880e","#21c4af","#b71c1c","#F0638B","#a2df53","#1c9ec4","#880d4e","#4a148c","#053872","#b1b2ac","#ffcf49","#605c5c","#b1b2ac","#ffcf49","#605c5c"];
+    var colours = ["#ff9933", "#21c4af", "#ff7663", "#ffb74f", "#a2df53", "#1c9ec4", "#ff63a5", "#f44336", "#69d2e7", "#8877A9", "#9A12B3", "#26C281", "#E7505A", "#C49F47", "#ff5597", "#c3260c", "#d4735e", "#ff2ad7", "#34ac8b", "#11b2eb", "#004c79", "#ff0037", "#507ca3", "#ff6565", "#ffd664", "#72aaff", "#795548", "#383271", "#6a4795", "#bec554", "#ab5919", "#f5b1e1", "#7b3416", "#002fef", "#8d731b", "#1f8805", "#ff9900", "#9C27B0", "#6c7d8a", "#d73c1c", "#5be7a0", "#da02d4", "#afa56e", "#7e32cb", "#a2eaf7", "#9cb8f4", "#9E9E9E", "#065806", "#044082", "#18937d", "#2c787a", "#a57c0c", "#234341", "#1aae7a", "#7ac610", "#736f5f", "#4e741e", "#68349d", "#1df3b6", "#e02b09", "#d9cfab", "#6e4e52", "#f31880", "#7978ec", "#f5ace8", "#3db6ae", "#5e06b0", "#16d0b9", "#a25a5b", "#1e603a", "#4b0981", "#62975f", "#1c8f2f", "#b0c80c", "#642794", "#e2060d", "#2125f0"];
 
     $("#" + id).kendoChart({
         dataSource: {
@@ -244,7 +249,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
 
                 categoryLvl1 = e.category;
 
-                ea.autoGenerateLevel2(param, ea.checkType(1));
+                ea.autoGenerateLevel2(param, ea.checkType(0));
             } else if(level == "level1"){
                 var param = {
                     level : "level2", 
@@ -252,7 +257,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
                     breakDownEa: "turbine"
                 };
                 app.loading(true);
-                ea.RefreshData(param, ea.checkType(2));
+                ea.RefreshData(param, ea.checkType(0));
             }
             
         },
@@ -284,7 +289,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
                     additionalfilter:{ detailgroup : category1 },
                     breakDownEa:  "alarmdesc"
                 };
-                ea.RefreshData(paramLevel1, ea.checkType(1));
+                ea.RefreshData(paramLevel1, ea.checkType(0));
             }, 100);
         } else if (ea.firstLoad() && level == "level1" ){
             setTimeout(function(){
@@ -294,7 +299,7 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
                     additionalfilter:{ detailgroup : categoryLvl1 , alarmdesc : category2},
                     breakDownEa: "turbine"
                 };
-                ea.RefreshData(paramLevel2, ea.checkType(2));
+                ea.RefreshData(paramLevel2, ea.checkType(0));
             },100);
         } else if (level == "level2") {
             setTimeout(function(){
