@@ -183,12 +183,12 @@ ea.GenEventAnalysisChart = function (dataSource,id,name,axisLabel, vislabel,form
         // plotArea: plotArea,
         chartArea: {
             width: 330,
-            // height: 800,
+            height: 500,
             padding: 0,
             margin: {
-                top: -110,
+                top: -200,
             },
-            background:"transparent"
+            background:"transparent",
         },
         seriesDefaults: {
             type: "column",
