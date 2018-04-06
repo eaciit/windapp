@@ -151,7 +151,8 @@ mn.generateGrid = function(param){
              attributes: {
                 style: "text-align:center;"
             },
-            template: "#= time(data.duration) #"
+            //template: "#= time(data.duration) #"
+            template: '#= kendo.toString(secondsToTime(data.duration)) #',
         }, {
             field: "startcond",
             title: "Start Value",
@@ -178,6 +179,14 @@ mn.generateGrid = function(param){
 
 }
 
+function secondsToTime(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+    var res = (h > 0 ? (h < 10 ? "0" + h : h) : "00") + ":" + (m > 0 ? (m < 10 ? "0" + m : m) : "00") + ":" + (s > 0 ? s : "00")
+    return res;
+}
 
 function time(s) {
     return new Date(s * 1e3).toISOString().slice(-13, -5);
