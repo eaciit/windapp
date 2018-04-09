@@ -17,11 +17,11 @@ summary.getMode = ko.observable(localStorage.getItem('SummaryMode'));
 var $overAllInterval = false, $allFarmsInterval = false, $intervalTime = 5000;
 
 summary.LoadAllFarms = function(){
-	$.when(bpc.getWeather()).done(function(){
+	// $.when(bpc.getWeather()).done(function(){
     	bpc.getData();	
     	summary.isFirstAllFarms(false);	
     	$allFarmsInterval = bpc.refresh();
-    });
+    // });
 	
 }
 
