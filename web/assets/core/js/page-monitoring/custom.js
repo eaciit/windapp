@@ -105,6 +105,7 @@ bpc.getWeather = function() {
 bpc.getData = function() {
 	clearInterval($allFarmsInterval);
 	if(projectList.length > 0) {
+		var processLoad = 0;
 		$.each(projectList, function(idx, p){
 			// param to get the data
 			$isOnRequest =  false;
@@ -123,16 +124,22 @@ bpc.getData = function() {
 			    $.when(req).done(function(){
 			    	$isOnRequest = false;
 			        requests.push(req);
+
+			        if(processLoad == idx + 1){
+						 $allFarmsInterval = setInterval(bpc.getData, $intervalTime);
+					}
+
 			    });
 			}
+			processLoad++;
 		});
 
 		// applying all requests then prepare to plotting the data
 		$.when.apply(undefined, requests).then(function(){
-			$overAllInterval = setInterval(page.getData, $intervalTime);
+			// $allFarmsInterval = bpc.refresh();
 		});
 	}
-	
+
 
 };
 
