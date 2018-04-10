@@ -103,27 +103,37 @@ bpc.getWeather = function() {
 	
 // get the data for all projects
 bpc.getData = function() {
+	clearInterval($allFarmsInterval);
 	if(projectList.length > 0) {
 		$.each(projectList, function(idx, p){
 			// param to get the data
-			var param = {
-		        Project: p.ProjectId,
-		        LocationTemp: 30.0
-		    };
+			$isOnRequest =  false;
+			if(!$isOnRequest){
+				$isOnRequest = true;
+				var param = {
+			        Project: p.ProjectId,
+			        LocationTemp: 30.0
+			    };
 
-		    // add to queue getting data for all projects
-		    requests.push(
-		    	toolkit.ajaxPost(viewModel.appName + "monitoringrealtime/getdatafarm", param, function (res) {
-					bpc.plotData(param.Project, res);
-			    })
-		    );
+			    // add to queue getting data for all projects
+			     var req = toolkit.ajaxPostDeffered(viewModel.appName + "monitoringrealtime/getdatafarm", param, function (res) {
+			        bpc.plotData(param.Project, res);
+			     });
+
+			    $.when(req).done(function(){
+			    	$isOnRequest = false;
+			        requests.push(req);
+			    });
+			}
 		});
 
 		// applying all requests then prepare to plotting the data
 		$.when.apply(undefined, requests).then(function(){
-			// do nothing
+			$overAllInterval = setInterval(page.getData, $intervalTime);
 		});
 	}
+	
+
 };
 
 // ploting the data
