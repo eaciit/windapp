@@ -1191,16 +1191,16 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	rconn := DBRealtime()
 
 	// getting realtime data
-	realtimeData := []tk.M{}
+	realtimeData := map[string]tk.M{}
 	pipes := []tk.M{}
 	filter := tk.M{}.Set("projectname", tk.M{}.Set("$ne", ""))
 	pipes = append(pipes, tk.M{"$match": filter})
-	pipes = append(pipes, tk.M{"$group": tk.M{
-		"_id":         tk.M{"projectname": "$projectname", "tags": "$tags"},
-		"value_sum":   tk.M{"$sum": "$value"},
-		"value_avg":   tk.M{"$avg": "$value"},
-		"lastupdated": tk.M{"$max": "$timestamp"},
-	}})
+	// pipes = append(pipes, tk.M{"$group": tk.M{
+	// 	"_id":         tk.M{"projectname": "$projectname", "tags": "$tags"},
+	// 	"value_sum":   tk.M{"$sum": "$value"},
+	// 	"value_avg":   tk.M{"$avg": "$value"},
+	// 	"lastupdated": tk.M{"$max": "$timestamp"},
+	// }})
 	pipes = append(pipes, tk.M{
 		"$sort": tk.M{
 			"_id.projectname": 1,
@@ -1213,9 +1213,41 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 	}
 	defer csr.Close()
 
-	err = csr.Fetch(&realtimeData, 0, false)
-	if err != nil {
-		tk.Println(err.Error())
+	// err = csr.Fetch(&realtimeData, 0, false)
+	// if err != nil {
+	// 	tk.Println(err.Error())
+	// }
+	for {
+		rtd := tk.M{}
+		err = csr.Fetch(&rtd, 1, false)
+		if err != nil {
+			break
+		}
+
+		_id := rtd.GetString("projectname") + "_" + rtd.GetString("tags")
+		tstamp := rtd.Get("timestamp", time.Time{}).(time.Time).UTC()
+		servertstamp := rtd.Get("servertimestamp", time.Time{}).(time.Time).UTC()
+
+		if _, cond := fasttags[rtd.GetString("tags")]; cond && time.Now().UTC().Sub(servertstamp.UTC()).Minutes() >= 60 {
+			continue
+		}
+
+		prevrtd, cond := realtimeData[_id]
+		if !cond {
+			prevrtd = tk.M{}
+			prevrtd.Set("lastupdated", tstamp)
+		}
+
+		prevrtd.Set("_id", tk.M{}.Set("projectname", rtd.GetString("projectname")).Set("tags", rtd.GetString("tags")))
+		prevrtd.Set("value_sum", prevrtd.GetFloat64("value_sum")+rtd.GetFloat64("value"))
+		prevrtd.Set("value_count", prevrtd.GetFloat64("value_count")+1)
+		prevrtd.Set("value_avg", tk.Div(prevrtd.GetFloat64("value_sum"), prevrtd.GetFloat64("value_count")))
+		prevtstamp := prevrtd.Get("lastupdated", time.Time{}).(time.Time).UTC()
+		if tstamp.After(prevtstamp) {
+			prevrtd.Set("lastupdated", tstamp)
+		}
+
+		realtimeData[_id] = prevrtd
 	}
 
 	// getting production data for yesteday & today
