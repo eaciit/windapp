@@ -321,7 +321,9 @@ $(function() {
     $(".btnhours2").addClass("active");
 
     $('#btnRefresh').on('click', function () {
-        ea.autoGenerateLevel1({level : "level0"}, ea.checkType(0));
+        ea.firstLoad(true);
+        realDesc = {};
+        ea.autoGenerateLevel1({level : "level0", breakDownEa: "detailgroup" , additionalfilter: {}}, ea.checkType(0));
         fa.checkTurbine();
     });
 
@@ -339,6 +341,8 @@ $(function() {
         dataTextField: 'text',
         suggest: true,
         change: function () { 
+            var project = $('#projectList').data("kendoDropDownList").value();
+            fa.populateTurbine(project);
             ea.getDataAvailableInfo(true);
         }
     });

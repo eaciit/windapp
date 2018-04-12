@@ -499,6 +499,9 @@ func (m *AnalyticWindDistributionController) GetList(k *knot.WebContext) interfa
 	switch p.BreakDown {
 	case "nacelledeviation":
 		queryT = append(queryT, dbox.Gte("winddirection", -180))
+		if p.IsClean {
+			queryT = append(queryT, dbox.Eq("isvalidstate", true))
+		}
 
 	case "avgwindspeed":
 		queryT = append(queryT, dbox.Gt("avgwindspeed", 0.5))
