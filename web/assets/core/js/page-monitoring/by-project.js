@@ -66,6 +66,8 @@ bp.populateProject = function (data) {
                 data.value = val.Value;
                 data.text = val.Name;
                 data.city = val.City;
+                data.latitude = val.Coords[0];
+                data.longitude = val.Coords[1];
                 datavalue.push(data);
             });
         }
@@ -81,9 +83,11 @@ bp.populateProject = function (data) {
 
 bp.CheckWeather = function() {
     var city = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].city;
+    var lat = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].latitude;
+    var lon = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].longitude;
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
     $("#citytxt").html(city);
-    var param = { "q": city, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
+    var param = { "lat": lat, "lon": lon, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
     $.ajax({
         type: "GET",
         url: surl,
