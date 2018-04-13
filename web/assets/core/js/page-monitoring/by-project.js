@@ -82,9 +82,10 @@ bp.populateProject = function (data) {
 };
 
 bp.CheckWeather = function() {
-    var city = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].city;
-    var lat = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].latitude;
-    var lon = bp.projectList()[$('#projectList').data('kendoDropDownList').select()].longitude;
+    var projectData = bp.projectList()[$('#projectList').data('kendoDropDownList').select()];
+    var city = projectData.city;
+    var lat = projectData.latitude;
+    var lon = projectData.longitude;
     var surl = 'http://api.openweathermap.org/data/2.5/weather';
     $("#citytxt").html(city);
     var param = { "lat": lat, "lon": lon, "appid": "88f806b961b1057c0df02b5e7df8ae2b", "units": "metric" };
