@@ -2,7 +2,7 @@ package controller
 
 import (
 	. "eaciit/wfdemo-git/library/core"
-	lh "eaciit/wfdemo-git/library/helper"
+	// lh "eaciit/wfdemo-git/library/helper"
 	. "eaciit/wfdemo-git/library/models"
 	"eaciit/wfdemo-git/web/helper"
 	"reflect"
@@ -1564,12 +1564,11 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	filter, _ := p.ParseFilter()
 	typeExcel := strings.Split(p.Misc.GetString("tipe"), "Custom")[0]
 
-	istimestamp := false
 	arrscadaoem := []string{"_id"}
 	// arrmettower := []string{}
 	headerList := []string{}
 	fieldList := []string{}
-	source := "ScadaDataHFD"
+	source := "ScadaDataHFD" /* to filter field list from payload ColumnList */
 	// timestamp := "timestamp"
 	// tablename := new(ScadaDataHFD).TableName()
 	tablename := "Scada10MinHFD"
@@ -1582,30 +1581,61 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 		// timestamp = "timestamputc"
 	}
 
+	// istimestamp := false
 	if p.Custom.Has("ColumnList") {
 		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
 			_tkm, _ := tk.ToM(_val)
 			ids = strings.ToLower(_tkm.GetString("_id"))
 			if _tkm.GetString("source") == source {
 				arrscadaoem = append(arrscadaoem, ids)
-				if ids == "timestamp" {
-					istimestamp = true
-				}
+				// if ids == "timestamp" {
+				// 	istimestamp = true
+				// }
 			}
 			/*else if _tkm.GetString("source") == "MetTower" {
 				arrmettower = append(arrmettower, _tkm.GetString("_id"))
 			}*/
 			headerList = append(headerList, _tkm.GetString("label"))
-			fieldList = append(fieldList, _tkm.GetString("_id"))
+			fieldList = append(fieldList, ids)
 		}
 	}
 
-	query := DB().Connection.NewQuery().
-		Select(arrscadaoem...).
-		From(tablename).
-		Where(dbox.And(filter...))
+	/*query := DB().Connection.NewQuery().
+	Select(arrscadaoem...).
+	From(tablename).
+	Where(dbox.And(filter...))*/
 
+	projection := map[string]int{}
+	for _, val := range arrscadaoem {
+		projection[val] = 1
+	}
+
+	matches := []tk.M{}
+	for _, f := range filter {
+		value := f.Value
+		if f.Field == "timestamp" {
+			value = value.(time.Time).UTC()
+		}
+		matches = append(matches, tk.M{
+			f.Field: tk.M{f.Op: value},
+		})
+	}
+
+	pipes := []tk.M{}
+	sortList := map[string]int{}
 	if len(p.Sort) > 0 {
+		for _, val := range p.Sort {
+			if val.Dir == "desc" {
+				sortList[strings.ToLower(val.Field)] = -1
+			} else {
+				sortList[strings.ToLower(val.Field)] = 1
+			}
+		}
+		pipes = append(pipes, tk.M{"$sort": sortList})
+	}
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": projection})
+	/*if len(p.Sort) > 0 {
 		var arrsort []string
 		for _, val := range p.Sort {
 			if val.Dir == "desc" {
@@ -1615,46 +1645,58 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			}
 		}
 		query = query.Order(arrsort...)
-	}
+	}*/
 
-	csr, e := query.Cursor(nil)
+	// csr, e := query.Cursor(nil)
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
 	defer csr.Close()
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
 
-	results := make([]tk.M, 0)
+	/*results := make([]tk.M, 0)
 	e = csr.Fetch(&results, 0, false)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
+	}*/
+	results := make([]tk.M, 0)
+	result := tk.M{}
+	for {
+		result = tk.M{}
+		e = csr.Fetch(&result, 1, false)
+		if e != nil {
+			break
+		}
+		results = append(results, result)
 	}
 
 	// arrmettowercond := []interface{}{}
 
-	config := lh.ReadConfig()
-	loc, err := time.LoadLocation(config["ReadTimeLoc"])
-	if err != nil {
-		tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
-	}
+	// config := lh.ReadConfig()
+	// loc, err := time.LoadLocation(config["ReadTimeLoc"])
+	// if err != nil {
+	// 	tk.Printfn("Get time in %s found %s", config["ReadTimeLoc"], err.Error())
+	// }
 
-	for i, val := range results {
-		if val.Has("timestamputc") {
-			strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
-			itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
-				strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
-			// arrmettowercond = append(arrmettowercond, itime)
-			val.Set("timestamputc", itime)
-			results[i] = val
-		}
-		if istimestamp {
-			itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
-			/*if typeExcel == "ScadaHFD" {
-				arrmettowercond = append(arrmettowercond, itime)
-			}*/
-			val.Set("timestamp", itime)
-			results[i] = val
-		}
-	}
+	// for i, val := range results {
+	// 	if val.Has("timestamputc") {
+	// 		strangeTime := val.Get("timestamputc", time.Time{}).(time.Time).UTC().In(loc)
+	// 		itime := time.Date(strangeTime.Year(), strangeTime.Month(), strangeTime.Day(),
+	// 			strangeTime.Hour(), strangeTime.Minute(), strangeTime.Second(), strangeTime.Nanosecond(), time.UTC)
+	// 		// arrmettowercond = append(arrmettowercond, itime)
+	// 		val.Set("timestamputc", itime)
+	// 		results[i] = val
+	// 	}
+	// 	if istimestamp {
+	// 		itime := val.Get("timestamp", time.Time{}).(time.Time).UTC()
+	// 		/*if typeExcel == "ScadaHFD" {
+	// 			arrmettowercond = append(arrmettowercond, itime)
+	// 		}*/
+	// 		val.Set("timestamp", itime)
+	// 		results[i] = val
+	// 	}
+	// }
 
 	/*tkmmet := tk.M{}
 	if len(arrmettower) > 0 && len(arrmettowercond) > 0 {
