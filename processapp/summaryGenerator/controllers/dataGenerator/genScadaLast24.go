@@ -31,7 +31,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		// }
 
 		t0 := time.Now()
-		tk.Println("Start generating data last 24")
+		tk.Println("Start generating data last 24 : ", t0)
 
 		ctx := d.BaseController.Ctx.Connection
 		// d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
@@ -68,7 +68,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 		for _, proj := range d.BaseController.ProjectList {
 
-			tk.Println("Start : ", proj.Name)
+			tk.Println("Start : ", proj.Name, " - ", t0)
 
 			projectName := proj.Value
 			turbineList := []TurbineOut{}

@@ -233,14 +233,14 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 	// 	os.Exit(0)
 	// }
 	t0 := time.Now()
-	toolkit.Println("Start generating data available date")
+	toolkit.Println("Start generating data available date : ", t0)
 
 	var e error
 	conn := d.BaseController.Ctx.Connection
 	projects, _ := helper.GetProjectList()
 
 	for _, proj := range projects {
-		toolkit.Println("Start : ", proj.Name)
+		toolkit.Println("Start : ", proj.Name, " - ", t0)
 		projectName := proj.Value
 		scadaResults := make([]time.Time, 2)
 		alarmResults := make([]time.Time, 2)
