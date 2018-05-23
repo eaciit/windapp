@@ -86,15 +86,6 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		t0 := time.Now()
 		tk.Println("Project : ", proj, t0)
 
-		// ==========================================
-		_ = d.BaseController.Ctx.Connection.NewQuery().
-			Delete().
-			From("rpt_winddistributioncurrentmonth").
-			Where(dbox.Eq("Project", proj)).
-			SetConfig("multiexec", true).
-			Exec(nil)
-		// ==========================================
-
 		_ltime := time.Now().UTC()
 		if _, ishas := latesttime[proj]; ishas {
 			_ltime = latesttime[proj]
@@ -102,7 +93,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 
 		_data := []tk.M{}
 		query, pipes := []tk.M{}, []tk.M{}
-		query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+		// query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": _ltime.AddDate(-1, 0, 0)}})
 		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": _ltime}})
 		query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
@@ -135,6 +126,15 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 				Count:        v.GetInt("count"),
 			})
 		}
+
+		// ==========================================
+		_ = d.BaseController.Ctx.Connection.NewQuery().
+			Delete().
+			From("rpt_winddistributioncurrentmonth").
+			Where(dbox.Eq("Project", proj)).
+			SetConfig("multiexec", true).
+			Exec(nil)
+		// ==========================================
 
 		if len(tmpResult) > 0 {
 			totalCount := 0
