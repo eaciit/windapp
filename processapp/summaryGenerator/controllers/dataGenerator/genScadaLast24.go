@@ -48,12 +48,20 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		}
 
 		mapbudget := map[string]float64{}
-		csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+		csrBudget, err := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
 			Cursor(nil)
+		if err != nil {
+			tk.Println("FOUND : ", err.Error())
+		}
 
 		budgets := make([]ExpPValueModel, 0)
-		_ = csrBudget.Fetch(&budgets, 0, false)
+		err = csrBudget.Fetch(&budgets, 0, false)
+		if err != nil {
+			tk.Println("FOUND : ", err.Error())
+		}
 		csrBudget.Close()
+
+		tk.Printfn("Budget list %d, %v ", len(budgets), t0)
 
 		for _, budget := range budgets {
 			mapbudget[tk.Sprintf("%s_%d_75", budget.ProjectName, budget.MonthNo)] = budget.P75NetGenMWH
@@ -65,6 +73,8 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 				mapbudget[tk.Sprintf("fleet_%d_90", budget.MonthNo)] = budget.P90NetGenMWH
 			}
 		}
+
+		tk.Printfn("maps budget %d, %v ", len(mapbudget), t0)
 
 		for _, proj := range d.BaseController.ProjectList {
 
