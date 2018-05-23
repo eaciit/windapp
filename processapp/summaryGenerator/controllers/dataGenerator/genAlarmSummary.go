@@ -87,6 +87,8 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 					Command("pipe", pipes).
 					Cursor(nil)
 
+				defer csr.Close()
+
 				ErrorHandler(e, "Generate Alarm Summary")
 
 				result := []tk.M{}

@@ -306,7 +306,6 @@ func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestam
 	defer csr.Close()
 
 	if err != nil {
-		csr.Close()
 		return
 	}
 
@@ -314,13 +313,11 @@ func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestam
 	err = csr.Fetch(&data, 0, false)
 
 	if err != nil || len(data) == 0 {
-		csr.Close()
 		return
 	}
 
 	min = data[0].Get("min", time.Time{}).(time.Time).UTC()
 	max = data[0].Get("max", time.Time{}).(time.Time).UTC()
 
-	csr.Close()
 	return
 }
