@@ -23,7 +23,7 @@ type GenScadaLast24 struct {
 
 func (d *GenScadaLast24) Generate(base *BaseController) {
 	if base != nil {
-		// d.BaseController = base
+		d.BaseController = base
 		// ctx, e := PrepareConnection()
 		// if e != nil {
 		// 	ErrorHandler(e, "Scada Summary")
