@@ -83,6 +83,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 
 	for _, oproject := range projects {
 		proj := oproject.Value
+		t0 := time.Now()
+		tk.Println("Project : ", proj, t0)
 
 		// ==========================================
 		_ = d.BaseController.Ctx.Connection.NewQuery().
@@ -122,6 +124,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 			break
 		}
 		csrx.Close()
+
+		tk.Println("Fetch in : ", time.Since(t0).String())
 
 		for _, v := range _data {
 			id := v.Get("_id").(tk.M)
@@ -204,6 +208,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 				_ = qSave.Exec(tk.M{}.Set("data", distHelper))
 			}
 		}
+
+		tk.Println("All Exec in : ", time.Since(t0).String())
 	}
 
 }
