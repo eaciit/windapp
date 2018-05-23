@@ -103,56 +103,57 @@ func (b *BaseController) GetTurbineScada() {
 
 	projects, _ := helper.GetProjectList()
 	b.ProjectList = append(b.ProjectList, projects...)
-	b.CapacityPerMonth = map[string]float64{}
-	b.TotalTurbinePerMonth = map[string]float64{}
-	for _, v := range b.ProjectList {
-		project := v.Value
+	// NO LONGER USED, PLEASE REFER TO DAILY
+	// b.CapacityPerMonth = map[string]float64{}
+	// b.TotalTurbinePerMonth = map[string]float64{}
+	// for _, v := range b.ProjectList {
+	// 	project := v.Value
 
-		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Gte("power", -200))
+	// 	filter := []*dbox.Filter{}
+	// 	filter = append(filter, dbox.Gte("power", -200))
 
-		if project != "Fleet" {
-			filter = append(filter, dbox.Eq("projectname", project))
-		}
-		ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
-		pipe := []tk.M{
-			{"$group": tk.M{"_id": ids}},
-			{"$sort": tk.M{"_id.bulan": 1}},
-		}
-		csrTurbine, e := b.Ctx.Connection.NewQuery().
-			From(new(ScadaData).TableName()).
-			Where(dbox.And(filter...)).
-			Command("pipe", pipe).
-			Cursor(nil)
+	// 	if project != "Fleet" {
+	// 		filter = append(filter, dbox.Eq("projectname", project))
+	// 	}
+	// 	ids := tk.M{"bulan": "$dateinfo.monthid", "turbine": "$turbine"}
+	// 	pipe := []tk.M{
+	// 		{"$group": tk.M{"_id": ids}},
+	// 		{"$sort": tk.M{"_id.bulan": 1}},
+	// 	}
+	// 	csrTurbine, e := b.Ctx.Connection.NewQuery().
+	// 		From(new(ScadaData).TableName()).
+	// 		Where(dbox.And(filter...)).
+	// 		Command("pipe", pipe).
+	// 		Cursor(nil)
 
-		if e != nil {
-			ErrorHandler(e, "Scada Summary, get turbine data on cursor")
-		}
-		defer csrTurbine.Close()
+	// 	if e != nil {
+	// 		ErrorHandler(e, "Scada Summary, get turbine data on cursor")
+	// 	}
+	// 	defer csrTurbine.Close()
 
-		dataTurbine := []tk.M{}
-		e = csrTurbine.Fetch(&dataTurbine, 0, false)
-		if e != nil {
-			ErrorHandler(e, "Scada Summary, get turbine data on fetch")
-		}
+	// 	dataTurbine := []tk.M{}
+	// 	e = csrTurbine.Fetch(&dataTurbine, 0, false)
+	// 	if e != nil {
+	// 		ErrorHandler(e, "Scada Summary, get turbine data on fetch")
+	// 	}
 
-		var turbineMaster []TurbineOut
-		if project != "Fleet" {
-			turbineMaster, _ = helper.GetTurbineList([]interface{}{project})
-		} else {
-			turbineMaster, _ = helper.GetTurbineList(nil)
-		}
+	// 	var turbineMaster []TurbineOut
+	// 	if project != "Fleet" {
+	// 		turbineMaster, _ = helper.GetTurbineList([]interface{}{project})
+	// 	} else {
+	// 		turbineMaster, _ = helper.GetTurbineList(nil)
+	// 	}
 
-		for _, turbineScada := range dataTurbine {
-			aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
-			for _, turbine := range turbineMaster {
-				if aidi.GetString("turbine") == turbine.Value {
-					b.CapacityPerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
-					b.TotalTurbinePerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += 1
-				}
-			}
-		}
-	}
+	// 	for _, turbineScada := range dataTurbine {
+	// 		aidi, _ := tk.ToM(turbineScada.Get("_id", tk.M{}))
+	// 		for _, turbine := range turbineMaster {
+	// 			if aidi.GetString("turbine") == turbine.Value {
+	// 				b.CapacityPerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += turbine.Capacity
+	// 				b.TotalTurbinePerMonth[project+"_"+tk.ToString(aidi.GetInt("bulan"))] += 1
+	// 			}
+	// 		}
+	// 	}
+	// }
 	logDuration := time.Now().Sub(logStart).Seconds()
 	tk.Printf("\nGetting Turbine from Scada Data Collection about %v secs\n", logDuration)
 }
