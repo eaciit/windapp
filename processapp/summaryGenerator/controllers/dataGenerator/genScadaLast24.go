@@ -33,7 +33,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		t0 := time.Now()
 		tk.Println("Start generating data last 24 : ", t0)
 
-		ctx := d.BaseController.Ctx.Connection
+		// ctx := &d.BaseController.Ctx.Connection
 		// d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
 
 		projectList, _ := helper.GetProjectList()
@@ -48,7 +48,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		}
 
 		mapbudget := map[string]float64{}
-		csrBudget, err := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+		csrBudget, err := d.BaseController.Ctx.Connection.NewQuery().From(new(ExpPValueModel).TableName()).
 			Cursor(nil)
 		if err != nil {
 			tk.Println("FOUND : ", err.Error())
@@ -100,7 +100,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 				log.Printf(">> %#v \n", v)
 			}*/
 
-			csr, e := ctx.NewQuery().
+			csr, e := d.BaseController.Ctx.Connection.NewQuery().
 				From(new(ScadaData).TableName()).
 				Where(filter).
 				Aggr(dbox.AggrMax, "$timestamp", "timestamp").
@@ -186,7 +186,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 							filterSub = append(filterSub, dbox.Eq("projectname", projectName))
 						}
 
-						csr, e = ctx.NewQuery().From(new(ScadaData).TableName()).
+						csr, e = d.BaseController.Ctx.Connection.NewQuery().From(new(ScadaData).TableName()).
 							Where(dbox.And(filterSub...)).
 							Aggr(dbox.AggrSum, "$power", "totalpower").
 							Aggr(dbox.AggrSum, "$powerlost", "totalpowerlost").
@@ -259,7 +259,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 
 					pipe := []tk.M{tk.M{}.Set("$match", match), tk.M{}.Set("$group", tk.M{}.Set("_id", "$dateinfo.dateid").Set("totalpower", tk.M{}.Set("$sum", "$power"))), tk.M{}.Set("$sort", tk.M{}.Set("_id", 1))}
 
-					csr, _ := ctx.NewQuery().
+					csr, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipe).
 						From(new(ScadaData).TableName()).
 						Cursor(nil)

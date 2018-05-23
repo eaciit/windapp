@@ -46,12 +46,12 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 	// 	os.Exit(0)
 	// }
 	// defer conn.Close()
-	conn := d.BaseController.Ctx.Connection
+	// conn := d.BaseController.Ctx.Connection
 
 	projects, _ := helper.GetProjectList()
 
 	mdl := new(LatestDataPeriod)
-	csr, e := conn.NewQuery().
+	csr, e := d.BaseController.Ctx.Connection.NewQuery().
 		Select().
 		From(mdl.TableName()).
 		Where(dbox.Eq("type", "ScadaData")).
@@ -74,7 +74,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		latesttime[mdl.ProjectName] = mdl.Data[1].UTC()
 	}
 
-	qSave := conn.NewQuery().
+	qSave := d.BaseController.Ctx.Connection.NewQuery().
 		From("rpt_winddistributioncurrentmonth").
 		SetConfig("multiexec", true).
 		Save()
@@ -85,7 +85,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		proj := oproject.Value
 
 		// ==========================================
-		_ = conn.NewQuery().
+		_ = d.BaseController.Ctx.Connection.NewQuery().
 			Delete().
 			From("rpt_winddistributioncurrentmonth").
 			Where(dbox.Eq("Project", proj)).
@@ -113,7 +113,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
 		pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
 
-		csrx, _ := conn.NewQuery().
+		csrx, _ := d.BaseController.Ctx.Connection.NewQuery().
 			From(new(ScadaData).TableName()).
 			Command("pipe", pipes).Cursor(nil)
 

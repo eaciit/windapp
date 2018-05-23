@@ -236,7 +236,7 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 	toolkit.Println("Start generating data available date : ", t0)
 
 	var e error
-	conn := d.BaseController.Ctx.Connection
+	// conn := &d.BaseController.Ctx.Connection
 	projects, _ := helper.GetProjectList()
 
 	for _, proj := range projects {
@@ -246,9 +246,9 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 		alarmResults := make([]time.Time, 2)
 		durationResults := make([]time.Time, 2)
 
-		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
-		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
-		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
+		scadaResults[0], scadaResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		alarmResults[0], alarmResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
+		durationResults[0], durationResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
 		_ = e
 		availdatedata := struct {
 			ScadaData []time.Time
@@ -291,9 +291,7 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 }
 
 func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
-	q := conn.
-		NewQuery().
-		From(collectionName)
+	q := conn.NewQuery().From(collectionName)
 
 	if where != nil {
 		q.Where(where)
