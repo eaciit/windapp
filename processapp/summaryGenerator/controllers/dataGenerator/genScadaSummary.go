@@ -712,11 +712,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 	if base != nil {
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary Daily")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary Daily")
+		// 	os.Exit(0)
+		// }
+		ctx := d.BaseController.Ctx.Connection
 
 		projectList, _ := helper.GetProjectList()
 		mapRevenue, arrproject := map[string]float64{}, []string{}
@@ -786,7 +787,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					Cursor(nil)
 
 				scadaSums := []tk.M{}
-				e = csr.Fetch(&scadaSums, 0, false)
+				_ = csr.Fetch(&scadaSums, 0, false)
 				csr.Close()
 
 				d.Log.AddLog(tk.Sprintf("%v | %v | %v \n", project, turbineX, len(scadaSums)), sInfo)
@@ -1126,11 +1127,12 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary")
+		// 	os.Exit(0)
+		// }
+		ctx := d.BaseController.Ctx.Connection
 
 		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
 		arrScadaSummaryByProject := make([]*ScadaSummaryByProject, 0)
@@ -1256,11 +1258,13 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 	if base != nil {
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary")
+		// 	os.Exit(0)
+		// }
+
+		ctx := d.BaseController.Ctx.Connection
 
 		projectList, _ := helper.GetProjectList()
 		mapRevenue := map[string]float64{}
@@ -1605,11 +1609,12 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByProject), dbox.Ne("projectname", ""))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis")
+		// 	os.Exit(0)
+		// }
+		ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",
@@ -1928,11 +1933,12 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine1), dbox.And(dbox.Ne("projectname", ""), dbox.Ne("turbine", "")))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis")
+		// 	os.Exit(0)
+		// }
+		ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",
@@ -2257,11 +2263,13 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine2), dbox.And(dbox.Ne("projectname", "")))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis Turbine 2")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis Turbine 2")
+		// 	os.Exit(0)
+		// }
+
+		ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",

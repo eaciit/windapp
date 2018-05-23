@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"eaciit/wfdemo-git/web/helper"
-	"os"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -18,12 +17,14 @@ type GenDataPeriod struct {
 
 func (d *GenDataPeriod) Generate(base *BaseController) {
 	d.BaseController = base
-	conn, e := PrepareConnection()
-	if e != nil {
-		toolkit.Println("Scada Summary : " + e.Error())
-		os.Exit(0)
-	}
-	defer conn.Close()
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	toolkit.Println("Scada Summary : " + e.Error())
+	// 	os.Exit(0)
+	// }
+	// defer conn.Close()
+	var e error
+	conn := d.BaseController.Ctx.Connection
 
 	// reset data
 	// #faisal
@@ -65,7 +66,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		// alarmOverlappingresults[0], alarmOverlappingresults[1], e = getDataDateAvailable(conn, new(AlarmOverlapping).TableName(), "startdate", dbox.Eq("farm", projectName))
 		// alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = getDataDateAvailable(conn, new(AlarmScadaAnomaly).TableName(), "startdate", dbox.Eq("farm", projectName))
 		// scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
-
+		_ = e
 		availdatedata := struct {
 			ScadaData    []time.Time
 			DGRData      []time.Time
@@ -226,15 +227,20 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 
 func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 	d.BaseController = base
-	conn, e := PrepareConnection()
-	if e != nil {
-		toolkit.Println("Scada Summary : " + e.Error())
-		os.Exit(0)
-	}
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	toolkit.Println("Scada Summary : " + e.Error())
+	// 	os.Exit(0)
+	// }
+	t0 := time.Now()
+	toolkit.Println("Start generating data available date")
 
+	var e error
+	conn := d.BaseController.Ctx.Connection
 	projects, _ := helper.GetProjectList()
 
 	for _, proj := range projects {
+		toolkit.Println("Start : ", proj.Name)
 		projectName := proj.Value
 		scadaResults := make([]time.Time, 2)
 		alarmResults := make([]time.Time, 2)
@@ -243,7 +249,7 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
 		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
 		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
-
+		_ = e
 		availdatedata := struct {
 			ScadaData []time.Time
 			Alarm     []time.Time
@@ -280,6 +286,7 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 		d.BaseController.Ctx.Save(mdl)
 
 	}
+	toolkit.Println("End generating data available date in ", time.Since(t0).String())
 
 }
 

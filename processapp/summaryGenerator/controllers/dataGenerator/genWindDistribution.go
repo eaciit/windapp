@@ -6,7 +6,6 @@ import (
 
 	"eaciit/wfdemo-git/web/helper"
 
-	"os"
 	"time"
 
 	"github.com/eaciit/crowd"
@@ -41,12 +40,13 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		Count        int
 	}
 
-	conn, e := PrepareConnection()
-	if e != nil {
-		d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
-		os.Exit(0)
-	}
-	defer conn.Close()
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
+	// 	os.Exit(0)
+	// }
+	// defer conn.Close()
+	conn := d.BaseController.Ctx.Connection
 
 	projects, _ := helper.GetProjectList()
 

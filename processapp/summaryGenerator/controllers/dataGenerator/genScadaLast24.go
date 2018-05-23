@@ -7,7 +7,6 @@ import (
 	"eaciit/wfdemo-git/web/helper"
 	_ "fmt"
 	"log"
-	"os"
 	_ "strings"
 	"time"
 
@@ -24,13 +23,17 @@ type GenScadaLast24 struct {
 
 func (d *GenScadaLast24) Generate(base *BaseController) {
 	if base != nil {
-		d.BaseController = base
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary")
-			os.Exit(0)
-		}
+		// d.BaseController = base
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary")
+		// 	os.Exit(0)
+		// }
 
+		t0 := time.Now()
+		tk.Println("Start generating data last 24")
+
+		ctx := d.BaseController.Ctx.Connection
 		// d.BaseController.Ctx.DeleteMany(new(ScadaLastUpdate), dbox.And(dbox.Ne("_id", "")))
 
 		projectList, _ := helper.GetProjectList()
@@ -64,6 +67,9 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 		}
 
 		for _, proj := range d.BaseController.ProjectList {
+
+			tk.Println("Start : ", proj.Name)
+
 			projectName := proj.Value
 			turbineList := []TurbineOut{}
 
@@ -302,5 +308,7 @@ func (d *GenScadaLast24) Generate(base *BaseController) {
 				}
 			}
 		}
+
+		tk.Println("End generating data last 24 in ", time.Since(t0).String())
 	}
 }
