@@ -99,6 +99,7 @@ func (ev *TrendLinePlotSummary) getTemperatureField() (result map[string][]strin
 		}
 		if strings.Contains(strings.ToLower(_data.GetString("realtimefield")), "temp") {
 			tempList = append(tempList, strings.ToLower(_data.GetString("realtimefield")))
+			tempList = append(tempList, strings.ToLower(_data.GetString("realtimefield")+"_max"))
 		}
 	}
 	if lastProject != "" {

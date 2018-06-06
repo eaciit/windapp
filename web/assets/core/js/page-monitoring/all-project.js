@@ -68,7 +68,7 @@ page.getData = function(){
         page.generateView();
         page.TimeMax(moment.utc(res.data.TimeMax).format("DD MMM YYYY HH:mm:ss"));
 
-        page.getDirection();
+        // page.getDirection();
 
         app.loading(false);
     }));

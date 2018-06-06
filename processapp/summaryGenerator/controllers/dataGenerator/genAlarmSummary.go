@@ -5,7 +5,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"eaciit/wfdemo-git/web/helper"
-	"os"
 	"strconv"
 	"time"
 
@@ -22,11 +21,12 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 	if base != nil {
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Alarm Summary")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Alarm Summary")
+		// 	os.Exit(0)
+		// }
+		ctx := d.BaseController.Ctx.Connection
 
 		// #faisal
 		// remove delete function
@@ -86,6 +86,8 @@ func (d *GenAlarmSummary) Generate(base *BaseController) {
 					From(new(Alarm).TableName()).
 					Command("pipe", pipes).
 					Cursor(nil)
+
+				defer csr.Close()
 
 				ErrorHandler(e, "Generate Alarm Summary")
 

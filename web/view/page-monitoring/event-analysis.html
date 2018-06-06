@@ -5,7 +5,11 @@
 
 <script src="{{BaseUrl}}res/core/js/page-monitoring/event-analysis.js?ANTI_CACHE={{.AntiCache}}"></script>
 <link rel="stylesheet" type="text/css" href="{{BaseUrl}}res/core/css/page-loss-analysis.css">
-
+<style type="text/css">
+	.chartEvent{
+		margin-left: 50px;
+	}
+</style>
 <div>
 	<div class="row">
 		{{template "_filter-analytic.html"}}
@@ -22,20 +26,21 @@
 							<div class="col-md-4">
 								<div class="panel ez no-padding hardcore">
 									<div class="panel-heading text-center">
-										<span>Event Analysis by Detail Group</span>
-										<span class="tools pull-right">
+										<span class="tools pull-left">
 											<div class="btn-group" data-toggle="buttons">
-												<label class="btn btn-primary btn-xs btnhours0" onclick="ea.refreshChart('chartEventAnalysis','hours','level0', 'Hours')">
+												<label class="btn btn-primary btn-xs btnhours0" onclick="ea.refreshChart('hours', 'Hours')">
 													<input type="radio" name="convert0" id="tohours0" value="tohours0" checked><i class="fa fa-clock-o"></i>
 												</label>
-												<label class="btn btn-primary btn-xs btnpercent0" onclick="ea.refreshChart('chartEventAnalysis','percentage','level0','%')">
+												<label class="btn btn-primary btn-xs btnpercent0" onclick="ea.refreshChart('percentage','%')">
 													<input type="radio" name="convert0" id="topercent0" value="topercent0"><i class="fa fa-percent"></i>
 												</label>
 					                      	</div>
 					                  	</span>
+										<span>Event Analysis by Detail Group</span>
+										<div class="clearfix">&nbsp;</div>
 									</div>
 									<div class="panel-body">
-										<div id="chartEventAnalysis"></div>
+										<div id="chartEventAnalysis" class="chartEvent"></div>
 									</div>
 								</div>
 							</div>   
@@ -43,7 +48,7 @@
 								<div class="panel ez no-padding hardcore">
 									<div class="panel-heading text-center">
 										<span>Event Analysis by Alarm Desc</span>
-										<span class="tools pull-right">
+										<!-- <span class="tools pull-right">
 											<div class="btn-group" data-toggle="buttons">
 												<label class="btn btn-primary btn-xs btnhours1" onclick="ea.refreshChart('chartEventAnalysisLevel1','hours','level1','Hours')">
 													<input type="radio" name="convert1" id="tohours1" value="tohours1" checked><i class="fa fa-clock-o"></i>
@@ -51,12 +56,12 @@
 												<label class="btn btn-primary btn-xs btnpercent1" onclick="ea.refreshChart('chartEventAnalysisLevel1','percentage','level1','%')">
 													<input type="radio" name="convert1" id="topercent1" value="topercent1"><i class="fa fa-percent"></i>
 												</label>
-					                      	</div>
+					                      	</div> -->
 					                  	</span><br>
 										<span><strong data-bind="text:ea.labelEventDetail1"></strong></span>
 									</div>
 									<div class="panel-body text-center">
-										<div id="chartEventAnalysisLevel1"></div>
+										<div id="chartEventAnalysisLevel1" class="chartEvent"></div>
 									</div>
 								</div>
 							</div>   
@@ -64,7 +69,7 @@
 								<div class="panel ez no-padding hardcore">
 									<div class="panel-heading text-center">
 										<span>Event Analysis by Turbine</span>
-										<span class="tools pull-right">
+										<!-- <span class="tools pull-right">
 											<div class="btn-group" data-toggle="buttons">
 												<label class="btn btn-primary btn-xs btnhours2" onclick="ea.refreshChart('chartEventAnalysisLevel2','hours','level2', 'Hours')">
 													<input type="radio" name="convert2" id="tohours2" value="tohours2"><i class="fa fa-clock-o"></i>
@@ -72,12 +77,12 @@
 												<label class="btn btn-primary btn-xs btnpercent2" onclick="ea.refreshChart('chartEventAnalysisLevel2','percentage','level2', '%')">
 													<input type="radio" name="convert2" id="topercent2" value="topercent2"><i class="fa fa-percent"></i>
 												</label>
-					                      	</div>
+					                      	</div> -->
 					                  	</span><br>
 										<span><strong data-bind="text:ea.labelEventDetail2"></strong></span>
 									</div>
 									<div class="panel-body text-center">
-										<div id="chartEventAnalysisLevel2"></div>
+										<div id="chartEventAnalysisLevel2" class="chartEvent"></div>
 									</div>
 								</div>
 							</div>                      	

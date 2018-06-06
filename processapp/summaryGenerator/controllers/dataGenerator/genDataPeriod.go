@@ -4,7 +4,6 @@ import (
 	. "eaciit/wfdemo-git/library/models"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	"eaciit/wfdemo-git/web/helper"
-	"os"
 	"time"
 
 	"github.com/eaciit/dbox"
@@ -18,12 +17,14 @@ type GenDataPeriod struct {
 
 func (d *GenDataPeriod) Generate(base *BaseController) {
 	d.BaseController = base
-	conn, e := PrepareConnection()
-	if e != nil {
-		toolkit.Println("Scada Summary : " + e.Error())
-		os.Exit(0)
-	}
-	defer conn.Close()
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	toolkit.Println("Scada Summary : " + e.Error())
+	// 	os.Exit(0)
+	// }
+	// defer conn.Close()
+	var e error
+	conn := d.BaseController.Ctx.Connection
 
 	// reset data
 	// #faisal
@@ -65,7 +66,7 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 		// alarmOverlappingresults[0], alarmOverlappingresults[1], e = getDataDateAvailable(conn, new(AlarmOverlapping).TableName(), "startdate", dbox.Eq("farm", projectName))
 		// alarmScadaAnomalyresults[0], alarmScadaAnomalyresults[1], e = getDataDateAvailable(conn, new(AlarmScadaAnomaly).TableName(), "startdate", dbox.Eq("farm", projectName))
 		// scadaAnomalyresults[0], scadaAnomalyresults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", true), dbox.Eq("projectname", projectName)))
-
+		_ = e
 		availdatedata := struct {
 			ScadaData    []time.Time
 			DGRData      []time.Time
@@ -226,24 +227,29 @@ func (d *GenDataPeriod) Generate(base *BaseController) {
 
 func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 	d.BaseController = base
-	conn, e := PrepareConnection()
-	if e != nil {
-		toolkit.Println("Scada Summary : " + e.Error())
-		os.Exit(0)
-	}
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	toolkit.Println("Scada Summary : " + e.Error())
+	// 	os.Exit(0)
+	// }
+	t0 := time.Now()
+	toolkit.Println("Start generating data available date : ", t0)
 
+	var e error
+	// conn := &d.BaseController.Ctx.Connection
 	projects, _ := helper.GetProjectList()
 
 	for _, proj := range projects {
+		toolkit.Println("Start : ", proj.Name, " - ", t0)
 		projectName := proj.Value
 		scadaResults := make([]time.Time, 2)
 		alarmResults := make([]time.Time, 2)
 		durationResults := make([]time.Time, 2)
 
-		scadaResults[0], scadaResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
-		alarmResults[0], alarmResults[1], e = getDataDateAvailable(conn, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
-		durationResults[0], durationResults[1], e = getDataDateAvailable(conn, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
-
+		scadaResults[0], scadaResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(ScadaData).TableName(), "timestamp", dbox.Eq("projectname", projectName))
+		alarmResults[0], alarmResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(Alarm).TableName(), "startdate", dbox.Eq("farm", projectName))
+		durationResults[0], durationResults[1], e = getDataDateAvailable(d.BaseController.Ctx.Connection, new(ScadaData).TableName(), "timestamp", dbox.And(dbox.Eq("isvalidtimeduration", false), dbox.Eq("projectname", projectName)))
+		_ = e
 		availdatedata := struct {
 			ScadaData []time.Time
 			Alarm     []time.Time
@@ -280,13 +286,12 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 		d.BaseController.Ctx.Save(mdl)
 
 	}
+	toolkit.Println("End generating data available date in ", time.Since(t0).String())
 
 }
 
 func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestampColumn string, where *dbox.Filter) (min time.Time, max time.Time, err error) {
-	q := conn.
-		NewQuery().
-		From(collectionName)
+	q := conn.NewQuery().From(collectionName)
 
 	if where != nil {
 		q.Where(where)
@@ -301,7 +306,6 @@ func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestam
 	defer csr.Close()
 
 	if err != nil {
-		csr.Close()
 		return
 	}
 
@@ -309,13 +313,11 @@ func getDataDateAvailable(conn dbox.IConnection, collectionName string, timestam
 	err = csr.Fetch(&data, 0, false)
 
 	if err != nil || len(data) == 0 {
-		csr.Close()
 		return
 	}
 
 	min = data[0].Get("min", time.Time{}).(time.Time).UTC()
 	max = data[0].Get("max", time.Time{}).(time.Time).UTC()
 
-	csr.Close()
 	return
 }
