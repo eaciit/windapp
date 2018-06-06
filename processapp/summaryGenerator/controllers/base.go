@@ -105,11 +105,14 @@ func (b *BaseController) GetTurbineScada() {
 	b.ProjectList = append(b.ProjectList, projects...)
 	b.CapacityPerMonth = map[string]float64{}
 	b.TotalTurbinePerMonth = map[string]float64{}
+
 	for _, v := range b.ProjectList {
 		project := v.Value
 
+		tlimit := GetDateInfo(time.Now().AddDate(-1, 0, 0))
+
 		filter := []*dbox.Filter{}
-		filter = append(filter, dbox.Gte("power", -200))
+		filter = append(filter, dbox.Gte("dateinfo.monthid", tlimit.MonthId))
 
 		if project != "Fleet" {
 			filter = append(filter, dbox.Eq("projectname", project))
@@ -120,7 +123,7 @@ func (b *BaseController) GetTurbineScada() {
 			{"$sort": tk.M{"_id.bulan": 1}},
 		}
 		csrTurbine, e := b.Ctx.Connection.NewQuery().
-			From(new(ScadaData).TableName()).
+			From("rpt_scadasummarydaily").
 			Where(dbox.And(filter...)).
 			Command("pipe", pipe).
 			Cursor(nil)

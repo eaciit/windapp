@@ -712,11 +712,12 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 	if base != nil {
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary Daily")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary Daily")
+		// 	os.Exit(0)
+		// }
+		// ctx := d.BaseController.Ctx.Connection
 
 		projectList, _ := helper.GetProjectList()
 		mapRevenue, arrproject := map[string]float64{}, []string{}
@@ -726,7 +727,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 		}
 
 		_t0 := time.Now().UTC()
-		maxproc, cmaxproc := d.getLastExec(ctx, "summary", "daily", time.Date(_t0.Year(), _t0.Month(), _t0.Day(), 0, 0, 0, 0, _t0.Location()).AddDate(0, 0, -5), arrproject), map[string]time.Time{}
+		maxproc, cmaxproc := d.getLastExec(d.BaseController.Ctx.Connection, "summary", "daily", time.Date(_t0.Year(), _t0.Month(), _t0.Day(), 0, 0, 0, 0, _t0.Location()).AddDate(0, 0, -5), arrproject), map[string]time.Time{}
 
 		var wg sync.WaitGroup
 		counter := 0
@@ -780,13 +781,13 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 				pipe = append(pipe, tk.M{"$sort": tk.M{"_id": 1}})
 
-				csr, _ := ctx.NewQuery().
+				csr, _ := d.BaseController.Ctx.Connection.NewQuery().
 					Command("pipe", pipe).
 					From(new(ScadaData).TableName()).
 					Cursor(nil)
 
 				scadaSums := []tk.M{}
-				e = csr.Fetch(&scadaSums, 0, false)
+				_ = csr.Fetch(&scadaSums, 0, false)
 				csr.Close()
 
 				d.Log.AddLog(tk.Sprintf("%v | %v | %v \n", project, turbineX, len(scadaSums)), sInfo)
@@ -798,7 +799,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 
 				maxdate := time.Time{}
 
-				_ValidPCDev := PopulateValidPCDev(ctx, filter)
+				_ValidPCDev := PopulateValidPCDev(d.BaseController.Ctx.Connection, filter)
 
 				for _, data := range scadaSums {
 					id := data["_id"].(tk.M)
@@ -875,7 +876,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 							Set("monthno", monthNo)),
 					}
 
-					csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+					csrBudget, _ := d.BaseController.Ctx.Connection.NewQuery().From(new(ExpPValueModel).TableName()).
 						Command("pipe", pipebudget).
 						// Where(dbox.And(dbox.Eq("monthno", monthNo), dbox.Eq("projectname", project))).
 						Cursor(nil)
@@ -906,7 +907,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 							Set("_id", "").
 							Set("count", tk.M{}.Set("$sum", 1))),
 					}
-					csrAlarmParent, _ := ctx.NewQuery().
+					csrAlarmParent, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeAlarmParent).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
@@ -933,7 +934,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 							Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")).
 							Set("count", tk.M{}.Set("$sum", 1))),
 					}
-					csrAlarm, _ := ctx.NewQuery().
+					csrAlarm, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeAlarm).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
@@ -969,7 +970,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("_id", "").
 								Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
-					csrAlarmMachine, _ := ctx.NewQuery().
+					csrAlarmMachine, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeAlarmMachine).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
@@ -1000,7 +1001,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 
 					// []tk.M{tk.M{}.Set("$match", tk.M{}.Set("griddown", true).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId).Set("reduceavailability", true)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-					csrAlarmGrid, _ := ctx.NewQuery().
+					csrAlarmGrid, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeAlarmGrid).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
@@ -1031,7 +1032,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 								Set("duration", tk.M{}.Set("$sum", "$detail.duration")).
 								Set("powerlost", tk.M{}.Set("$sum", "$detail.powerlost")))}
 					// []tk.M{tk.M{}.Set("$match", tk.M{}.Set("machinedown", false).Set("griddown", false).Set("projectname", project).Set("turbine", turbine).Set("startdateinfo.dateid", dtId).Set("reduceavailability", true)), tk.M{}.Set("$group", tk.M{}.Set("_id", "").Set("duration", tk.M{}.Set("$sum", "$duration")).Set("powerlost", tk.M{}.Set("$sum", "$powerlost")))}
-					csrAlarmOther, _ := ctx.NewQuery().
+					csrAlarmOther, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeAlarmOther).
 						From(new(Alarm).TableName()).
 						Cursor(nil)
@@ -1060,7 +1061,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 					// ===================================================================
 
 					pipeJmr := []tk.M{tk.M{}.Set("$unwind", "$sections"), tk.M{}.Set("$match", tk.M{}.Set("sections.turbine", turbineX).Set("dateinfo.monthid", monthId)), tk.M{}.Set("$group", tk.M{}.Set("_id", "$sections.turbine").Set("boetotalloss", tk.M{}.Set("$sum", "$sections.boetotalloss")))}
-					csrJmr, _ := ctx.NewQuery().
+					csrJmr, _ := d.BaseController.Ctx.Connection.NewQuery().
 						Command("pipe", pipeJmr).
 						From(new(JMR).TableName()).
 						Cursor(nil)
@@ -1116,7 +1117,7 @@ func (d *GenScadaSummary) GenerateSummaryDaily(base *BaseController) {
 		for project, _ := range maxproc {
 			lep := maxproc.Get(project, new(LastExecProcess)).(*LastExecProcess)
 			lep.LastDate = cmaxproc[project]
-			d.saveLastExecProject(ctx, lep)
+			d.saveLastExecProject(d.BaseController.Ctx.Connection, lep)
 		}
 	}
 }
@@ -1126,11 +1127,12 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary")
+		// 	os.Exit(0)
+		// }
+		// ctx := d.BaseController.Ctx.Connection
 
 		// d.BaseController.Ctx.DeleteMany(new(ScadaSummaryByProject), dbox.Ne("_id", ""))
 		arrScadaSummaryByProject := make([]*ScadaSummaryByProject, 0)
@@ -1145,7 +1147,7 @@ func (d *GenScadaSummary) GenerateSummaryByProjectUsingDaily(base *BaseControlle
 				turbineList, _ = helper.GetTurbineList([]interface{}{projectName})
 			}
 
-			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+			iQuery := d.BaseController.Ctx.Connection.NewQuery().From(new(ScadaSummaryDaily).TableName())
 
 			if projectName != "Fleet" {
 				iQuery = iQuery.Where(dbox.Eq("projectname", projectName))
@@ -1256,11 +1258,13 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 	if base != nil {
 		d.BaseController = base
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary")
+		// 	os.Exit(0)
+		// }
+
+		// ctx := d.BaseController.Ctx.Connection
 
 		projectList, _ := helper.GetProjectList()
 		mapRevenue := map[string]float64{}
@@ -1278,7 +1282,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 		}
 
 		mapbudget := map[string]float64{}
-		csrBudget, _ := ctx.NewQuery().From(new(ExpPValueModel).TableName()).
+		csrBudget, _ := d.BaseController.Ctx.Connection.NewQuery().From(new(ExpPValueModel).TableName()).
 			Cursor(nil)
 
 		budgets := make([]ExpPValueModel, 0)
@@ -1293,7 +1297,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 		}
 
 		reffexpectedws := tk.M{}
-		csrexws, _ := ctx.NewQuery().From("ref_expectedwindspeed").
+		csrexws, _ := d.BaseController.Ctx.Connection.NewQuery().From("ref_expectedwindspeed").
 			Cursor(nil)
 
 		arrtkm := []tk.M{}
@@ -1316,7 +1320,7 @@ func (d *GenScadaSummary) GenerateSummaryByMonthUsingDaily(base *BaseController)
 				group = []string{"dateinfo.monthid"}
 			}
 
-			iQuery := ctx.NewQuery().From(new(ScadaSummaryDaily).TableName())
+			iQuery := d.BaseController.Ctx.Connection.NewQuery().From(new(ScadaSummaryDaily).TableName())
 			if project != "Fleet" {
 				iQuery = iQuery.Where(dbox.Eq("projectname", project))
 			}
@@ -1605,11 +1609,12 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByProject), dbox.Ne("projectname", ""))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis")
+		// 	os.Exit(0)
+		// }
+		// ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",
@@ -1649,7 +1654,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				byproject = append(byproject, m)
 			}
 
-			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.BaseController.Ctx.Connection)
 
 			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
 			strEnd := lastDate.Format("02-Jan-2006")
@@ -1668,7 +1673,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.dateid",
 			}
-			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			dailyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1723,7 +1728,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.weekid",
 			}
-			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			weeklyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1787,7 +1792,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.monthid",
 			}
-			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			monthlyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1850,7 +1855,7 @@ func (d *GenScadaSummary) GenWFAnalysisByProject(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.qtrid",
 			}
-			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			qtrData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbine, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range byproject {
 				var val GWFAnalysisValue
@@ -1928,11 +1933,12 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine1), dbox.And(dbox.Ne("projectname", ""), dbox.Ne("turbine", "")))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis")
+		// 	os.Exit(0)
+		// }
+		// ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",
@@ -1960,7 +1966,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 			// e = csr.Fetch(&turbines, 0, false)
 			// csr.Close()
 
-			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.BaseController.Ctx.Connection)
 
 			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
 			strEnd := lastDate.Format("02-Jan-2006")
@@ -1998,7 +2004,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 					"value":  "$turbine",
 					"period": "$dateinfo.dateid",
 				}
-				dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+				dailyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -2054,7 +2060,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 					"value":  "$turbine",
 					"period": "$dateinfo.weekid",
 				}
-				weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+				weeklyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -2119,7 +2125,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 					"value":  "$turbine",
 					"period": "$dateinfo.monthid",
 				}
-				monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+				monthlyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -2183,7 +2189,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine1(base *BaseController) {
 					"value":  "$turbine",
 					"period": "$dateinfo.qtrid",
 				}
-				qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+				qtrData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 				for _, p := range datas {
 					var val GWFAnalysisValue
@@ -2257,11 +2263,13 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 
 		d.BaseController.Ctx.DeleteMany(new(GWFAnalysisByTurbine2), dbox.And(dbox.Ne("projectname", "")))
 
-		ctx, e := PrepareConnection()
-		if e != nil {
-			ErrorHandler(e, "Scada Summary WF Analysis Turbine 2")
-			os.Exit(0)
-		}
+		// ctx, e := PrepareConnection()
+		// if e != nil {
+		// 	ErrorHandler(e, "Scada Summary WF Analysis Turbine 2")
+		// 	os.Exit(0)
+		// }
+
+		// ctx := d.BaseController.Ctx.Connection
 
 		keys := []string{
 			"Power",
@@ -2284,7 +2292,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				plfDivider += v.Capacity
 			}
 
-			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.Ctx.Connection)
+			_, max, _ := GetDataDateAvailable(new(ScadaSummaryDaily).TableName(), "dateinfo.dateid", nil, d.BaseController.Ctx.Connection)
 
 			lastDate := max.UTC() //time.Parse("2006-01-02", "2016-12-21")
 			strEnd := lastDate.Format("02-Jan-2006")
@@ -2313,7 +2321,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$turbine",
 				"period": "$dateinfo.dateid",
 			}
-			dailyData := d.getWFAnalysisData(ctx, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+			dailyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Day, lastDate, "dateinfo.dateid", totalHourPerDay, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -2385,7 +2393,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$turbine",
 				"period": "$dateinfo.weekid",
 			}
-			weeklyData := d.getWFAnalysisData(ctx, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
+			weeklyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Week, lastDate, "dateinfo.weekid", totalHourPerWeek, 1, 1000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -2462,7 +2470,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.monthid",
 			}
-			monthlyData := d.getWFAnalysisData(ctx, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			monthlyData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Month, lastDate, "dateinfo.monthid", totalHourPerMonth, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)
@@ -2545,7 +2553,7 @@ func (d *GenScadaSummary) GenWFAnalysisByTurbine2(base *BaseController) {
 				"value":  "$projectname",
 				"period": "$dateinfo.qtrid",
 			}
-			qtrData := d.getWFAnalysisData(ctx, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
+			qtrData := d.getWFAnalysisData(d.BaseController.Ctx.Connection, projectName, last12Qtr, lastDate, "dateinfo.qtrid", totalHourPerQtr, noOfTurbines, 1000000.0, pipeMatch, pipeGroupId, plfDivider)
 
 			for _, p := range datas {
 				items := make([]GWFAnalysisItem2, 0)

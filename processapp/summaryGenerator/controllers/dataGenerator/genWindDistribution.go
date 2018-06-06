@@ -6,7 +6,6 @@ import (
 
 	"eaciit/wfdemo-git/web/helper"
 
-	"os"
 	"time"
 
 	"github.com/eaciit/crowd"
@@ -41,17 +40,18 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		Count        int
 	}
 
-	conn, e := PrepareConnection()
-	if e != nil {
-		d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
-		os.Exit(0)
-	}
-	defer conn.Close()
+	// conn, e := PrepareConnection()
+	// if e != nil {
+	// 	d.Log.AddLog(tk.Sprintf("Wind Distribution : %s"+e.Error()), sWarning)
+	// 	os.Exit(0)
+	// }
+	// defer conn.Close()
+	// conn := d.BaseController.Ctx.Connection
 
 	projects, _ := helper.GetProjectList()
 
 	mdl := new(LatestDataPeriod)
-	csr, e := conn.NewQuery().
+	csr, e := d.BaseController.Ctx.Connection.NewQuery().
 		Select().
 		From(mdl.TableName()).
 		Where(dbox.Eq("type", "ScadaData")).
@@ -74,7 +74,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		latesttime[mdl.ProjectName] = mdl.Data[1].UTC()
 	}
 
-	qSave := conn.NewQuery().
+	qSave := d.BaseController.Ctx.Connection.NewQuery().
 		From("rpt_winddistributioncurrentmonth").
 		SetConfig("multiexec", true).
 		Save()
@@ -83,15 +83,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 
 	for _, oproject := range projects {
 		proj := oproject.Value
-
-		// ==========================================
-		_ = conn.NewQuery().
-			Delete().
-			From("rpt_winddistributioncurrentmonth").
-			Where(dbox.Eq("Project", proj)).
-			SetConfig("multiexec", true).
-			Exec(nil)
-		// ==========================================
+		t0 := time.Now()
+		tk.Println("Project : ", proj, t0)
 
 		_ltime := time.Now().UTC()
 		if _, ishas := latesttime[proj]; ishas {
@@ -100,7 +93,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 
 		_data := []tk.M{}
 		query, pipes := []tk.M{}, []tk.M{}
-		query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
+		// query = append(query, tk.M{"_id": tk.M{"$ne": ""}})
 		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$gte": _ltime.AddDate(-1, 0, 0)}})
 		query = append(query, tk.M{"dateinfo.dateid": tk.M{"$lte": _ltime}})
 		query = append(query, tk.M{"avgwindspeed": tk.M{"$gte": 0.5}})
@@ -113,7 +106,7 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		pipes = append(pipes, tk.M{"$group": tk.M{"_id": tk.M{"projectname": "$projectname", "avgwindspeed": "$avgwindspeed"}, "count": tk.M{"$sum": 1}}})
 		pipes = append(pipes, tk.M{"$project": tk.M{"_id.projectname": 1, "_id.avgwindspeed": 1, "count": 1}})
 
-		csrx, _ := conn.NewQuery().
+		csrx, _ := d.BaseController.Ctx.Connection.NewQuery().
 			From(new(ScadaData).TableName()).
 			Command("pipe", pipes).Cursor(nil)
 
@@ -123,6 +116,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 		}
 		csrx.Close()
 
+		tk.Println("Fetch in : ", time.Since(t0).String())
+
 		for _, v := range _data {
 			id := v.Get("_id").(tk.M)
 			tmpResult = append(tmpResult, MiniScada{
@@ -131,6 +126,15 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 				Count:        v.GetInt("count"),
 			})
 		}
+
+		// ==========================================
+		_ = d.BaseController.Ctx.Connection.NewQuery().
+			Delete().
+			From("rpt_winddistributioncurrentmonth").
+			Where(dbox.Eq("Project", proj)).
+			SetConfig("multiexec", true).
+			Exec(nil)
+		// ==========================================
 
 		if len(tmpResult) > 0 {
 			totalCount := 0
@@ -204,6 +208,8 @@ func (d *GenDataWindDistribution) GenerateCurrentMonth(base *BaseController) {
 				_ = qSave.Exec(tk.M{}.Set("data", distHelper))
 			}
 		}
+
+		tk.Println("All Exec in : ", time.Since(t0).String())
 	}
 
 }

@@ -4,6 +4,7 @@ import (
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers"
 	. "eaciit/wfdemo-git/processapp/summaryGenerator/controllers/dataGenerator"
 	webhelper "eaciit/wfdemo-git/web/helper"
+	"strings"
 	"time"
 
 	"os"
@@ -30,6 +31,15 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	tk.Println("Starting the app..")
 
+	if runtime.GOOS != "windows" {
+		res, err := tk.RunCommand("pidof", "ostroAllSummary.v02")
+		ares := strings.Split(strings.TrimSpace(res), " ")
+		if err != nil || len(ares) > 1 {
+			tk.Printfn("EXIT FOUND : %s", res)
+			os.Exit(0)
+		}
+	}
+
 	start := time.Now().UTC()
 
 	base := new(BaseController)
@@ -46,7 +56,7 @@ func main() {
 
 		base.GetTurbineScada()
 		base.PrepareDataReff()
-		base.SetCollectionLatestTime()
+		// base.SetCollectionLatestTime()
 
 		// dependent Generate
 		// new(UpdateScadaOemMinutes).GenerateDensity(base)    // step 0
