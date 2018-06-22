@@ -270,6 +270,15 @@ func (d *GenDataPeriod) GenerateMinify(base *BaseController) {
 		d.BaseController.Ctx.Save(mdl)
 
 		mdl = new(LatestDataPeriod)
+
+		mdl.Type = "ScadaDataHFD"
+		mdl.ProjectName = projectName
+		mdl.Data = availdatedata.ScadaData
+		mdl = mdl.New()
+
+		d.BaseController.Ctx.Save(mdl)
+
+		mdl = new(LatestDataPeriod)
 		mdl.Type = "Alarm"
 		mdl.ProjectName = projectName
 		mdl.Data = availdatedata.Alarm
