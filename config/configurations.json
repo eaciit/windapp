@@ -3,7 +3,7 @@
 		"data": {
 			"db": "wfdemo-oem",
 			"driver": "mongo",
-			"host": "52.77.236.193:27123",
+			"host": "localhost:27123",
 			"pass": "",
 			"setting": {
 				"timeout": 3000
@@ -16,7 +16,7 @@
 		"data": {
 			"db": "wfdemo-oem",
 			"driver": "mongo",
-			"host": "52.77.236.193:27123",
+			"host": "localhost:27123",
 			"pass": "",
 			"setting": {
 				"timeout": 3000
