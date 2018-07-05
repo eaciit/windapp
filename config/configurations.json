@@ -2,9 +2,9 @@
   {
     "_id": "db_acl",
     "data": {
-      "db": "wfdemo-oem",
+      "db": "db_wf",
       "driver": "mongo",
-      "host": "52.77.236.193:27123",
+      "host": "localhost:27123",
       "pass": "",
       "setting": {
         "timeout": 3000
@@ -15,9 +15,9 @@
   {
     "_id": "db_ostro",
     "data": {
-      "db": "wfdemo-oem",
+      "db": "db_wf",
       "driver": "mongo",
-      "host": "52.77.236.193:27123",
+      "host": "localhost:27123",
       "pass": "",
       "setting": {
         "timeout": 3000
@@ -28,9 +28,9 @@
   {
     "_id": "db_realtime",
     "data": {
-      "db": "ecostrorealtime",
+      "db": "db_realtime",
       "driver": "mongo",
-      "host": "52.77.236.193:27123",
+      "host": "localhost:27123",
       "pass": "",
       "setting": {
         "timeout": 3000
