@@ -1287,6 +1287,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 
 	dataProdPrevs := map[string]tk.M{}
 	todayLosses := map[string]float64{}
+	todayProds := map[string]float64{}
 	for _, dt := range prodLossData {
 		ids, _ := tk.ToM(dt.Get("_id"))
 		var tanggal time.Time
@@ -1301,6 +1302,7 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 		}
 
 		if tanggal.Day() == timeFilter.Day() {
+			todayProds[ids.GetString("project")] = dt.GetFloat64("production")
 			todayLosses[ids.GetString("project")] = dt.GetFloat64("lostenergy")
 		} else if tanggal.Day() == timeFilterPrev.Day() {
 			dataProdPrevs[ids.GetString("project")] = tk.M{
@@ -1517,9 +1519,15 @@ func GetMonitoringAllProject(project string, locationTemp float64, pageType stri
 			colorStatus = "lbl bg-grey"
 		}
 
-		//Lahori already in MwH
-		if projectId != "Lahori" {
+		switch projectId {
+		case "Lahori":
+			//Lahori already in MwH
 			todayGen = tk.Div(todayGen, 1000)
+		case "Taralkatti":
+			//Taralkatti special case
+			if todayProd, todayProdOk := todayProds[projectId]; todayProdOk {
+				todayGen = todayProd
+			}
 		}
 
 		opcOnline, isOpcInstalled, _ := getOpcAvail(rconn, projectId)
