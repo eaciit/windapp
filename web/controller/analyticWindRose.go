@@ -568,7 +568,7 @@ func setDataPerTurbine(dataDirNoDesc map[string]float64, tkMaxVal *toolkit.M,
 	dirHours := map[string]float64{}
 	results = []DataItemsResultComp{}
 	for dirNoDesc, sumFreq := range dataDirNoDesc {
-		splitDirNoDesc = strings.Split(dirNoDesc, "_")
+		splitDirNoDesc = strings.Split(dirNoDesc, "||")
 		diRes = DataItemsResultComp{}
 		diRes.DirectionNo = toolkit.ToInt(splitDirNoDesc[1], toolkit.RoundingAuto)
 		diRes.DirectionDesc = toolkit.ToInt(splitDirNoDesc[2], toolkit.RoundingAuto)
@@ -739,24 +739,24 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 			}
 			dataCount = 0
 			dataDirNoDesc = map[string]float64{}
-		loopFetchData:
 			for {
 				e = csrData.Fetch(&_data, 1, false)
 				if e != nil {
-					break loopFetchData
+					break
 				}
 				if _data.Has("naceldirection") {
 					dataCount++
 					// calibratedWindDir = _data.GetFloat64("winddirection")
 					calibratedWindDir = 0
 					dirNo, dirDesc := getDirection(_data.GetFloat64("naceldirection")+calibratedWindDir, section)
-					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+					groupKey = turbineVal + "||" + toolkit.ToString(dirNo) + "||" + toolkit.ToString(dirDesc)
 					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 				}
 			}
 			hasil := setDataPerTurbine(dataDirNoDesc, &tkMaxVal, dataCount, categories, divider)
 			csrData.Close()
 
+			// toolkit.Println(turbineVal, "--", namaTurbine, "--", turbineData)
 			if dataCount > 0 {
 				turbineData.Set("data", hasil)
 				WindRoseResult = append(WindRoseResult, turbineData)
