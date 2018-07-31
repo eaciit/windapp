@@ -484,8 +484,8 @@ func (m *AnalyticWindRoseController) GetFlexiDataEachTurbine(k *knot.WebContext)
 					}
 					dirNo, dirDesc := getDirection(calibratedWindDir, section)
 					wsNo, wsDesc := getWsCategory(_dataMetTower.GetFloat64("vhubws90mavg"))
-					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc) +
-						"_" + toolkit.ToString(wsNo) + "_" + wsDesc
+					groupKey = turbineVal + "<>" + toolkit.ToString(dirNo) + "<>" + toolkit.ToString(dirDesc) +
+						"<>" + toolkit.ToString(wsNo) + "<>" + wsDesc
 					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 				}
 			}
@@ -802,7 +802,7 @@ func (m *AnalyticWindRoseController) GetWindRoseData(k *knot.WebContext) interfa
 					dataCount++
 					calibratedWindDir = _dataMetTower.GetFloat64("dhubwd88mavg") + 300
 					dirNo, dirDesc := getDirection(calibratedWindDir, section)
-					groupKey = turbineVal + "_" + toolkit.ToString(dirNo) + "_" + toolkit.ToString(dirDesc)
+					groupKey = turbineVal + "||" + toolkit.ToString(dirNo) + "||" + toolkit.ToString(dirDesc)
 					dataDirNoDesc[groupKey] = dataDirNoDesc[groupKey] + 1
 				}
 			}
