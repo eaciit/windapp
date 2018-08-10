@@ -202,7 +202,6 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 	availability.ID = id
 	availability.PeriodFrom = periodFrom
 	availability.PeriodTo = periodTo
-	match := tk.M{}
 
 	wg.Add(len(ev.BaseController.RefTurbines))
 	i := 1
@@ -213,6 +212,7 @@ func (ev *DataAvailabilitySummary) scadaHFDSummary() *DataAvailability {
 		}
 		i += 1
 
+		match := tk.M{}
 		match.Set("projectname", value.GetString("project"))
 		match.Set("turbine", turbine)
 		match.Set("timestamp", tk.M{"$gte": periodFrom})
@@ -511,7 +511,7 @@ func workerTurbine(t, projectName, tablename string, match tk.M, details *[]Data
 	*details = append(*details, detail...)
 	ev.Log.AddLog(tk.Sprintf(">> DONE: %v | %v | %v secs \n", t, len(list), time.Now().Sub(start).Seconds()), "INFO")
 
-	if projectName == "Lahori" {
+	if t == "RWETD-22" || t == "WTG37" {
 		ev.Log.AddLog(tk.Sprintf("{ DEB - 01 } : %v", pipes), "INFO")
 	}
 	// mtx.Unlock()
