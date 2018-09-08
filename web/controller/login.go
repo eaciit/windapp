@@ -279,7 +279,39 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 }
 
 func GetLastDateData() (result time.Time) {
-	return getLastAvailDate().ScadaData[1].UTC()
+	availDate := getLastAvailDate()
+	if len(availDate.ScadaData) > 1 {
+		return availDate.ScadaData[1].UTC()
+	}
+	return getLastAvailDateFromScadaDaily()
+}
+
+func getLastAvailDateFromScadaDaily() (lastDate time.Time) {
+	lastDate = time.Time{}
+	csr, e := DB().Connection.NewQuery().
+		From(new(ScadaSummaryDaily).TableName()).
+		Command("pipe", []toolkit.M{
+			toolkit.M{"$group": toolkit.M{
+				"_id": "",
+				"MaxDate": toolkit.M{
+					"$max": "$dateinfo.dateid",
+				},
+			}}}).
+		Cursor(nil)
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+	aggrData := struct {
+		MaxDate time.Time
+	}{}
+	e = csr.Fetch(&aggrData, 1, false)
+	if e != nil {
+		return
+	}
+	lastDate = aggrData.MaxDate
+
+	return
 }
 
 func getLastAvailDate() *Availdatedata {
