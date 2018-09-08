@@ -1635,10 +1635,23 @@ func readFiles(wg *sync.WaitGroup, scadaChan chan []tk.M, pathLoc string, projec
 					for _, dt := range dataRows {
 						dataMtx.Lock()
 						lines := strings.Split(dt, ",")
-						turbine := lines[0]
-						ts, _ := time.Parse("2006-01-02 15:04:05", tk.Sprintf("%s %s", lines[1], lines[2]))
-						power := tk.ToFloat64(lines[3], 8, tk.RoundingAuto)
-						ws := tk.ToFloat64(lines[6], 8, tk.RoundingAuto)
+						lenLines := len(lines)
+						turbine := ""
+						if lenLines > 0 {
+							turbine = lines[0]
+						}
+						ts := time.Time{}
+						if lenLines > 2 {
+							ts, _ = time.Parse("2006-01-02 15:04:05", tk.Sprintf("%s %s", lines[1], lines[2]))
+						}
+						power := 0.0
+						if lenLines > 3 {
+							power = tk.ToFloat64(lines[3], 8, tk.RoundingAuto)
+						}
+						ws := -999999.0
+						if lenLines > 6 {
+							ws = tk.ToFloat64(lines[6], 8, tk.RoundingAuto)
+						}
 						isexists, _ := inArray(turbine, turbines)
 						stc, std := GetPowerCurveTkMSource(pcSrc, ws)
 						key := ts.Format("20060102_150405")

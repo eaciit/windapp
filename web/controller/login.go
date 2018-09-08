@@ -279,7 +279,31 @@ func (l *LoginController) Authenticate(r *knot.WebContext) interface{} {
 }
 
 func GetLastDateData() (result time.Time) {
-	return getLastAvailDate().ScadaData[1].UTC()
+	return getLastAvailDateSafe()
+}
+
+func getLastAvailDateSafe() (latestDate time.Time) {
+	latestDate = time.Time{}
+	latestDataPeriods := make([]LatestDataPeriod, 0)
+	csr, e := DB().Connection.NewQuery().From(new(LatestDataPeriod).TableName()).Cursor(nil)
+	if e != nil {
+		return
+	}
+	defer csr.Close()
+	e = csr.Fetch(&latestDataPeriods, 0, false)
+	if e != nil {
+		return
+	}
+
+	for _, val := range latestDataPeriods {
+		for _, tVal := range val.Data {
+			if tVal.UTC().After(latestDate.UTC()) {
+				latestDate = tVal.UTC()
+			}
+		}
+	}
+
+	return
 }
 
 func getLastAvailDate() *Availdatedata {
