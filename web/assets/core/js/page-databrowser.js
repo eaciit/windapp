@@ -20,6 +20,7 @@ dbr.projectList = ko.observableArray([{
 }, ]);
 
 dbr.jmrvis = ko.observable(true);
+dbr.farmwisevis = ko.observable(true);
 dbr.mettowervis = ko.observable(true);
 dbr.oemvis = ko.observable(true);
 dbr.hfdvis = ko.observable(true);
@@ -36,6 +37,7 @@ dbr.isCustomLoaded = ko.observable(false);
 dbr.isEventLoaded = ko.observable(false);
 dbr.isMetLoaded = ko.observable(false);
 dbr.isJMRLoaded = ko.observable(false);
+dbr.isFarmwiseLoaded = ko.observable(false);
 dbr.isScadaExceptionTimeDurationLoaded = ko.observable(false);
 dbr.isScadaAnomaliesLoaded = ko.observable(false);
 dbr.isAlarmOverlappingLoaded = ko.observable(false);
@@ -64,6 +66,16 @@ dbr.columnMustHaveHFD = [{
 }, {
     _id: "turbine",
     label: "Turbine",
+    source: "ScadaDataHFD",
+}];
+
+dbr.columnMustHaveFarmWise = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataHFD",
+}, {
+    _id: "projectname",
+    label: "Project",
     source: "ScadaDataHFD",
 }];
 
@@ -393,6 +405,21 @@ dbr.JMR = function(id) {
     }
 }
 
+
+dbr.FarmWise = function(id) {
+    fa.LoadData();
+    app.loading(true);
+    dbr.setAvailableDate(dbr.isFarmwiseLoaded());
+    if(!dbr.isFarmwiseLoaded()) {
+        dbr.isFarmwiseLoaded(true);
+        dbfs.InitFarmWiseGrid();
+        console.log("test");
+    } else {
+        app.loading(false);
+    }
+}
+
+
 dbr.DowntimeHFD = function(id) {
     fa.LoadData();
     app.loading(true);
@@ -475,6 +502,7 @@ dbr.ResetFlagLoaded = function() {
     dbr.isAlarmAnomaliesLoaded(false);
     dbr.isDowntimeeventhfdLoaded(false);
     dbr.isLostEnergyDetailLoaded(false);
+    dbr.isFarmwiseLoaded(false);
 }
 
 dbr.selectRow = function() {
@@ -712,12 +740,23 @@ $(document).ready(function() {
                 dbsh.ColumnList.push(val);
             }
         });
+
+        dbfs.ColumnList([]);
+        $.each(dbfs.AllProjectColumnList(), function(idx, val) {
+            if(val.projectname === $("#projectList").data("kendoDropDownList").value() || 
+                val.source === "MetTower") {
+                dbfs.ColumnList.push(val);
+            }
+        });
+
         dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
         dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
+        dbfs.defaultSelectedColumn(dbfs.ColumnList().slice(0, 28));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
+        dbfs.getColumnListHFD();
         $("#projectList").on("change", function(event) { 
              dbr.ChangeColumnList();
         });
