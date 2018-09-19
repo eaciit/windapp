@@ -1368,7 +1368,7 @@ func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{
 
 	results := make([]tk.M, 0)
 	items := []tk.M{}
-	e = csr.Fetch(&items, 1, false)
+	e = csr.Fetch(&items, 0, false)
 	if e != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
@@ -1378,7 +1378,7 @@ func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{
 
 	for _, item := range items {
 
-		idtk := item.Get("_id", map[string]interface{}{}).(map[string]interface{})
+		idtk, _ := tk.ToM(item.Get("_id"))
 
 		resitem := tk.M{}
 		resitem.Set("projectname", idtk["projectname"])
