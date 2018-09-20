@@ -75,7 +75,7 @@ dbr.columnMustHaveFarmWise = [{
     source: "ScadaDataHFD",
 }, {
     _id: "projectname",
-    label: "Project",
+    label: "Project Name",
     source: "ScadaDataHFD",
 }];
 
@@ -407,13 +407,20 @@ dbr.JMR = function(id) {
 
 
 dbr.FarmWise = function(id) {
-    fa.LoadData();
+    fa.LoadData();    
     app.loading(true);
     dbr.setAvailableDate(dbr.isFarmwiseLoaded());
     if(!dbr.isFarmwiseLoaded()) {
+        // var d = new Date(fa.dateEnd);
+        // d.setDate(d.getDate() - 2);
+
+        // fa.dateStart = new Date(d);
+        // $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
+
+        // dbr.ResetFlagLoaded();
+        
         dbr.isFarmwiseLoaded(true);
         dbfs.InitFarmWiseGrid();
-        console.log("test");
     } else {
         app.loading(false);
     }
@@ -748,6 +755,8 @@ $(document).ready(function() {
                 dbfs.ColumnList.push(val);
             }
         });
+
+        dbfs.ColumnList.push({_id: "projectname", label: "Project", source: "ScadaDataHFD"});
 
         dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
         dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
