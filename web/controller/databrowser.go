@@ -2054,6 +2054,147 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 	return helper.CreateResult(true, pathDownload, "success")
 }
 
+func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
+	typeExcel := strings.Split(p.Misc.GetString("tipe"), "Custom")[0]
+
+	arrscadaoem := []string{"_id"}
+	headerList := []string{}
+	fieldList := []string{}
+	source := "ScadaDataHFD" /* to filter field list from payload ColumnList */
+	tablename := "Scada10MinHFD"
+	ids := ""
+
+	if p.Custom.Has("ColumnList") {
+		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
+			_tkm, _ := tk.ToM(_val)
+			ids = strings.ToLower(_tkm.GetString("_id"))
+			if _tkm.GetString("source") == source {
+				arrscadaoem = append(arrscadaoem, ids)
+			}
+			headerList = append(headerList, _tkm.GetString("label"))
+			fieldList = append(fieldList, ids)
+		}
+	}
+
+	projection := map[string]int{}
+	fproject := map[string]int{"projectname": 1, "timestamp": 1}
+	agroups := tk.M{
+		"_id": tk.M{"projectname": "$projectname", "timestamp": "$timestamp"},
+	}
+	for _, val := range arrscadaoem {
+		if val == "turbine" {
+			continue
+		}
+
+		projection[val] = 1
+		if val == "projectname" || val == "timestamp" {
+			continue
+		}
+
+		fproject[tk.Sprintf("%s_sum", val)] = 1
+		fproject[tk.Sprintf("%s_count", val)] = 1
+
+		agroups.Set(val+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", val)})
+		agroups.Set(val+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", val)})
+	}
+
+	matches := []tk.M{}
+	for _, f := range filter {
+		if f.Field == "turbine" || f.Field == "projectname" {
+			continue
+		}
+
+		value := f.Value
+		if f.Field == "timestamp" {
+			value = value.(time.Time).UTC()
+		}
+		matches = append(matches, tk.M{
+			f.Field: tk.M{f.Op: value},
+		})
+	}
+
+	pipes := []tk.M{}
+	// sortList := map[string]int{}
+	// if len(p.Sort) > 0 {
+	// 	for _, val := range p.Sort {
+	// 		if val.Dir == "desc" {
+	// 			sortList[strings.ToLower(val.Field)] = -1
+	// 		} else {
+	// 			sortList[strings.ToLower(val.Field)] = 1
+	// 		}
+	// 	}
+	// 	pipes = append(pipes, tk.M{"$sort": sortList})
+	// }
+	// pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	// pipes = append(pipes, tk.M{"$project": projection})
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": fproject})
+	pipes = append(pipes, tk.M{"$group": agroups})
+
+	// csr, e := query.Cursor(nil)
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	results := make([]tk.M, 0)
+	result := tk.M{}
+	for {
+		result = tk.M{}
+		e = csr.Fetch(&result, 1, false)
+		if e != nil {
+			break
+		}
+
+		idtk, _ := tk.ToM(result.Get("_id"))
+		resitem := tk.M{}
+		resitem.Set("projectname", idtk["projectname"])
+		resitem.Set("timestamp", idtk["timestamp"])
+		for field, _ := range projection {
+			if field == "turbine" || field == "projectname" || field == "timestamp" {
+				continue
+			}
+			resitem.Set(field, tk.Div(result.GetFloat64(field+"_sum"), result.GetFloat64(field+"_count")))
+		}
+
+		results = append(results, resitem)
+	}
+
+	var pathDownload string
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	DeserializeData(results, typeExcel, CreateDateTime, headerList, fieldList, turbineName)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
 // Deserialize
 
 func FormatThousandSeparator(floatString string) string {
