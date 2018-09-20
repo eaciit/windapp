@@ -127,7 +127,7 @@ dbfs.InitFarmWiseGrid= function() {
         columns.push(col);
     });
 
-    console.log(columns);
+    // console.log(columns);
 
     $('#farmWiseGrid').html("");
     $('#farmWiseGrid').kendoGrid({

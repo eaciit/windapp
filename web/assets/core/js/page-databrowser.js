@@ -418,7 +418,7 @@ dbr.FarmWise = function(id) {
         // $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
 
         // dbr.ResetFlagLoaded();
-        
+
         dbr.isFarmwiseLoaded(true);
         dbfs.InitFarmWiseGrid();
     } else {
@@ -618,12 +618,15 @@ function DataBrowserExporttoExcel(functionName) {
 
     var misc = {
         tipe: functionName,
-        "period": fa.period,
+        "period": functionName == "FarmWise10Min"  ? "custom" : fa.period,
     }
     var columnList = dbr.columnMustHaveOEM.concat(dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn());
     if (functionName == "ScadaHFDCustom") {
         columnList = dbr.columnMustHaveHFD.concat(dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn());
+    }else if(functionName == "FarmWise10Min"){
+        columnList = dbr.columnMustHaveFarmWise.concat(dbfs.selectedColumn() == "" ? dbfs.defaultSelectedColumn() : dbfs.selectedColumn());
     }
+
 
     var param = {
         Project: fa.project,
@@ -635,9 +638,13 @@ function DataBrowserExporttoExcel(functionName) {
         sort: dbr.LastSort,
     };
 
-    var urlName = viewModel.appName + "databrowser/genexceldata";
+    var urlName = "";
     if(functionName.toLowerCase().indexOf("custom") >= 0) {
         urlName = viewModel.appName + "databrowser/genexcelcustom10minutes";
+    }else if(functionName == "FarmWise10Min"){
+         urlName = viewModel.appName + "databrowser/genexcelcustom10farmwise";
+    }else{
+        urlName = viewModel.appName + "databrowser/genexceldata"
     }
 
     app.ajaxPost(urlName, param, function(res) {
