@@ -23,6 +23,8 @@ dbfs.InitFarmWiseGrid= function() {
 
     dbr.farmwisevis(true);
 
+
+
     var misc = {
         "tipe": "ScadaHFD",
         "period": fa.period,
@@ -79,6 +81,8 @@ dbfs.InitFarmWiseGrid= function() {
         } else {
             widthVal = 90;
         }
+
+
         var col = {
             field: val._id,
             title: val.label,
@@ -122,6 +126,8 @@ dbfs.InitFarmWiseGrid= function() {
         }
         columns.push(col);
     });
+
+    console.log(columns);
 
     $('#farmWiseGrid').html("");
     $('#farmWiseGrid').kendoGrid({
@@ -185,10 +191,10 @@ dbfs.InitFarmWiseGrid= function() {
                         return;
                     }
                     $('#totalfarm').html(kendo.toString(res.data.TotalProject, 'n0'));
-                    // $('#totaldatahfd').html(kendo.toString(res.data.Total, 'n0'));
-                    // $('#totalactivepowerhfd').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
-                    // $('#totalprodhfd').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
-                    // $('#avgwindspeedhfd').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
+                    $('#totaldatafarm').html(kendo.toString(res.data.Total, 'n0'));
+                    $('#totalactivepowerfarm').html(kendo.toString(res.data.TotalActivePower / 1000, 'n2') + ' MW');
+                    $('#totalprodfarm').html(kendo.toString(res.data.TotalEnergy / 1000, 'n2') + ' MWh');
+                    $('#avgwindspeedfarm').html(kendo.toString(res.data.AvgWindSpeed, 'n2') + ' m/s');
                     return res.data.Total;
                 },
             },
@@ -230,7 +236,7 @@ dbfs.InitFarmWiseGrid= function() {
     });
 
     $('#farmWiseGrid').data("kendoGrid").showColumn("timestamp");
-    $('#farmWiseGrid').data("kendoGrid").showColumn("turbine");
+    $('#farmWiseGrid').data("kendoGrid").showColumn("projectname");
     if (dbfs.selectedColumn() == "") {
         $.each(dbfs.defaultSelectedColumn(), function(idx, data) {
             $('#farmWiseGrid').data("kendoGrid").showColumn(data._id);
@@ -245,7 +251,7 @@ dbfs.InitFarmWiseGrid= function() {
         $("#modalShowHideHFD").modal();
         return false;
     });
-    $('#farmWiseGrid').data("kendoGrid").showColumn("turbine");
+    $('#farmWiseGrid').data("kendoGrid").showColumn("projectname");
     $('#farmWiseGrid').data("kendoGrid").showColumn("timestamp");
     $("#farmWiseGrid >.k-grid-header >.k-grid-header-locked > table > thead >tr").css("height","73px");
     
