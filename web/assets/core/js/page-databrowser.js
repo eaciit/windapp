@@ -44,6 +44,7 @@ dbr.isAlarmOverlappingLoaded = ko.observable(false);
 dbr.isAlarmAnomaliesLoaded = ko.observable(false);
 dbr.isDowntimeeventhfdLoaded = ko.observable(false);
 dbr.isLostEnergyDetailLoaded = ko.observable(false);
+dbr.isFirstLoad = ko.observable(true);
 
 dbr.gridColumnsScada = ko.observableArray([]);
 dbr.gridColumnsScadaException = ko.observableArray([]);
@@ -411,14 +412,16 @@ dbr.FarmWise = function(id) {
     app.loading(true);
     dbr.setAvailableDate(dbr.isFarmwiseLoaded());
     if(!dbr.isFarmwiseLoaded()) {
-        // var d = new Date(fa.dateEnd);
-        // d.setDate(d.getDate() - 2);
+        if(dbr.isFirstLoad()){
+            var d = new Date(fa.dateEnd);
+            d.setDate(d.getDate() - 2);
 
-        // fa.dateStart = new Date(d);
-        // $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
+            fa.dateStart = new Date(d);
+            $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
 
-        // dbr.ResetFlagLoaded();
-
+            dbr.ResetFlagLoaded();
+            dbr.isFirstLoad(false)
+        }
         dbr.isFarmwiseLoaded(true);
         dbfs.InitFarmWiseGrid();
     } else {
