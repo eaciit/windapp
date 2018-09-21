@@ -1292,7 +1292,7 @@ func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{
 
 	for _, val := range filter {
 
-		if val.Field == "turbine" || val.Field == "projectname" {
+		if val.Field == "turbine" {
 			continue
 		}
 
@@ -2110,7 +2110,7 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 
 	matches := []tk.M{}
 	for _, f := range filter {
-		if f.Field == "turbine" || f.Field == "projectname" {
+		if f.Field == "turbine" {
 			continue
 		}
 
