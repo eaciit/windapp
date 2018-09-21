@@ -767,7 +767,7 @@ $(document).ready(function() {
 
         dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
         dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
-        dbfs.defaultSelectedColumn(dbfs.ColumnList().slice(0, 28));
+        dbfs.defaultSelectedColumn(dbfs.ColumnList().slice(0, 9));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
