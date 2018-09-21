@@ -20,6 +20,7 @@ dbr.projectList = ko.observableArray([{
 }, ]);
 
 dbr.jmrvis = ko.observable(true);
+dbr.farmwisevis = ko.observable(true);
 dbr.mettowervis = ko.observable(true);
 dbr.oemvis = ko.observable(true);
 dbr.hfdvis = ko.observable(true);
@@ -36,6 +37,7 @@ dbr.isCustomLoaded = ko.observable(false);
 dbr.isEventLoaded = ko.observable(false);
 dbr.isMetLoaded = ko.observable(false);
 dbr.isJMRLoaded = ko.observable(false);
+dbr.isFarmwiseLoaded = ko.observable(false);
 dbr.isScadaExceptionTimeDurationLoaded = ko.observable(false);
 dbr.isScadaAnomaliesLoaded = ko.observable(false);
 dbr.isAlarmOverlappingLoaded = ko.observable(false);
@@ -64,6 +66,16 @@ dbr.columnMustHaveHFD = [{
 }, {
     _id: "turbine",
     label: "Turbine",
+    source: "ScadaDataHFD",
+}];
+
+dbr.columnMustHaveFarmWise = [{
+    _id: "timestamp",
+    label: "TimeStamp",
+    source: "ScadaDataHFD",
+}, {
+    _id: "projectname",
+    label: "Project Name",
     source: "ScadaDataHFD",
 }];
 
@@ -393,6 +405,28 @@ dbr.JMR = function(id) {
     }
 }
 
+
+dbr.FarmWise = function(id) {
+    fa.LoadData();    
+    app.loading(true);
+    dbr.setAvailableDate(dbr.isFarmwiseLoaded());
+    if(!dbr.isFarmwiseLoaded()) {
+        // var d = new Date(fa.dateEnd);
+        // d.setDate(d.getDate() - 2);
+
+        // fa.dateStart = new Date(d);
+        // $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
+
+        // dbr.ResetFlagLoaded();
+
+        dbr.isFarmwiseLoaded(true);
+        dbfs.InitFarmWiseGrid();
+    } else {
+        app.loading(false);
+    }
+}
+
+
 dbr.DowntimeHFD = function(id) {
     fa.LoadData();
     app.loading(true);
@@ -475,6 +509,7 @@ dbr.ResetFlagLoaded = function() {
     dbr.isAlarmAnomaliesLoaded(false);
     dbr.isDowntimeeventhfdLoaded(false);
     dbr.isLostEnergyDetailLoaded(false);
+    dbr.isFarmwiseLoaded(false);
 }
 
 dbr.selectRow = function() {
@@ -583,12 +618,15 @@ function DataBrowserExporttoExcel(functionName) {
 
     var misc = {
         tipe: functionName,
-        "period": fa.period,
+        "period": functionName == "FarmWise10Min"  ? "custom" : fa.period,
     }
     var columnList = dbr.columnMustHaveOEM.concat(dbr.selectedColumn() == "" ? dbr.defaultSelectedColumn() : dbr.selectedColumn());
     if (functionName == "ScadaHFDCustom") {
         columnList = dbr.columnMustHaveHFD.concat(dbsh.selectedColumn() == "" ? dbsh.defaultSelectedColumn() : dbsh.selectedColumn());
+    }else if(functionName == "FarmWise10Min"){
+        columnList = dbr.columnMustHaveFarmWise.concat(dbfs.selectedColumn() == "" ? dbfs.defaultSelectedColumn() : dbfs.selectedColumn());
     }
+
 
     var param = {
         Project: fa.project,
@@ -600,9 +638,13 @@ function DataBrowserExporttoExcel(functionName) {
         sort: dbr.LastSort,
     };
 
-    var urlName = viewModel.appName + "databrowser/genexceldata";
+    var urlName = "";
     if(functionName.toLowerCase().indexOf("custom") >= 0) {
         urlName = viewModel.appName + "databrowser/genexcelcustom10minutes";
+    }else if(functionName == "FarmWise10Min"){
+         urlName = viewModel.appName + "databrowser/genexcelcustom10farmwise";
+    }else{
+        urlName = viewModel.appName + "databrowser/genexceldata"
     }
 
     app.ajaxPost(urlName, param, function(res) {
@@ -712,12 +754,25 @@ $(document).ready(function() {
                 dbsh.ColumnList.push(val);
             }
         });
+
+        dbfs.ColumnList([]);
+        $.each(dbfs.AllProjectColumnList(), function(idx, val) {
+            if(val.projectname === $("#projectList").data("kendoDropDownList").value() || 
+                val.source === "MetTower") {
+                dbfs.ColumnList.push(val);
+            }
+        });
+
+        dbfs.ColumnList.push({_id: "projectname", label: "Project", source: "ScadaDataHFD"});
+
         dbr.defaultSelectedColumn(dbr.ColumnList().slice(0, 28));
         dbsh.defaultSelectedColumn(dbsh.ColumnList().slice(0, 28));
+        dbfs.defaultSelectedColumn(dbfs.ColumnList().slice(0, 28));
         fa.checkTurbine();
         Data.InitDefault();
         dbc.getColumnCustom();
         dbsh.getColumnListHFD();
+        dbfs.getColumnListHFD();
         $("#projectList").on("change", function(event) { 
              dbr.ChangeColumnList();
         });

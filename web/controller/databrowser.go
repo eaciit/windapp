@@ -96,6 +96,7 @@ func GetCustomFieldList() []tk.M {
 	return atkm
 }
 
+//test commit
 func GetHFDCustomFieldList() []tk.M {
 	atkm := []tk.M{}
 
@@ -1236,6 +1237,294 @@ func (m *DataBrowserController) GetCustomList(k *knot.WebContext) interface{} {
 	return helper.CreateResult(true, data, "success")
 }
 
+func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
+	// tipe := p.Misc.GetString("tipe")
+
+	tablename := "Scada10MinHFD"
+	arrscadaoem := []string{"_id"}
+	source := "ScadaDataHFD"
+
+	filter = append(filter, dbox.Eq("isnull", false))
+
+	ids := ""
+	projection := map[string]int{}
+	if p.Custom.Has("ColumnList") {
+		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
+			_tkm, _ := tk.ToM(_val)
+			ids = strings.ToLower(_tkm.GetString("_id"))
+			if _tkm.GetString("source") == source {
+				projection[ids] = 1
+				arrscadaoem = append(arrscadaoem, ids)
+			}
+		}
+	}
+
+	matches := []tk.M{}
+	_tstart, _tend, _usethis := time.Time{}, time.Time{}, false
+	for _, val := range p.Filter.Filters {
+		for _, xval := range val.Filters {
+			if xval.Field == "timestamp" {
+				_xtime, _e := time.Parse("2006-01-02T15:04:05.000Z", tk.ToString(xval.Value))
+				if _e != nil {
+					_xtime, _ = time.Parse("2006-01-02 15:04:05", tk.ToString(xval.Value))
+				}
+				if xval.Op == "lte" {
+					_tend = _xtime
+				} else {
+					_tstart = _xtime
+				}
+			}
+		}
+	}
+
+	if _sub := _tend.UTC().Sub(_tstart.UTC()).Hours(); !_tstart.IsZero() && !_tend.IsZero() && _sub >= 0 && _sub < 24 {
+		_usethis = true
+	}
+
+	for _, val := range filter {
+
+		if val.Field == "turbine" || val.Field == "projectname" {
+			continue
+		}
+
+		ttkm := tk.M{
+			val.Field: tk.M{val.Op: val.Value},
+		}
+
+		if val.Field == "timestamp" {
+			ttime := val.Value.(time.Time).UTC()
+			if _usethis && val.Op == "$lte" {
+				ttime = _tend
+			} else if _usethis {
+				ttime = _tstart
+			}
+			ttkm = tk.M{
+				val.Field: tk.M{val.Op: ttime},
+			}
+		}
+
+		matches = append(matches, ttkm)
+	}
+
+	matches = append(matches, tk.M{
+		"windspeed_ms": tk.M{"$gt": -200},
+	})
+	matches = append(matches, tk.M{
+		"windspeed_ms": tk.M{"$exists": true},
+	})
+	matches = append(matches, tk.M{
+		"activepower_kw": tk.M{"$exists": true},
+	})
+
+	pipes := []tk.M{}
+	agroups := tk.M{
+		"_id": tk.M{"projectname": "$projectname", "timestamp": "$timestamp"},
+	}
+
+	fproject := map[string]int{"projectname": 1, "timestamp": 1}
+	for field, _ := range projection {
+		if field == "turbine" || field == "projectname" || field == "timestamp" {
+			continue
+		}
+
+		fproject[tk.Sprintf("%s_sum", field)] = 1
+		fproject[tk.Sprintf("%s_count", field)] = 1
+
+		agroups.Set(field+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", field)})
+		agroups.Set(field+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", field)})
+	}
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": fproject})
+	pipes = append(pipes, tk.M{"$group": agroups})
+
+	pipes = append(pipes, []tk.M{
+		tk.M{"$skip": p.Skip},
+		tk.M{"$limit": p.Take},
+	}...)
+
+	// tk.Println(" === ", fproject)
+	// tk.Println(" === ", projection)
+
+	// timenow := time.Now()
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// tk.Println("CSR : ", time.Since(timenow).String())
+	// timenow = time.Now()
+
+	results := make([]tk.M, 0)
+	items := []tk.M{}
+	e = csr.Fetch(&items, 0, false)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// tk.Println("FETCH : ", time.Since(timenow).String())
+	// timenow = time.Now()
+
+	for _, item := range items {
+
+		idtk, _ := tk.ToM(item.Get("_id"))
+
+		resitem := tk.M{}
+		resitem.Set("projectname", idtk["projectname"])
+		resitem.Set("timestamp", idtk["timestamp"])
+		for field, _ := range projection {
+			if field == "turbine" || field == "projectname" || field == "timestamp" {
+				continue
+			}
+			resitem.Set(field, tk.Div(item.GetFloat64(field+"_sum"), item.GetFloat64(field+"_count")))
+		}
+
+		// tk.Println(">> ", resitem)
+
+		results = append(results, resitem)
+	}
+	// tk.Println("PRE-PRO 01 : ", time.Since(timenow).String())
+	// timenow = time.Now()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	countAll := 0.0 //jangan dibaca dengan lantang, nanti pada gempar
+	totalPower := 0.0
+	totalPowerLost := 0.0
+	totalActivePower := 0.0
+	avgWindSpeed := 0.0
+	totalTurbine := 0
+	AvgWS := 0.0
+
+	groups, gprojects := tk.M{}, tk.M{}
+	groups = tk.M{
+		"_id":              tk.M{"projectname": "$projectname", "timestamp": "$timestamp"},
+		"TotalActivePower": tk.M{"$sum": "$power"},
+		"AvgWindSpeed":     tk.M{"$sum": "$avgwindspeed"},
+	}
+	gprojects.Set("projectname", 1).Set("power", 1).Set("avgwindspeed", 1).Set("timestamp", 1)
+	tablename = "ScadaData"
+	for i, _match := range matches {
+		if _match.Has("windspeed_ms") {
+			_match.Set("avgwindspeed", _match.Get("windspeed_ms"))
+			_match.Unset("windspeed_ms")
+		}
+		if _match.Has("activepower_kw") {
+			_match.Set("power", _match.Get("activepower_kw"))
+			_match.Unset("activepower_kw")
+		}
+		if _match.Has("isnull") {
+			_match.Set("available", 1)
+			_match.Unset("isnull")
+		}
+		matches[i] = _match
+	}
+
+	pipes = []tk.M{
+		tk.M{"$match": tk.M{"$and": matches}},
+		tk.M{"$project": gprojects},
+		tk.M{"$group": groups},
+	}
+
+	caggr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer caggr.Close()
+
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	tproject := tk.M{}
+	for {
+		item := tk.M{}
+		e = caggr.Fetch(&item, 1, false)
+		if e != nil {
+			break
+		}
+
+		idtk := item.Get("_id", tk.M{}).(tk.M)
+		tproject.Set(idtk.GetString("projectname"), 1)
+
+		totalActivePower += item.GetFloat64("TotalActivePower")
+		avgWindSpeed += item.GetFloat64("AvgWindSpeed")
+		countAll += 1
+	}
+
+	if countAll > 0.0 {
+		AvgWS = avgWindSpeed / countAll
+	}
+
+	allFieldRequested := arrscadaoem
+	header := map[string]string{}
+
+	hfdexlist := []string{"timestamp", "projectname", "turbine", "turbinestate", "statedescription"}
+	for _, val := range allFieldRequested {
+		if tk.HasMember(hfdexlist, val) {
+			if val == "timestamp" {
+				header[val] = "time.Time"
+			} else if val == "turbinestate" {
+				header[val] = "int"
+			} else {
+				header[val] = "string"
+			}
+		} else {
+			header[val] = "float64"
+		}
+	}
+
+	// tk.Println("AGGR 01 : ", time.Since(timenow).String())
+	// timenow = time.Now()
+
+	result, e := CheckData(results, filter, header, "custom")
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	// tk.Println("PRE-PRO 02 : ", time.Since(timenow).String())
+	// timenow = time.Now()
+
+	data := struct {
+		Data             []tk.M
+		Total            int
+		TotalPower       float64
+		TotalPowerLost   float64
+		TotalActivePower float64
+		AvgWindSpeed     float64
+		TotalTurbine     int
+		TotalProject     int
+		TotalEnergy      float64
+		LastFilter       *helper.FilterJS
+		LastSort         []helper.Sorting
+	}{
+		Data:             result,
+		Total:            tk.ToInt(countAll, tk.RoundingAuto),
+		TotalPower:       totalPower,
+		TotalPowerLost:   totalPowerLost,
+		TotalActivePower: totalActivePower,
+		AvgWindSpeed:     AvgWS, //avgWindSpeed / float64(ccount.Count()),
+		TotalTurbine:     totalTurbine,
+		TotalProject:     len(tproject),
+		TotalEnergy:      totalActivePower / 6,
+		LastFilter:       p.Filter,
+		LastSort:         p.Sort,
+	}
+
+	return helper.CreateResult(true, data, "success")
+}
+
 func (m *DataBrowserController) getSummaryColumn(filter []*dbox.Filter, column, aggr, tablename string) float64 {
 	xFilter := []*dbox.Filter{}
 	queryAggr := DB().Connection.NewQuery().From(tablename)
@@ -1742,6 +2031,147 @@ func (m *DataBrowserController) GenExcelCustom10Minutes(k *knot.WebContext) inte
 			results[i] = val
 		}
 	}*/
+
+	var pathDownload string
+	TimeCreate := time.Now().Format("2006-01-02_150405")
+	CreateDateTime := typeExcel + TimeCreate
+
+	if err := os.RemoveAll("web/assets/Excel/" + typeExcel + "/"); err != nil {
+		tk.Println(err)
+	}
+
+	if _, err := os.Stat("web/assets/Excel/" + typeExcel + "/"); os.IsNotExist(err) {
+		os.MkdirAll("web/assets/Excel/"+typeExcel+"/", 0777)
+	}
+
+	turbineName, err := helper.GetTurbineNameList(p.Project)
+	if err != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+	DeserializeData(results, typeExcel, CreateDateTime, headerList, fieldList, turbineName)
+	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
+
+	return helper.CreateResult(true, pathDownload, "success")
+}
+
+func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) interface{} {
+	k.Config.OutputType = knot.OutputJson
+
+	p := new(helper.Payloads)
+	e := k.GetPayload(&p)
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	p.Misc.Set("knot_data", k)
+	filter, _ := p.ParseFilter()
+	typeExcel := strings.Split(p.Misc.GetString("tipe"), "Custom")[0]
+
+	arrscadaoem := []string{"_id"}
+	headerList := []string{}
+	fieldList := []string{}
+	source := "ScadaDataHFD" /* to filter field list from payload ColumnList */
+	tablename := "Scada10MinHFD"
+	ids := ""
+
+	if p.Custom.Has("ColumnList") {
+		for _, _val := range p.Custom["ColumnList"].([]interface{}) {
+			_tkm, _ := tk.ToM(_val)
+			ids = strings.ToLower(_tkm.GetString("_id"))
+			if _tkm.GetString("source") == source {
+				arrscadaoem = append(arrscadaoem, ids)
+			}
+			headerList = append(headerList, _tkm.GetString("label"))
+			fieldList = append(fieldList, ids)
+		}
+	}
+
+	projection := map[string]int{}
+	fproject := map[string]int{"projectname": 1, "timestamp": 1}
+	agroups := tk.M{
+		"_id": tk.M{"projectname": "$projectname", "timestamp": "$timestamp"},
+	}
+	for _, val := range arrscadaoem {
+		if val == "turbine" {
+			continue
+		}
+
+		projection[val] = 1
+		if val == "projectname" || val == "timestamp" {
+			continue
+		}
+
+		fproject[tk.Sprintf("%s_sum", val)] = 1
+		fproject[tk.Sprintf("%s_count", val)] = 1
+
+		agroups.Set(val+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", val)})
+		agroups.Set(val+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", val)})
+	}
+
+	matches := []tk.M{}
+	for _, f := range filter {
+		if f.Field == "turbine" || f.Field == "projectname" {
+			continue
+		}
+
+		value := f.Value
+		if f.Field == "timestamp" {
+			value = value.(time.Time).UTC()
+		}
+		matches = append(matches, tk.M{
+			f.Field: tk.M{f.Op: value},
+		})
+	}
+
+	pipes := []tk.M{}
+	// sortList := map[string]int{}
+	// if len(p.Sort) > 0 {
+	// 	for _, val := range p.Sort {
+	// 		if val.Dir == "desc" {
+	// 			sortList[strings.ToLower(val.Field)] = -1
+	// 		} else {
+	// 			sortList[strings.ToLower(val.Field)] = 1
+	// 		}
+	// 	}
+	// 	pipes = append(pipes, tk.M{"$sort": sortList})
+	// }
+	// pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	// pipes = append(pipes, tk.M{"$project": projection})
+
+	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
+	pipes = append(pipes, tk.M{"$project": fproject})
+	pipes = append(pipes, tk.M{"$group": agroups})
+
+	// csr, e := query.Cursor(nil)
+	csr, e := DB().Connection.NewQuery().
+		From(tablename).Command("pipe", pipes).Cursor(nil)
+	defer csr.Close()
+	if e != nil {
+		return helper.CreateResult(false, nil, e.Error())
+	}
+
+	results := make([]tk.M, 0)
+	result := tk.M{}
+	for {
+		result = tk.M{}
+		e = csr.Fetch(&result, 1, false)
+		if e != nil {
+			break
+		}
+
+		idtk, _ := tk.ToM(result.Get("_id"))
+		resitem := tk.M{}
+		resitem.Set("projectname", idtk["projectname"])
+		resitem.Set("timestamp", idtk["timestamp"])
+		for field, _ := range projection {
+			if field == "turbine" || field == "projectname" || field == "timestamp" {
+				continue
+			}
+			resitem.Set(field, tk.Div(result.GetFloat64(field+"_sum"), result.GetFloat64(field+"_count")))
+		}
+
+		results = append(results, resitem)
+	}
 
 	var pathDownload string
 	TimeCreate := time.Now().Format("2006-01-02_150405")
