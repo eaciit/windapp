@@ -414,7 +414,7 @@ dbr.FarmWise = function(id) {
     if(!dbr.isFarmwiseLoaded()) {
         if(dbr.isFirstLoad()){
             var d = new Date(fa.dateEnd);
-            d.setDate(d.getDate() - 2);
+            d.setDate(d.getDate() - 1);
 
             fa.dateStart = new Date(d);
             $('#dateStart').data('kendoDatePicker').value(fa.dateStart);
