@@ -2089,7 +2089,7 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 	filter, _ := p.ParseFilter()
 	typeExcel := strings.Split(p.Misc.GetString("tipe"), "Custom")[0]
 
-	arrscadaoem := []string{"_id"}
+	arrscadaoem := []string{}
 	headerList := []string{}
 	fieldList := []string{}
 	source := "ScadaDataHFD" /* to filter field list from payload ColumnList */
@@ -2130,7 +2130,7 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 		// agroups.Set(val+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", val)})
 
 		fproject[val] = 1
-		agroups.Set(val, tk.M{"$sum": tk.Sprintf("$%s", val)})
+		agroups.Set(val, tk.M{"$avg": tk.Sprintf("$%s", val)})
 	}
 
 	matches := []tk.M{}
@@ -2184,7 +2184,8 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 			break
 		}
 
-		idtk, _ := tk.ToM(result.Get("_id"))
+		// idtk, _ := tk.ToM(result.Get("_id"))
+		idtk := result.Get("_id", tk.M{}).(tk.M)
 		// resitem := tk.M{}
 		// resitem.Set("projectname", idtk["projectname"])
 		// resitem.Set("timestamp", idtk["timestamp"])
@@ -2194,8 +2195,9 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 		// 	}
 		// 	resitem.Set(field, tk.Div(result.GetFloat64(field+"_sum"), result.GetFloat64(field+"_count")))
 		// }
+		// tk.Println(result)
 		result.Set("projectname", idtk["projectname"])
-		result.Set("timestamp", idtk["timestamp"])
+		result.Set("timestamp", idtk.Get("timestamp", time.Time{}).(time.Time))
 
 		results = append(results, result)
 	}
@@ -2216,6 +2218,9 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 	if err != nil {
 		return helper.CreateResult(false, nil, e.Error())
 	}
+	// for _, res := range results {
+	// 	tk.Println(" == ", res)
+	// }
 	DeserializeData(results, typeExcel, CreateDateTime, headerList, fieldList, turbineName)
 	pathDownload = "res/Excel/" + typeExcel + "/" + CreateDateTime + ".xlsx"
 
@@ -2267,13 +2272,14 @@ func DeserializeData(data []tk.M, typeExcel, CreateDateTime string, header, fiel
 			}
 		}
 
+		// tk.Println(" == ", each)
 		rowContent := sheet.AddRow()
 		cell := rowContent.AddCell()
 		for idx, field := range fieldList {
 			if idx > 0 {
 				cell = rowContent.AddCell()
 			}
-			if each.Has(field) {
+			if each.Has(field) && each[field] != nil {
 				switch field {
 				case "timestamp", "timestamputc", "timestart", "timeend":
 					cell.Value = each[field].(time.Time).UTC().Format("2006-01-02 15:04:05")
