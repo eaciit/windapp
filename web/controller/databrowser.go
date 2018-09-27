@@ -1336,23 +1336,46 @@ func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{
 			continue
 		}
 
-		fproject[tk.Sprintf("%s_sum", field)] = 1
-		fproject[tk.Sprintf("%s_count", field)] = 1
+		// fproject[tk.Sprintf("%s_sum", field)] = 1
+		// fproject[tk.Sprintf("%s_count", field)] = 1
 
-		agroups.Set(field+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", field)})
-		agroups.Set(field+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", field)})
+		// agroups.Set(field+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", field)})
+		// agroups.Set(field+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", field)})
+
+		fproject[field] = 1
+		agroups.Set(field, tk.M{"$avg": tk.Sprintf("$%s", field)})
+	}
+
+	sortList := map[string]int{}
+	if len(p.Sort) > 0 {
+		for _, val := range p.Sort {
+			field := strings.ToLower(val.Field)
+			if field == "turbine" || field == "projectname" || field == "timestamp" {
+				continue
+			}
+			if val.Dir == "desc" {
+				sortList[field] = -1
+			} else {
+				sortList[field] = 1
+			}
+		}
+	}
+
+	if len(sortList) == 0 {
+		sortList["_id"] = 1
 	}
 
 	pipes = append(pipes, tk.M{"$match": tk.M{"$and": matches}})
 	pipes = append(pipes, tk.M{"$project": fproject})
 	pipes = append(pipes, tk.M{"$group": agroups})
+	pipes = append(pipes, tk.M{"$sort": sortList})
 
 	pipes = append(pipes, []tk.M{
 		tk.M{"$skip": p.Skip},
 		tk.M{"$limit": p.Take},
 	}...)
 
-	// tk.Println(" === ", fproject)
+	// tk.Println(" === ", pipes)
 	// tk.Println(" === ", projection)
 
 	// timenow := time.Now()
@@ -1380,19 +1403,18 @@ func (m *DataBrowserController) GetCustomFarmWise(k *knot.WebContext) interface{
 
 		idtk, _ := tk.ToM(item.Get("_id"))
 
-		resitem := tk.M{}
-		resitem.Set("projectname", idtk["projectname"])
-		resitem.Set("timestamp", idtk["timestamp"])
-		for field, _ := range projection {
-			if field == "turbine" || field == "projectname" || field == "timestamp" {
-				continue
-			}
-			resitem.Set(field, tk.Div(item.GetFloat64(field+"_sum"), item.GetFloat64(field+"_count")))
-		}
+		// tk.Println(" -- ", idtk["timestamp"])
 
-		// tk.Println(">> ", resitem)
+		item.Set("projectname", idtk["projectname"])
+		item.Set("timestamp", idtk["timestamp"])
+		// for field, _ := range projection {
+		// 	if field == "turbine" || field == "projectname" || field == "timestamp" {
+		// 		continue
+		// 	}
+		// 	resitem.Set(field, tk.Div(item.GetFloat64(field+"_sum"), item.GetFloat64(field+"_count")))
+		// }
 
-		results = append(results, resitem)
+		results = append(results, item)
 	}
 	// tk.Println("PRE-PRO 01 : ", time.Since(timenow).String())
 	// timenow = time.Now()
@@ -2101,11 +2123,14 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 			continue
 		}
 
-		fproject[tk.Sprintf("%s_sum", val)] = 1
-		fproject[tk.Sprintf("%s_count", val)] = 1
+		// fproject[tk.Sprintf("%s_sum", val)] = 1
+		// fproject[tk.Sprintf("%s_count", val)] = 1
 
-		agroups.Set(val+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", val)})
-		agroups.Set(val+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", val)})
+		// agroups.Set(val+"_sum", tk.M{"$sum": tk.Sprintf("$%s_sum", val)})
+		// agroups.Set(val+"_count", tk.M{"$sum": tk.Sprintf("$%s_count", val)})
+
+		fproject[val] = 1
+		agroups.Set(val, tk.M{"$sum": tk.Sprintf("$%s", val)})
 	}
 
 	matches := []tk.M{}
@@ -2160,17 +2185,19 @@ func (m *DataBrowserController) GenExcelCustom10FarmWise(k *knot.WebContext) int
 		}
 
 		idtk, _ := tk.ToM(result.Get("_id"))
-		resitem := tk.M{}
-		resitem.Set("projectname", idtk["projectname"])
-		resitem.Set("timestamp", idtk["timestamp"])
-		for field, _ := range projection {
-			if field == "turbine" || field == "projectname" || field == "timestamp" {
-				continue
-			}
-			resitem.Set(field, tk.Div(result.GetFloat64(field+"_sum"), result.GetFloat64(field+"_count")))
-		}
+		// resitem := tk.M{}
+		// resitem.Set("projectname", idtk["projectname"])
+		// resitem.Set("timestamp", idtk["timestamp"])
+		// for field, _ := range projection {
+		// 	if field == "turbine" || field == "projectname" || field == "timestamp" {
+		// 		continue
+		// 	}
+		// 	resitem.Set(field, tk.Div(result.GetFloat64(field+"_sum"), result.GetFloat64(field+"_count")))
+		// }
+		result.Set("projectname", idtk["projectname"])
+		result.Set("timestamp", idtk["timestamp"])
 
-		results = append(results, resitem)
+		results = append(results, result)
 	}
 
 	var pathDownload string
