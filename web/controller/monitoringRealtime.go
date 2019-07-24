@@ -3003,7 +3003,7 @@ func getReffTurbineState(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Lahori"
 	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
 		project = "Tejuva"
-	case "Amba", "Sattigeri", "Nimbagallu":
+	case "Amba", "Sattigeri", "Nimbagallu", "Bhuvad":
 		project = "Amba"
 	case "Rajgarh":
 		project = "Rajgarh"
@@ -3043,7 +3043,7 @@ func getReffAlarmBrake(project string, rconn dbox.IConnection) (tkm tk.M) {
 		project = "Lahori"
 	case "Tejuva", "Dewas", "RallaAP", "RallaAndhra":
 		project = "Tejuva"
-	case "Amba", "Sattigeri", "Nimbagallu":
+	case "Amba", "Sattigeri", "Nimbagallu", "Bhuvad":
 		project = "Amba"
 	case "Rajgarh":
 		project = "Rajgarh"
