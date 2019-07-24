@@ -127,7 +127,7 @@ dbdhfd.InitDEHFDgrid = function() {
             }, {
                 title: "Time End",
                 field: "TimeEnd",
-                template: "#= kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss') #",
+                template: "#= (moment.utc(TimeEnd).format('DD-MM-YYYY') == '01-01-0001'?'Not yet finished' : kendo.toString(moment.utc(TimeEnd).format('DD-MMM-YYYY HH:mm:ss'), 'dd-MMM-yyyy HH:mm:ss')) #",
                 width: 100,
                 filterable: false
             }, {
