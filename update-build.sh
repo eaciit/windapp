@@ -1,13 +1,13 @@
-sudo pkill wfdemo-git-oem
+sudo pkill wfdemo-git-prod
 
 git reset --hard
 
-rm wfdemo-git-oem
-sudo mv nohup.out /mnt/data/ostrorealtime/applog/log_oem_$(date +"%Y%m%d_%H%M%S")
+rm wfdemo-git-prod
+sudo rm nohup.out
 
 git pull
 
-$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git-oem"
+$GOPATH/bin/gorep -path="." -from="eaciit/wfdemo-git" -to="eaciit/wfdemo-git-prod"
 
-go build -o wfdemo-git-oem
-sudo nohup ./wfdemo-git-oem &
+go build -o wfdemo-git-prod
+sudo nohup ./wfdemo-git-prod &
